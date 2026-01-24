@@ -1,0 +1,226 @@
+AI Dungeon Master POC – Backlog
+1. Introduzione
+Questo backlog descrive le funzionalità e le attività necessarie per lo sviluppo di una Proof of Concept (POC)
+di un Dungeon Master (DM) basato su intelligenza artificiale, in grado di gestire campagne di Dungeons
+& Dragons (D&D) in tempo reale. L’obiettivo è permettere a un gruppo di giocatori di interagire vocalmente
+con l’AI DM, che narra, ascolta e gestisce le regole di gioco utilizzando contenuti open source (SRD) e
+materiali forniti dall’utente. La POC deve contemplare la persistenza delle campagne per consentire la
+continuazione delle sessioni.
+
+2. Scopo e perimetro della POC
+La POC copre le seguenti aree principali:
+• Gestione dell’utente: registrazione, autenticazione e accesso all’area personale.
+• Gestione delle campagne: creazione, elenco e ripresa di campagne con salvataggio dello stato.
+• Interazione vocale: trascrizione della voce dei giocatori, identificazione di chi parla e risposta vocale
+dell’AI DM con latenza bassa.
+• Motore di gioco: gestione dello stato (personaggi, NPC, ambientazioni, quest), applicazione di
+regole base di D&D (tiri di dado, prove di abilità, combattimento semplificato).
+• Integrazione di contenuti: caricamento del materiale ufficiale SRD e di documenti forniti dall’utente
+per dare contesto all’AI DM.
+Sono fuori dal perimetro della POC la generazione dinamica di mappe grafiche, la gestione avanzata dei
+combattimenti e l’integrazione con VTT; tali funzionalità saranno considerate nelle fasi successive.
+
+3. Attori
+• Giocatore: utente che accede all’applicazione, crea o riprende una campagna e interagisce
+vocalmente con l’AI DM.
+• AI Dungeon Master: agente AI che gestisce la narrativa, interpreta le azioni dei giocatori, applica le
+regole e mantiene lo stato della campagna.
+• Sistema: infrastruttura tecnica che gestisce autenticazione, archiviazione dei dati, streaming audio,
+motore di regole e persistenza.
+
+4. Epici e User Story
+EPIC1 – Gestione utente e autenticazione
+• US1.1 – Registrazione di un nuovo utente
+L’utente si registra creando un account con nome utente e password per poter accedere all’area personale.
+
+1
+
+Criteri di accettazione - È presente una pagina di registrazione con campi obbligatori (username, password,
+conferma). - Il sistema verifica che l’username sia univoco e la password soddisfi i requisiti di complessità. A registrazione avvenuta l’utente viene reindirizzato alla pagina di login.
+• US1.2 – Login utente
+L’utente si autentica nel sistema per accedere alla propria area personale, dove può consultare campagne
+running o crearne di nuove.
+Criteri di accettazione - È presente un form di login che richiede username e password. - Le credenziali
+vengono validate lato server; in caso di successo viene creata una sessione utente. - In caso di errore, il
+sistema mostra un messaggio chiaro (utente inesistente o password errata). - Al login riuscito viene
+mostrata la homepage dell’area personale dell’utente.
+• US1.3 – Logout
+Il giocatore può disconnettersi chiudendo la sessione corrente.
+Criteri di accettazione - È presente un pulsante/logout nel menu utente. - Alla selezione l’utente viene
+disconnesso e reindirizzato alla pagina di login.
+
+EPIC2 – Gestione delle campagne e persistenza
+• US2.1 – Creazione di una nuova campagna
+L’utente crea una nuova campagna definendo il nome e il sistema di regole (es. D&D 5e) affinché l’AI DM
+generi il contesto iniziale.
+Criteri di accettazione - La pagina di creazione permette di inserire nome campagna e selezionare il
+regolamento. - All’atto della creazione l’AI DM genera un’introduzione e lo stato iniziale (quest, location,
+NPC). - La nuova campagna viene salvata nel database associata all’utente.
+• US2.2 – Lista e selezione campagne esistenti
+L’utente visualizza l’elenco delle campagne salvate e sceglie quale riprendere.
+Criteri di accettazione - La homepage mostra un elenco di campagne con nome, data ultima modifica e stato.
+- Cliccando su una campagna si avvia la sessione e viene caricato lo stato salvato. - Se l’utente non ha
+campagne viene mostrato un messaggio e un pulsante per crearne una.
+• US2.3 – Salvataggio automatico della campagna
+Durante la sessione la campagna viene salvata periodicamente e ad ogni evento significativo.
+
+2
+
+Criteri di accettazione - Il sistema salva automaticamente lo stato dopo ogni interazione o al termine della
+sessione. - Il salvataggio include lo stato narrativo, personaggi, inventari e la registrazione della
+conversazione. - In caso di crash la sessione può essere recuperata fino all’ultimo salvataggio riuscito.
+• US2.4 – Ripresa della campagna
+Alla ripresa di una campagna l’AI DM recupera lo stato salvato e prosegue la narrazione in maniera
+coerente.
+Criteri di accettazione - Il sistema carica lo stato persistente (facts ledger, log narrativo, quest aperte). - L’AI
+DM presenta un breve riepilogo degli eventi precedenti ai giocatori. - Le interazioni successive proseguono
+senza perdita di continuità narrativa.
+
+EPIC3 – Interazione vocale in tempo reale
+• US3.1 – Trascrizione della voce dei giocatori
+Il sistema acquisisce l’audio dai microfoni dei giocatori e lo trasforma in testo in tempo quasi reale.
+Criteri di accettazione - Il sistema utilizza un servizio di riconoscimento vocale (ASR) con latenza bassa
+(< 2 secondi). - La trascrizione è associata al giocatore corretto tramite multi‑device o diarizzazione. - In caso
+di parole non comprese viene richiesto al giocatore di ripetere o chiarire.
+• US3.2 – Voce del DM in output
+L’AI DM risponde e narra usando una sintesi vocale con latenza contenuta.
+Criteri di accettazione - Il sistema integra un servizio di speech‑to‑speech o text‑to‑speech per generare
+audio naturale. - La latenza della risposta è compatibile con il flusso di conversazione (< 2 secondi). - Il
+volume e la chiarezza della voce sono regolabili dall’utente.
+• US3.3 – Gestione turni e interruzioni (barge‑in)
+Il sistema gestisce i turni di parola: l’AI DM può essere interrotto dai giocatori e smette di parlare per
+ascoltare.
+Criteri di accettazione - Quando un giocatore inizia a parlare il sistema interrompe la sintesi del DM e passa
+in modalità ascolto. - Dopo l’azione del giocatore, l’AI DM riprende la narrazione dal punto corretto. Eventuali sovrapposizioni di parlato vengono segnalate all’utente con un messaggio o feedback audio.
+
+EPIC4 – Identificazione del parlante
+• US4.1 – Multi‑device e associazione al giocatore
+Ogni giocatore si connette con il proprio dispositivo così da essere identificato facilmente dal sistema.
+
+3
+
+Criteri di accettazione - L’applicazione genera un link o codice univoco per permettere ai giocatori di unirsi
+alla sessione. - Le sorgenti audio sono mappate ai rispettivi utenti senza ambiguità. - In caso di perdita di
+connessione il giocatore può ricollegarsi senza perdere lo stato.
+• US4.2 – Diarizzazione su un unico microfono (opzionale)
+Se i giocatori usano un solo dispositivo, il sistema utilizza un algoritmo di diarizzazione per distinguere le
+voci.
+Criteri di accettazione - Il sistema richiede una breve registrazione di ogni giocatore per “enroll” la voce. Durante la sessione i segmenti di parlato sono etichettati con il giocatore più probabile. - In caso di dubbi il
+sistema chiede esplicitamente chi sta parlando.
+• US4.3 – Fallback push‑to‑talk
+Come soluzione alternativa, ogni giocatore preme un pulsante per attivare il microfono e indicare che sta
+parlando.
+Criteri di accettazione - L’interfaccia include un pulsante push‑to‑talk per ogni giocatore. - Durante la
+pressione il microfono attivo è chiaramente visibile agli altri. - Il sistema registra il parlato e lo associa al
+giocatore proprietario del pulsante.
+
+EPIC5 – Motore di gioco e regole
+• US5.1 – Gestione dello stato di gioco
+L’AI DM mantiene e aggiorna la rappresentazione dello stato, inclusi i personaggi, gli NPC, le locations, le
+quest e l’inventario.
+Criteri di accettazione - Il sistema conserva un ledger dei fatti stabiliti con eventi chiave e cambiamenti. - Le
+interazioni dei giocatori aggiornano lo stato e sono persistenti. - Lo stato è serializzabile e può essere
+ricaricato senza perdita di informazioni.
+• US5.2 – Applicazione delle regole base di D&D
+Per risolvere le azioni dei giocatori l’AI DM utilizza le regole pubbliche del SRD (tiri di dado, bonus, prove di
+abilità, combattimenti).
+Criteri di accettazione - Il sistema implementa un roller di dado generico (d20, d6, ecc.) con seed
+deterministico per la riproducibilità. - Le prove di abilità confrontano il tiro con la CD impostata dall’AI DM e
+restituiscono successo o fallimento. - Il combattimento base gestisce iniziativa, punti ferita, colpi a segno e
+condizioni, ma senza simulazioni complesse di tattiche.
+• US5.3 – Generazione e continuità narrativa
+L’AI DM crea e adatta la trama, gli incontri e gli NPC sulla base delle scelte dei giocatori e del materiale
+disponibile.
+
+4
+
+Criteri di accettazione - La narrazione tiene conto di eventi passati registrati nel ledger. - Il sistema può creare
+nuovi NPC con motivazioni, segreti e legami utilizzando tecniche generative. - La coerenza è garantita: l’AI
+DM non contraddice fatti precedenti e rende esplicite le fonti se necessario.
+
+EPIC6 – Integrazione contenuti e regole
+• US6.1 – Caricamento materiale SRD e documenti
+Un amministratore o l’utente può caricare documenti (SRD, appunti, PDF) che verranno indicizzati e utilizzati
+dall’AI DM.
+Criteri di accettazione - È presente una funzione di upload che accetta formati comuni (PDF, TXT, DOCX). - Il
+sistema estrae e indicizza i contenuti per la successiva consultazione. - Eventuali errori di parsing sono
+segnalati all’utente.
+• US6.2 – Recupero di regole e lore
+L’AI DM attinge ai documenti caricati per applicare regole o richiamare lore pertinenti durante la campagna.
+Criteri di accettazione - In risposta a domande sui regolamenti, l’AI DM cita la regola corretta e spiega
+l’interpretazione. - Le informazioni provenienti da documenti sono distinguibili da quelle generate dall’AI. Contenuti non open o coperti da copyright sono esclusi o parafrasati in modo conforme alle licenze.
+
+EPIC7 – Interfaccia utente e dashboard
+• US7.1 – Dashboard e home page
+L’utente dispone di una dashboard che mostra le campagne, il bottone per crearne una nuova e l’accesso al
+profilo.
+Criteri di accettazione - L’interfaccia è responsive per dispositivi mobile (telefono/tablet). - L’elenco delle
+campagne è facilmente navigabile e comprende le principali informazioni. - Sono presenti collegamenti ai
+moduli di creazione campagna, impostazioni e logout.
+• US7.2 – Schermata di sessione
+Durante la sessione, l’interfaccia mostra il feed della trascrizione, le opzioni push‑to‑talk (se previste) e un
+log degli eventi.
+Criteri di accettazione - Il log è aggiornato in tempo reale con le frasi pronunciate e le azioni rilevanti. - I
+giocatori possono accedere al riepilogo del proprio personaggio e all’inventario. - Feedback chiari per errori
+di riconoscimento vocale o problemi di connessione.
+
+EPIC8 – Persistenza e storage
+• US8.1 – Archiviazione dello stato e delle conversazioni
+Il sistema salva su un database lo stato della campagna e le trascrizioni delle sessioni.
+
+5
+
+Criteri di accettazione - È definito uno schema dati per campagne, sessioni, personaggi, NPC, ledger di fatti e
+transcript. - Il salvataggio avviene in background senza bloccare l’interazione. - È possibile esportare i dati
+per backup o analisi (opzionale).
+• US8.2 – Ripristino e backup
+Il sistema garantisce il recupero dello stato in caso di crash o interruzione.
+Criteri di accettazione - Esistono procedure di backup regolari (cronjob) su storage sicuro. - I dati possono
+essere ripristinati alla versione precedente al crash. - Le operazioni di ripristino sono testate e documentate.
+
+EPIC9 – Performance e affidabilità
+• US9.1 – Latenza e qualità della voce
+Le interazioni vocali devono essere fluide: la latenza totale tra input del giocatore e risposta del DM deve
+essere inferiore a 2 secondi.
+Criteri di accettazione - Test di performance sui componenti ASR e sintesi vocale con diverse condizioni di
+rete. - Monitoraggio e logging dei tempi di risposta in produzione. - Esistenza di fallback testuale se il
+servizio vocale presenta malfunzionamenti.
+• US9.2 – Robustezza del sistema
+La POC deve gestire errori di rete, perdite di audio e crash dei servizi senza compromettere la campagna.
+Criteri di accettazione - Gestione delle eccezioni e riconnessione automatica ai servizi audio. - Messaggi di
+feedback chiari agli utenti in caso di problemi. - Test di resilienza per verificare che le sessioni rimangano
+recuperabili dopo un crash.
+
+EPIC10 – Sicurezza e privacy
+• US10.1 – Protezione dati e audio
+I dati degli utenti e le trascrizioni audio devono essere protetti contro accessi non autorizzati.
+Criteri di accettazione - Utilizzo di connessioni sicure (HTTPS, WebRTC con SRTP) per lo streaming. - Cifratura
+dei dati a riposo e in transito. - Accesso ai dati limitato al solo proprietario e al sistema.
+• US10.2 – Conformità alle licenze dei contenuti
+La POC utilizza esclusivamente contenuti open (SRD) e documenti forniti dagli utenti, evitando violazioni di
+copyright.
+
+6
+
+Criteri di accettazione - Implementazione di filtri per evitare l’uso di testi o immagini proprietarie non
+autorizzate. - Se l’AI DM deve citare materiale non open, deve parafrasare e riferire la fonte in modo
+coerente. - Documentazione chiara per gli utenti sui materiali consentiti.
+• US10.3 – Gestione della privacy vocale
+Gli utenti devono poter sapere come vengono usati i loro dati vocali e avere opzioni di cancellazione.
+Criteri di accettazione - Informativa sulla privacy esplicita riguardo alla registrazione e conservazione delle
+voci. - Possibilità di richiedere la cancellazione delle registrazioni. - Log accessi e audit per tracciare l’uso dei
+dati audio.
+
+5. Note sullo sviluppo
+• Priorità: per la POC sono essenziali le funzionalità degli epici 1–5 e 8; gli altri epici completano il
+prodotto ma possono essere implementati in modo semplificato.
+• Iterazioni: il backlog può essere gestito in sprint agili, validando progressivamente la voce, la
+persistenza e la coerenza narrativa.
+• Materiali necessari: l’AI DM dovrà essere alimentata con il System Reference Document di D&D (o
+altro materiale open) e con i documenti forniti dagli utenti (moduli PDF, note di campagna). È
+importante rispettare le licenze e assicurarsi che i materiali non coperti da licenza siano esclusi o
+parafrasati.
+
+7
+
+
