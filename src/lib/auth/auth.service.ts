@@ -108,7 +108,7 @@ export class AuthService {
       if (error instanceof z.ZodError) {
         return {
           success: false,
-          error: error.errors[0]?.message || 'Validation failed',
+          error: error.issues[0]?.message || 'Validation failed',
         };
       }
       console.error('Registration error:', error);
@@ -170,7 +170,7 @@ export class AuthService {
       if (error instanceof z.ZodError) {
         return {
           success: false,
-          error: error.errors[0]?.message || 'Validation failed',
+          error: error.issues[0]?.message || 'Validation failed',
         };
       }
       console.error('Update password error:', error);
@@ -213,7 +213,7 @@ export class AuthService {
       if (error instanceof z.ZodError) {
         return {
           success: false,
-          error: error.errors[0]?.message || 'Validation failed',
+          error: error.issues[0]?.message || 'Validation failed',
         };
       }
       console.error('Update profile error:', error);

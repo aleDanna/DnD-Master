@@ -23,8 +23,8 @@ import type {
   SceneContext,
 } from '@/types/ai.types';
 import type { Character } from '@/types/character.types';
-import type { Campaign, GameSession, NPC, Location } from '@/types/campaign.types';
-import type { CombatState } from '@/types/session.types';
+import type { Campaign, NPC, Location } from '@/types/campaign.types';
+import type { CombatState, GameSession } from '@/types/session.types';
 
 // ============================================
 // Default Configuration
@@ -331,8 +331,8 @@ export class AIService {
       npcName: npc.name,
       npcDescription: npc.description || 'No description available',
       npcPersonality: npc.personality || 'Neutral',
-      disposition: npc.isHostile ? 'hostile' : 'neutral',
-      motivations: npc.motivation || 'Unknown',
+      disposition: npc.disposition || 'neutral',
+      motivations: npc.goals?.join(', ') || 'Unknown',
       playerDialogue,
     });
 
@@ -419,7 +419,7 @@ export class AIService {
 
   private selectTemplate(playerInput: PlayerInput, context: DMContext): PromptTemplate {
     // Select template based on input type and context
-    if (context.combatState && context.combatState.isActive) {
+    if (context.combatState && context.combatState.status === 'active') {
       return PROMPT_TEMPLATES.get('combat')!;
     }
 
@@ -478,10 +478,12 @@ export class AIService {
     const lines = [
       `Round: ${combat.round}`,
       'Initiative Order:',
-      ...combat.combatants.map((c, i) => {
+      ...combat.initiativeOrder.map((entry, i) => {
         const current = i === combat.currentTurnIndex ? '>> ' : '   ';
-        const status = c.currentHP <= 0 ? '(DOWN)' : `(${c.currentHP}/${c.maxHP} HP)`;
-        return `${current}${c.initiative}: ${c.name} ${status}`;
+        const combatant = combat.combatants[entry.id];
+        const hp = combatant ? `${combatant.currentHP}/${combatant.maxHP}` : '?/?';
+        const status = combatant && combatant.currentHP <= 0 ? '(DOWN)' : `(${hp} HP)`;
+        return `${current}${entry.initiative}: ${entry.name} ${status}`;
       }),
     ];
     return lines.join('\n');
@@ -603,19 +605,19 @@ export class AIService {
       name: campaign.name,
       description: campaign.description || '',
       setting: campaign.setting || 'Fantasy',
-      themes: campaign.themes || [],
-      worldState: campaign.worldState || {},
+      themes: [], // Themes can be derived from campaign settings.tone if needed
+      worldState: (campaign.worldState || {}) as unknown as Record<string, unknown>,
     };
   }
 
   private buildSessionContext(session: GameSession): SessionContext {
     return {
       id: session.id,
-      sessionNumber: session.sessionNumber,
-      summary: session.summary,
-      objectives: session.objectives || [],
+      sessionNumber: 1, // Session number tracking would be at campaign level
+      summary: undefined,
+      objectives: [],
       activeQuests: [],
-      recentEvents: session.events?.slice(-5).map((e) => e.description) || [],
+      recentEvents: session.narrativeContext?.recentEvents || [],
     };
   }
 
@@ -628,7 +630,7 @@ export class AIService {
       level: character.level,
       currentHP: character.currentHitPoints,
       maxHP: character.maxHitPoints,
-      conditions: character.conditions.map((c) => c.condition),
+      conditions: character.conditions.map((c) => c.type),
       notableAbilities: character.features.slice(0, 5).map((f) => f.name),
       personality: character.personality.traits.join(', '),
       backstory: character.backstory,
@@ -640,18 +642,18 @@ export class AIService {
       location: {
         id: location.id,
         name: location.name,
-        type: location.type || 'general',
+        type: location.locationType || 'general',
         description: location.description || '',
-        notableFeatures: location.pointsOfInterest || [],
-        secrets: location.secrets || [],
+        notableFeatures: location.properties?.pointsOfInterest || [],
+        secrets: location.properties?.secrets || [],
       },
       npcsPresent: npcs.map((npc) => ({
         id: npc.id,
         name: npc.name,
         description: npc.description || '',
-        disposition: npc.isHostile ? 'hostile' : 'neutral',
-        motivations: npc.motivation ? [npc.motivation] : [],
-        currentState: npc.currentLocation,
+        disposition: npc.disposition || 'neutral',
+        motivations: npc.goals || [],
+        currentState: npc.locationId,
       })),
       environmentDetails: location.description || '',
       mood: 'neutral',

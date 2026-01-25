@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Check,
   Dices,
-  RefreshCw,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
@@ -18,30 +17,30 @@ import { Textarea } from '@/components/ui/Textarea';
 import { cn } from '@/lib/utils';
 
 const RACES = [
-  { value: 'human', label: 'Human', bonus: '+1 to all abilities' },
-  { value: 'elf', label: 'Elf', bonus: '+2 DEX' },
-  { value: 'dwarf', label: 'Dwarf', bonus: '+2 CON' },
-  { value: 'halfling', label: 'Halfling', bonus: '+2 DEX' },
-  { value: 'dragonborn', label: 'Dragonborn', bonus: '+2 STR, +1 CHA' },
-  { value: 'gnome', label: 'Gnome', bonus: '+2 INT' },
-  { value: 'half-elf', label: 'Half-Elf', bonus: '+2 CHA, +1 to two others' },
-  { value: 'half-orc', label: 'Half-Orc', bonus: '+2 STR, +1 CON' },
-  { value: 'tiefling', label: 'Tiefling', bonus: '+2 CHA, +1 INT' },
+  { value: 'human', label: 'Human (+1 to all abilities)' },
+  { value: 'elf', label: 'Elf (+2 DEX)' },
+  { value: 'dwarf', label: 'Dwarf (+2 CON)' },
+  { value: 'halfling', label: 'Halfling (+2 DEX)' },
+  { value: 'dragonborn', label: 'Dragonborn (+2 STR, +1 CHA)' },
+  { value: 'gnome', label: 'Gnome (+2 INT)' },
+  { value: 'half-elf', label: 'Half-Elf (+2 CHA, +1 to two others)' },
+  { value: 'half-orc', label: 'Half-Orc (+2 STR, +1 CON)' },
+  { value: 'tiefling', label: 'Tiefling (+2 CHA, +1 INT)' },
 ];
 
 const CLASSES = [
-  { value: 'barbarian', label: 'Barbarian', hitDie: 'd12', primary: 'Strength' },
-  { value: 'bard', label: 'Bard', hitDie: 'd8', primary: 'Charisma' },
-  { value: 'cleric', label: 'Cleric', hitDie: 'd8', primary: 'Wisdom' },
-  { value: 'druid', label: 'Druid', hitDie: 'd8', primary: 'Wisdom' },
-  { value: 'fighter', label: 'Fighter', hitDie: 'd10', primary: 'Strength or Dexterity' },
-  { value: 'monk', label: 'Monk', hitDie: 'd8', primary: 'Dexterity & Wisdom' },
-  { value: 'paladin', label: 'Paladin', hitDie: 'd10', primary: 'Strength & Charisma' },
-  { value: 'ranger', label: 'Ranger', hitDie: 'd10', primary: 'Dexterity & Wisdom' },
-  { value: 'rogue', label: 'Rogue', hitDie: 'd8', primary: 'Dexterity' },
-  { value: 'sorcerer', label: 'Sorcerer', hitDie: 'd6', primary: 'Charisma' },
-  { value: 'warlock', label: 'Warlock', hitDie: 'd8', primary: 'Charisma' },
-  { value: 'wizard', label: 'Wizard', hitDie: 'd6', primary: 'Intelligence' },
+  { value: 'barbarian', label: 'Barbarian (d12, Strength)' },
+  { value: 'bard', label: 'Bard (d8, Charisma)' },
+  { value: 'cleric', label: 'Cleric (d8, Wisdom)' },
+  { value: 'druid', label: 'Druid (d8, Wisdom)' },
+  { value: 'fighter', label: 'Fighter (d10, Strength/Dexterity)' },
+  { value: 'monk', label: 'Monk (d8, Dexterity & Wisdom)' },
+  { value: 'paladin', label: 'Paladin (d10, Strength & Charisma)' },
+  { value: 'ranger', label: 'Ranger (d10, Dexterity & Wisdom)' },
+  { value: 'rogue', label: 'Rogue (d8, Dexterity)' },
+  { value: 'sorcerer', label: 'Sorcerer (d6, Charisma)' },
+  { value: 'warlock', label: 'Warlock (d8, Charisma)' },
+  { value: 'wizard', label: 'Wizard (d6, Intelligence)' },
 ];
 
 const BACKGROUNDS = [
@@ -97,7 +96,7 @@ export default function NewCharacterPage() {
     backstory: '',
   });
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -111,7 +110,6 @@ export default function NewCharacterPage() {
   const rollAbilityScores = () => {
     const scores: number[] = [];
     for (let i = 0; i < 6; i++) {
-      // Roll 4d6, drop lowest
       const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
       rolls.sort((a, b) => b - a);
       scores.push(rolls[0] + rolls[1] + rolls[2]);
@@ -140,6 +138,15 @@ export default function NewCharacterPage() {
   const handleSubmit = () => {
     console.log('Creating character:', formData);
     router.push('/characters');
+  };
+
+  const getAbilityScoreOptions = () => {
+    const scores = abilityMethod === 'standard'
+      ? STANDARD_ARRAY
+      : abilityMethod === 'roll' && rolledScores.length > 0
+      ? rolledScores
+      : Array.from({ length: 13 }, (_, i) => i + 8);
+    return scores.map((score) => ({ value: score.toString(), label: score.toString() }));
   };
 
   return (
@@ -219,48 +226,31 @@ export default function NewCharacterPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Race</label>
                     <Select
+                      label="Race"
+                      placeholder="Select a race"
+                      options={RACES}
                       value={formData.race}
-                      onChange={(e) => updateFormData('race', e.target.value)}
-                    >
-                      <option value="">Select a race</option>
-                      {RACES.map((race) => (
-                        <option key={race.value} value={race.value}>
-                          {race.label} ({race.bonus})
-                        </option>
-                      ))}
-                    </Select>
+                      onChange={(value) => updateFormData('race', value)}
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Class</label>
                     <Select
+                      label="Class"
+                      placeholder="Select a class"
+                      options={CLASSES}
                       value={formData.class}
-                      onChange={(e) => updateFormData('class', e.target.value)}
-                    >
-                      <option value="">Select a class</option>
-                      {CLASSES.map((cls) => (
-                        <option key={cls.value} value={cls.value}>
-                          {cls.label} ({cls.hitDie}, {cls.primary})
-                        </option>
-                      ))}
-                    </Select>
+                      onChange={(value) => updateFormData('class', value)}
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Background
-                    </label>
                     <Select
+                      label="Background"
+                      placeholder="Select a background"
+                      options={BACKGROUNDS}
                       value={formData.background}
-                      onChange={(e) => updateFormData('background', e.target.value)}
-                    >
-                      <option value="">Select a background</option>
-                      {BACKGROUNDS.map((bg) => (
-                        <option key={bg.value} value={bg.value}>
-                          {bg.label}
-                        </option>
-                      ))}
-                    </Select>
+                      onChange={(value) => updateFormData('background', value)}
+                    />
                   </div>
                 </div>
               </div>
@@ -324,23 +314,10 @@ export default function NewCharacterPage() {
                       </label>
                       <div className="flex items-center gap-2">
                         <Select
+                          options={getAbilityScoreOptions()}
                           value={formData.abilities[ability].toString()}
-                          onChange={(e) =>
-                            updateAbility(ability, parseInt(e.target.value))
-                          }
-                          className="flex-1"
-                        >
-                          {(abilityMethod === 'standard'
-                            ? STANDARD_ARRAY
-                            : abilityMethod === 'roll' && rolledScores.length > 0
-                            ? rolledScores
-                            : Array.from({ length: 13 }, (_, i) => i + 8)
-                          ).map((score) => (
-                            <option key={score} value={score}>
-                              {score}
-                            </option>
-                          ))}
-                        </Select>
+                          onChange={(value) => updateAbility(ability, parseInt(value))}
+                        />
                         <span className="text-lg font-bold w-12 text-center">
                           {getModifier(formData.abilities[ability])}
                         </span>

@@ -3,8 +3,8 @@
 // ============================================
 
 import type { Character } from './character.types';
-import type { Campaign, GameSession, NPC, Location, Quest } from './campaign.types';
-import type { CombatState } from './session.types';
+import type { Campaign, NPC, Location, Quest } from './campaign.types';
+import type { CombatState, GameSession } from './session.types';
 
 // ============================================
 // LLM Configuration Types

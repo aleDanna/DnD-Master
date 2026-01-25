@@ -12,8 +12,81 @@ import type {
   NPC,
   Location,
   Quest,
-  DEFAULT_CAMPAIGN_SETTINGS,
 } from '@/types/campaign.types';
+import { DEFAULT_CAMPAIGN_SETTINGS } from '@/types/campaign.types';
+
+// ============================================
+// Internal Types
+// ============================================
+
+type DbCampaign = {
+  id: string;
+  ownerId: string;
+  name: string;
+  description: string | null;
+  setting: string | null;
+  startingLevel: number;
+  worldState: unknown;
+  settings: unknown;
+  houseRules: unknown;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  players: Array<{
+    id: string;
+    campaignId: string;
+    userId: string;
+    characterId: string | null;
+    role: string;
+    joinedAt: Date;
+    user: { id: string; displayName: string; avatarUrl: string | null };
+    character: unknown;
+  }>;
+};
+
+type DbNPC = {
+  id: string;
+  campaignId: string;
+  name: string;
+  description: string | null;
+  personality: string | null;
+  appearance: string | null;
+  stats: unknown;
+  locationId: string | null;
+  knowledge: unknown;
+  relationships: unknown;
+  goals: unknown;
+  isAlive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type DbLocation = {
+  id: string;
+  campaignId: string;
+  parentLocationId: string | null;
+  name: string;
+  description: string | null;
+  locationType: string;
+  properties: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type DbQuest = {
+  id: string;
+  campaignId: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  objectives: unknown;
+  rewards: unknown;
+  giverNPCId: string | null;
+  relatedLocationIds: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 // ============================================
 // Validation Schemas
@@ -48,7 +121,7 @@ export class CampaignService {
   ): Promise<Campaign> {
     const validation = campaignCreationSchema.safeParse(data);
     if (!validation.success) {
-      throw new Error(`Invalid campaign data: ${validation.error.errors[0]?.message}`);
+      throw new Error(`Invalid campaign data: ${validation.error.issues[0]?.message}`);
     }
 
     const settings: CampaignSettings = {
@@ -139,7 +212,7 @@ export class CampaignService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return dbCampaigns.map((c) => this.mapDbToCampaign(c));
+    return dbCampaigns.map((c: DbCampaign) => this.mapDbToCampaign(c));
   }
 
   /**
@@ -151,7 +224,7 @@ export class CampaignService {
   ): Promise<Campaign> {
     const validation = campaignUpdateSchema.safeParse(data);
     if (!validation.success) {
-      throw new Error(`Invalid update data: ${validation.error.errors[0]?.message}`);
+      throw new Error(`Invalid update data: ${validation.error.issues[0]?.message}`);
     }
 
     const existing = await prisma.campaign.findUnique({
@@ -377,7 +450,7 @@ export class CampaignService {
       orderBy: { name: 'asc' },
     });
 
-    return dbNPCs.map((n) => this.mapDbToNPC(n));
+    return dbNPCs.map((n: DbNPC) => this.mapDbToNPC(n));
   }
 
   /**
@@ -447,7 +520,7 @@ export class CampaignService {
       orderBy: { name: 'asc' },
     });
 
-    return dbLocations.map((l) => this.mapDbToLocation(l));
+    return dbLocations.map((l: DbLocation) => this.mapDbToLocation(l));
   }
 
   // ============================================
@@ -481,7 +554,7 @@ export class CampaignService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return dbQuests.map((q) => this.mapDbToQuest(q));
+    return dbQuests.map((q: DbQuest) => this.mapDbToQuest(q));
   }
 
   /**
@@ -511,30 +584,7 @@ export class CampaignService {
   // Mappers
   // ============================================
 
-  private mapDbToCampaign(dbCampaign: {
-    id: string;
-    ownerId: string;
-    name: string;
-    description: string | null;
-    setting: string | null;
-    startingLevel: number;
-    worldState: unknown;
-    settings: unknown;
-    houseRules: unknown;
-    status: string;
-    createdAt: Date;
-    updatedAt: Date;
-    players: Array<{
-      id: string;
-      campaignId: string;
-      userId: string;
-      characterId: string | null;
-      role: string;
-      joinedAt: Date;
-      user: { id: string; displayName: string; avatarUrl: string | null };
-      character: unknown;
-    }>;
-  }): Campaign {
+  private mapDbToCampaign(dbCampaign: DbCampaign): Campaign {
     return {
       id: dbCampaign.id,
       ownerId: dbCampaign.ownerId,
@@ -549,7 +599,10 @@ export class CampaignService {
         characterId: p.characterId || undefined,
         role: p.role.toLowerCase().replace('_', '-') as 'player' | 'co-dm' | 'spectator',
         joinedAt: p.joinedAt,
-        user: p.user,
+        user: {
+          ...p.user,
+          avatarUrl: p.user.avatarUrl || undefined,
+        },
         character: p.character as CampaignPlayer['character'],
       })),
       worldState: (dbCampaign.worldState || {}) as WorldState,
