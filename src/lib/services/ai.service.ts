@@ -394,7 +394,8 @@ export class AIService {
 
   async generateCombatNarration(combat: CombatState, action: string, context: DMContext): Promise<DMResponse> {
     const template = PROMPT_TEMPLATES.get('combat')!;
-    const currentCombatant = combat.combatants[combat.currentTurnIndex];
+    const currentInitiativeEntry = combat.initiativeOrder[combat.currentTurnIndex];
+    const currentCombatant = combat.combatants[currentInitiativeEntry.id];
     const prompt = this.interpolateTemplate(template.userPromptTemplate, {
       combatState: this.formatCombatState(combat),
       currentTurn: `${currentCombatant.name} (${currentCombatant.type})`,
