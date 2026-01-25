@@ -16,6 +16,8 @@ import {
   Dices,
   MessageSquare,
   Scroll,
+  Sparkles,
+  Play,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +39,6 @@ const mainNavItems: NavItem[] = [
 const toolNavItems: NavItem[] = [
   { name: 'Dice Roller', href: '/tools/dice', icon: Dices },
   { name: 'Rules Reference', href: '/tools/rules', icon: Scroll },
-  { name: 'AI Dungeon Master', href: '/tools/ai-dm', icon: MessageSquare },
 ];
 
 export function Sidebar() {
@@ -63,8 +64,23 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* New Campaign Button */}
+      {/* Play with AI DM Button - Primary CTA */}
       <div className="p-3">
+        <Link
+          href="/play"
+          className={cn(
+            'flex items-center gap-3 px-3 py-3 rounded-lg',
+            'bg-accent text-white hover:bg-accent/90 transition-colors',
+            isCollapsed && 'justify-center'
+          )}
+        >
+          <Sparkles className="w-5 h-5" />
+          {!isCollapsed && <span className="font-medium">Play with AI DM</span>}
+        </Link>
+      </div>
+
+      {/* New Campaign Button */}
+      <div className="px-3 pb-3">
         <Link
           href="/campaigns/new"
           className={cn(
