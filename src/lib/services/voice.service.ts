@@ -459,7 +459,6 @@ export class VoiceService {
 
       // Add to transcript
       this.addTranscriptEntry(sessionId, {
-        id: item.id,
         timestamp: new Date(),
         speaker: item.type === 'npc_dialogue' ? item.metadata?.npcName || 'NPC' : 'DM',
         speakerType: item.type === 'npc_dialogue' ? 'npc' : 'dm',

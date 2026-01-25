@@ -31,6 +31,44 @@ import type {
 } from '@/types/character.types';
 
 // ============================================
+// Internal Types
+// ============================================
+
+type DbCharacter = {
+  id: string;
+  userId: string;
+  campaignId: string | null;
+  name: string;
+  race: unknown;
+  classes: unknown;
+  level: number;
+  experiencePoints: number;
+  background: unknown;
+  alignment: string | null;
+  abilityScores: unknown;
+  maxHitPoints: number;
+  currentHitPoints: number;
+  temporaryHitPoints: number;
+  armorClass: number;
+  speed: number;
+  hitDice: unknown;
+  deathSaves: unknown;
+  proficiencies: unknown;
+  features: unknown;
+  equipment: unknown;
+  currency: unknown;
+  spellcasting: unknown;
+  personality: unknown;
+  backstory: string | null;
+  appearance: unknown;
+  conditions: unknown;
+  exhaustionLevel: number;
+  inspiration: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// ============================================
 // Validation Schemas
 // ============================================
 
@@ -168,7 +206,7 @@ export class CharacterService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return dbCharacters.map((c) => this.mapDbToCharacter(c));
+    return dbCharacters.map((c: DbCharacter) => this.mapDbToCharacter(c));
   }
 
   /**
@@ -180,7 +218,7 @@ export class CharacterService {
       orderBy: { name: 'asc' },
     });
 
-    return dbCharacters.map((c) => this.mapDbToCharacter(c));
+    return dbCharacters.map((c: DbCharacter) => this.mapDbToCharacter(c));
   }
 
   /**
@@ -599,7 +637,7 @@ export class CharacterService {
       characterCreationSchema.parse(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           errors.push({
             field: err.path.join('.'),
             message: err.message,
@@ -734,39 +772,7 @@ export class CharacterService {
   /**
    * Map database character to Character type
    */
-  private mapDbToCharacter(dbChar: {
-    id: string;
-    userId: string;
-    campaignId: string | null;
-    name: string;
-    race: unknown;
-    classes: unknown;
-    level: number;
-    experiencePoints: number;
-    background: unknown;
-    alignment: string | null;
-    abilityScores: unknown;
-    maxHitPoints: number;
-    currentHitPoints: number;
-    temporaryHitPoints: number;
-    armorClass: number;
-    speed: number;
-    hitDice: unknown;
-    deathSaves: unknown;
-    proficiencies: unknown;
-    features: unknown;
-    equipment: unknown;
-    currency: unknown;
-    spellcasting: unknown;
-    personality: unknown;
-    backstory: string | null;
-    appearance: unknown;
-    conditions: unknown;
-    exhaustionLevel: number;
-    inspiration: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Character {
+  private mapDbToCharacter(dbChar: DbCharacter): Character {
     return {
       id: dbChar.id,
       userId: dbChar.userId,

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { diceService } from './dice.service';
+import { diceService, type DamageResult as DiceDamageResult } from './dice.service';
 import { rulesEngine } from './rules.engine';
 import type { Character } from '@/types/character.types';
 import type { Monster, DamageType, ConditionType, ActiveCondition } from '@/types/dnd.types';
@@ -41,6 +41,24 @@ export interface CombatConfig {
   useGrid?: boolean;
   gridSize?: { width: number; height: number };
   autoRollInitiative?: boolean;
+}
+
+// ============================================
+// Helpers
+// ============================================
+
+function convertDamageResult(
+  diceDamage: DiceDamageResult,
+  actorId: string,
+  actorName: string
+): DamageResult {
+  return {
+    total: diceDamage.total,
+    type: diceDamage.type,
+    rolls: diceDamage.rolls.map((r) =>
+      diceService.toRecord(r, actorId, actorName, 'Damage roll')
+    ),
+  };
 }
 
 // ============================================
@@ -275,11 +293,12 @@ export class CombatService {
 
     if (attackRoll.hit) {
       // Roll damage
-      damage = diceService.rollDamage(
+      const diceDamage = diceService.rollDamage(
         attackerStats.damage,
         attackerStats.damageType,
         attackRoll.critical
       );
+      damage = convertDamageResult(diceDamage, action.actorId, attacker.name);
 
       // Apply damage to target
       const newHP = Math.max(0, target.currentHP - damage.total);
@@ -664,7 +683,7 @@ export class CombatService {
         {
           type: action.type,
           description: action.description || action.type,
-          targets: 'targetId' in action ? [action.targetId] : undefined,
+          targets: 'targetId' in action ? [(action as AttackAction).targetId] : undefined,
           result: result.success ? 'success' : 'failure',
         },
       ],
