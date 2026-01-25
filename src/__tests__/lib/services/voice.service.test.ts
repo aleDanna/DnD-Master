@@ -125,7 +125,7 @@ describe('VoiceService', () => {
 
       expect(result.audio).toBe(mockAudioBuffer);
       expect(result.contentType).toBe('audio/mpeg');
-      expect(result.characterCount).toBe(42);
+      expect(result.characterCount).toBe(40); // "You see a dark cave entrance before you."
     });
 
     it('should throw error when API key is missing', async () => {

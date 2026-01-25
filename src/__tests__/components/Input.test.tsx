@@ -84,11 +84,9 @@ describe('Input', () => {
   });
 
   it('renders with different types', () => {
-    render(<Input type="password" />);
-    expect(screen.getByRole('textbox', { hidden: true })).toHaveAttribute(
-      'type',
-      'password'
-    );
+    const { container } = render(<Input type="password" />);
+    const input = container.querySelector('input');
+    expect(input).toHaveAttribute('type', 'password');
   });
 
   it('applies custom className', () => {
