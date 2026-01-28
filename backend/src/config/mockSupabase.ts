@@ -9,7 +9,7 @@ import type { Database } from '../models/database.types.js';
 // In-memory storage
 interface MockStore {
   campaigns: Map<string, any>;
-  campaign_members: Map<string, any>;
+  campaign_players: Map<string, any>;
   sessions: Map<string, any>;
   characters: Map<string, any>;
   events: Map<string, any>;
@@ -20,7 +20,7 @@ interface MockStore {
 
 const store: MockStore = {
   campaigns: new Map(),
-  campaign_members: new Map(),
+  campaign_players: new Map(),
   sessions: new Map(),
   characters: new Map(),
   events: new Map(),
