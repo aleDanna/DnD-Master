@@ -3,7 +3,7 @@
  * Defines the common interface for all LLM providers
  */
 
-export type LLMProvider = 'openai' | 'gemini';
+export type LLMProvider = 'openai';
 
 export interface LLMMessage {
   role: 'user' | 'assistant' | 'system';

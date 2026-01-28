@@ -4,7 +4,6 @@
  */
 
 import { OpenAIProvider } from './openai-provider.js';
-import { GeminiProvider } from './gemini-provider.js';
 import type {
   ILLMProvider,
   LLMProvider,
@@ -16,36 +15,13 @@ import type {
 export * from './types.js';
 
 /**
- * Get the configured LLM provider from environment
- */
-function getProviderFromEnv(): LLMProvider {
-  const provider = (process.env.LLM_PROVIDER || 'openai').toLowerCase();
-  if (provider === 'gemini' || provider === 'google') {
-    return 'gemini';
-  }
-  return 'openai';
-}
-
-/**
  * Create an LLM provider instance based on configuration
  */
 export function createLLMProvider(provider?: LLMProvider): ILLMProvider {
-  const selectedProvider = provider || getProviderFromEnv();
-
-  switch (selectedProvider) {
-    case 'gemini':
-      if (!process.env.GEMINI_API_KEY) {
-        console.warn('Warning: GEMINI_API_KEY not set. AI features will not work.');
-      }
-      return new GeminiProvider();
-
-    case 'openai':
-    default:
-      if (!process.env.OPENAI_API_KEY) {
-        console.warn('Warning: OPENAI_API_KEY not set. AI features will not work.');
-      }
-      return new OpenAIProvider();
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn('Warning: OPENAI_API_KEY not set. AI features will not work.');
   }
+  return new OpenAIProvider();
 }
 
 // Default singleton instance
