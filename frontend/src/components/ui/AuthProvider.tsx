@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session, AuthError, AuthChangeEvent } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 
 interface AuthContextType {
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
+      async (_event: AuthChangeEvent, newSession: Session | null) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
