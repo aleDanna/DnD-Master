@@ -291,3 +291,132 @@ export const gameApi = {
       }>
     >(`/api/game/${sessionId}/dice-log`, { token }),
 };
+
+/**
+ * Combat types
+ */
+interface Condition {
+  name: string;
+  duration?: number;
+}
+
+interface Combatant {
+  id: string;
+  type: 'player' | 'npc' | 'monster';
+  name: string;
+  initiative: number;
+  current_hp: number;
+  max_hp: number;
+  armor_class: number;
+  conditions: Condition[];
+  is_active: boolean;
+}
+
+interface InitiativeEntry {
+  id: string;
+  type: 'player' | 'npc' | 'monster';
+  name: string;
+  initiative: number;
+}
+
+interface CombatState {
+  active: boolean;
+  round: number;
+  turn_index: number;
+  initiative_order: InitiativeEntry[];
+  combatants: Combatant[];
+}
+
+export type { CombatState, Combatant, InitiativeEntry, Condition };
+
+/**
+ * Combat API
+ */
+export const combatApi = {
+  getCombatState: (token: string, sessionId: string) =>
+    request<{
+      combat_state: CombatState | null;
+      is_active: boolean;
+    }>(`/api/game/${sessionId}/combat`, { token }),
+
+  startCombat: (
+    token: string,
+    sessionId: string,
+    participants: Array<{
+      id: string;
+      type: 'player' | 'npc' | 'monster';
+      name: string;
+      current_hp: number;
+      max_hp: number;
+      armor_class: number;
+      initiative_modifier?: number;
+    }>
+  ) =>
+    request<{
+      combat_state: CombatState;
+      narrative: string;
+    }>(`/api/game/${sessionId}/combat/start`, {
+      method: 'POST',
+      body: JSON.stringify({ participants }),
+      token,
+    }),
+
+  nextTurn: (token: string, sessionId: string) =>
+    request<{
+      combat_state: CombatState;
+      narrative?: string;
+      current_combatant: Combatant;
+      should_end: boolean;
+      outcome?: 'victory' | 'defeat' | 'ongoing';
+    }>(`/api/game/${sessionId}/combat/next-turn`, {
+      method: 'POST',
+      token,
+    }),
+
+  endCombat: (
+    token: string,
+    sessionId: string,
+    outcome: 'victory' | 'defeat' | 'retreat' | 'truce',
+    summary?: string
+  ) =>
+    request<{
+      outcome: string;
+      narrative: string;
+    }>(`/api/game/${sessionId}/combat/end`, {
+      method: 'POST',
+      body: JSON.stringify({ outcome, summary }),
+      token,
+    }),
+
+  submitCombatAction: (
+    token: string,
+    sessionId: string,
+    action: string,
+    characterId?: string
+  ) =>
+    request<{
+      narrative: string;
+      mechanics?: string;
+      stateChanges?: Array<{
+        type: string;
+        target?: string;
+        value?: unknown;
+        description: string;
+      }>;
+      requiresRoll?: {
+        dice: string;
+        reason: string;
+        dc?: number;
+      };
+      ruleCitations?: Array<{
+        title: string;
+        source: string;
+        excerpt?: string;
+      }>;
+      combat_state: CombatState | null;
+    }>(`/api/game/${sessionId}/combat/action`, {
+      method: 'POST',
+      body: JSON.stringify({ action, character_id: characterId }),
+      token,
+    }),
+};

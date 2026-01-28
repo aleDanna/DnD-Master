@@ -84,15 +84,30 @@ export function buildGameContext(
   }
 
   // Combat state
-  if (session.combat_state) {
-    sections.push('## Combat State');
+  if (session.combat_state && session.combat_state.active) {
+    sections.push('## Combat State (ACTIVE)');
     sections.push(`Round: ${session.combat_state.round}`);
-    sections.push(`Current Turn: ${session.combat_state.current_combatant_index}`);
+
+    // Find current combatant
+    const currentEntry = session.combat_state.initiative_order[session.combat_state.turn_index];
+    const currentCombatant = session.combat_state.combatants.find(c => c.id === currentEntry?.id);
+    if (currentCombatant) {
+      sections.push(`Current Turn: ${currentCombatant.name} (${currentCombatant.type})`);
+    }
+
+    sections.push('');
     sections.push('Initiative Order:');
-    for (const combatant of session.combat_state.combatants) {
+    for (let i = 0; i < session.combat_state.initiative_order.length; i++) {
+      const entry = session.combat_state.initiative_order[i];
+      const combatant = session.combat_state.combatants.find(c => c.id === entry.id);
+      if (!combatant) continue;
+
+      const turnMarker = i === session.combat_state.turn_index ? '>>> ' : '    ';
       const hpStatus = combatant.current_hp <= 0 ? ' [DOWN]' : ` (${combatant.current_hp}/${combatant.max_hp} HP)`;
-      const conditions = combatant.conditions.length > 0 ? ` [${combatant.conditions.join(', ')}]` : '';
-      sections.push(`  ${combatant.initiative}: ${combatant.name}${hpStatus}${conditions}`);
+      const conditionNames = combatant.conditions.map(c => c.name);
+      const conditions = conditionNames.length > 0 ? ` [${conditionNames.join(', ')}]` : '';
+      const activeStatus = combatant.is_active ? '' : ' [INACTIVE]';
+      sections.push(`${turnMarker}${entry.initiative}: ${combatant.name} (${combatant.type})${hpStatus}${conditions}${activeStatus}`);
     }
     sections.push('');
   }
@@ -123,15 +138,10 @@ function formatCharacterForPrompt(char: Character): string {
   const lines: string[] = [];
 
   lines.push(`### ${char.name} (${char.race} ${char.class}, Level ${char.level})`);
-  lines.push(`HP: ${char.hit_points_current}/${char.hit_points_max}`);
+  lines.push(`HP: ${char.current_hp}/${char.max_hp}`);
   lines.push(`AC: ${char.armor_class}`);
 
-  const abilities = char.ability_scores;
-  lines.push(`STR ${abilities.strength} DEX ${abilities.dexterity} CON ${abilities.constitution} INT ${abilities.intelligence} WIS ${abilities.wisdom} CHA ${abilities.charisma}`);
-
-  if (char.conditions && char.conditions.length > 0) {
-    lines.push(`Conditions: ${char.conditions.join(', ')}`);
-  }
+  lines.push(`STR ${char.strength} DEX ${char.dexterity} CON ${char.constitution} INT ${char.intelligence} WIS ${char.wisdom} CHA ${char.charisma}`);
 
   return lines.join('\n');
 }
@@ -280,4 +290,167 @@ Events:
 ${eventSummary}
 
 Write the summary in past tense, third person, as if recapping for players who missed the session.`;
+}
+
+/**
+ * Prompt for resolving a combat action
+ */
+export function buildCombatActionPrompt(
+  action: string,
+  combatantName: string,
+  isPlayer: boolean,
+  gameContext: string
+): string {
+  return `${gameContext}
+
+## Combat Action
+${combatantName} (${isPlayer ? 'player' : 'NPC/monster'}) attempts: "${action}"
+
+Resolve this combat action:
+1. Determine if the action is valid for combat (action, bonus action, or reaction)
+2. If it's an attack or spell, specify the required rolls
+3. Consider opportunity attacks if movement is involved
+4. Apply any relevant combat rules (cover, advantage/disadvantage, etc.)
+
+Respond with the resolution and any required dice rolls in JSON format.`;
+}
+
+/**
+ * Prompt for resolving an attack roll
+ */
+export function buildAttackResolutionPrompt(
+  attackerName: string,
+  targetName: string,
+  attackRoll: number,
+  targetAC: number,
+  damageRoll?: { dice: string; total: number; type: string },
+  gameContext?: string
+): string {
+  const hit = attackRoll >= targetAC;
+  const critical = attackRoll >= 20; // Assuming natural 20 logic is handled elsewhere
+
+  let prompt = '';
+  if (gameContext) {
+    prompt = `${gameContext}\n\n`;
+  }
+
+  prompt += `## Attack Resolution
+Attacker: ${attackerName}
+Target: ${targetName}
+Attack Roll: ${attackRoll} vs AC ${targetAC}
+Result: ${critical ? 'CRITICAL HIT!' : hit ? 'HIT' : 'MISS'}`;
+
+  if (hit && damageRoll) {
+    prompt += `
+Damage: ${damageRoll.total} ${damageRoll.type} damage (${damageRoll.dice})`;
+  }
+
+  prompt += `
+
+Narrate the attack dramatically. If it's a hit, describe the impact. If it's a miss, describe how the attack fails.
+Include any relevant state changes in your response.`;
+
+  return prompt;
+}
+
+/**
+ * Prompt for ending combat
+ */
+export function buildCombatEndPrompt(
+  outcome: 'victory' | 'defeat' | 'retreat' | 'truce',
+  survivors: string[],
+  fallen: string[],
+  gameContext: string
+): string {
+  return `${gameContext}
+
+## Combat Ended - ${outcome.toUpperCase()}
+Survivors: ${survivors.length > 0 ? survivors.join(', ') : 'None'}
+Fallen: ${fallen.length > 0 ? fallen.join(', ') : 'None'}
+
+Narrate the end of combat:
+1. Describe the final moments of the battle
+2. Detail the aftermath (wounded, exhausted, victorious, etc.)
+3. Set up the next scene or prompt for what the players want to do next
+
+Remember to update any relevant state changes (looting, healing, etc.).`;
+}
+
+/**
+ * Prompt for monster/NPC AI decision making
+ */
+export function buildMonsterTurnPrompt(
+  monsterName: string,
+  monsterType: string,
+  currentHp: number,
+  maxHp: number,
+  availableTargets: { name: string; type: string; hp: number; distance?: number }[],
+  gameContext: string
+): string {
+  const hpPercent = Math.round((currentHp / maxHp) * 100);
+  const condition = hpPercent > 75 ? 'healthy' : hpPercent > 50 ? 'wounded' : hpPercent > 25 ? 'badly hurt' : 'near death';
+
+  const targetList = availableTargets.map(t =>
+    `- ${t.name} (${t.type}, ${t.hp} HP${t.distance ? `, ${t.distance}ft away` : ''})`
+  ).join('\n');
+
+  return `${gameContext}
+
+## Monster Turn: ${monsterName}
+Type: ${monsterType}
+Status: ${condition} (${currentHp}/${maxHp} HP)
+
+Available Targets:
+${targetList}
+
+Decide and execute this monster's turn:
+1. Consider the monster's intelligence and tactics
+2. Choose an appropriate action based on the situation
+3. Roll any required dice and resolve the action
+4. Use movement, action, and bonus action if appropriate
+
+Remember: Play the monster according to its nature - a mindless zombie attacks the nearest target, while a cunning mage might retreat or use tactics.`;
+}
+
+/**
+ * Combat system prompt supplement
+ */
+export const COMBAT_SYSTEM_SUPPLEMENT = `
+## Combat Rules Reminder
+- On your turn: Move (up to speed), Action, Bonus Action (if available), Free Object Interaction
+- Actions: Attack, Cast Spell, Dash, Disengage, Dodge, Help, Hide, Ready, Search, Use Object
+- Opportunity Attacks: When enemy leaves your reach without Disengaging
+- Advantage/Disadvantage: Roll 2d20, take higher/lower
+- Critical Hit: Natural 20, double damage dice
+- Death Saves: At 0 HP, roll d20 (10+ success, 9- fail, 3 of either = stable/dead)
+- Conditions: Blinded, Charmed, Deafened, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious
+`;
+
+/**
+ * Prompt for handling special combat situations
+ */
+export function buildSpecialCombatPrompt(
+  situation: 'surprise' | 'grapple' | 'shove' | 'opportunity_attack' | 'readied_action' | 'concentration',
+  actorName: string,
+  targetName: string | null,
+  details: string,
+  gameContext: string
+): string {
+  const situationContext: Record<string, string> = {
+    surprise: `${actorName} attempts to surprise the enemy. A surprised creature can't move or take an action on the first turn, and can't take reactions until the turn ends.`,
+    grapple: `${actorName} attempts to grapple ${targetName}. Requires Athletics check vs target's Athletics or Acrobatics. Target is grappled on success.`,
+    shove: `${actorName} attempts to shove ${targetName}. Requires Athletics check vs target's Athletics or Acrobatics. Can push 5ft or knock prone on success.`,
+    opportunity_attack: `${targetName} provokes an opportunity attack from ${actorName} by leaving their reach without Disengaging.`,
+    readied_action: `${actorName} readied an action with trigger: "${details}". The trigger has now occurred.`,
+    concentration: `${actorName} must make a Concentration check (Constitution save) after taking damage. DC = 10 or half the damage taken, whichever is higher.`,
+  };
+
+  return `${gameContext}
+
+## Special Combat Situation: ${situation.replace('_', ' ').toUpperCase()}
+${situationContext[situation]}
+
+Additional Details: ${details}
+
+Resolve this situation according to the D&D 5e rules. Include any required rolls and their outcomes.`;
 }

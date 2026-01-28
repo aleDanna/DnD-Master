@@ -169,7 +169,7 @@
 
 ---
 
-## Phase 4: User Story 2 - Combat Encounter (Priority: P2)
+## Phase 4: User Story 2 - Combat Encounter (Priority: P2) [COMPLETED]
 
 **Goal**: Player engages in combat with initiative, turn order, HP tracking, and dice integration
 
@@ -177,33 +177,33 @@
 
 ### Backend - Combat Service
 
-- [ ] T078 [US2] Implement CombatService with initiative and turn management in `backend/src/services/game/combat-service.ts`
-- [ ] T079 [US2] Add combat state handling to StateService in `backend/src/services/game/state-service.ts`
-- [ ] T080 [US2] Update DMService to handle combat scenarios in `backend/src/services/ai/dm-service.ts`
-- [ ] T081 [US2] Add combat-specific prompts in `backend/src/services/ai/prompts.ts`
+- [x] T078 [US2] Implement CombatService with initiative and turn management in `backend/src/services/game/combat-service.ts`
+- [x] T079 [US2] Add combat state handling to StateService in `backend/src/services/game/state-service.ts`
+- [x] T080 [US2] Update DMService to handle combat scenarios in `backend/src/services/ai/dm-service.ts`
+- [x] T081 [US2] Add combat-specific prompts in `backend/src/services/ai/prompts.ts`
 
 ### Backend - Combat API
 
-- [ ] T082 [US2] Create combat state endpoint (GET /sessions/:id/combat) in `backend/src/api/routes/game.ts`
-- [ ] T083 [US2] Handle combat start/end in game action endpoint in `backend/src/api/routes/game.ts`
+- [x] T082 [US2] Create combat state endpoint (GET /sessions/:id/combat) in `backend/src/api/routes/game.ts`
+- [x] T083 [US2] Handle combat start/end in game action endpoint in `backend/src/api/routes/game.ts`
 
 ### Frontend - Combat Components
 
-- [ ] T084 [US2] Create CombatTracker component in `frontend/src/components/game/CombatTracker.tsx`
-- [ ] T085 [US2] Create InitiativeList component in `frontend/src/components/game/InitiativeList.tsx`
-- [ ] T086 [US2] Create CombatantCard component (HP, conditions) in `frontend/src/components/game/CombatantCard.tsx`
+- [x] T084 [US2] Create CombatTracker component in `frontend/src/components/game/CombatTracker.tsx`
+- [x] T085 [US2] Create InitiativeList component in `frontend/src/components/game/InitiativeList.tsx`
+- [x] T086 [US2] Create CombatantCard component (HP, conditions) in `frontend/src/components/game/CombatantCard.tsx`
 
 ### Frontend - Map Components
 
-- [ ] T087 [US2] Create MapCanvas component (2D grid) in `frontend/src/components/game/MapCanvas.tsx`
-- [ ] T088 [US2] Create Token component for map in `frontend/src/components/game/Token.tsx`
-- [ ] T089 [US2] Implement drag-and-drop token movement in MapCanvas
+- [x] T087 [US2] Create MapCanvas component (2D grid) in `frontend/src/components/game/MapCanvas.tsx`
+- [x] T088 [US2] Create Token component for map in `frontend/src/components/game/Token.tsx`
+- [x] T089 [US2] Implement drag-and-drop token movement in MapCanvas
 
 ### Frontend - Integration
 
-- [ ] T090 [US2] Add CombatTracker to session page layout in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T091 [US2] Add MapCanvas to session page (conditional on map_mode) in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T092 [US2] Connect combat state updates to CombatTracker
+- [x] T090 [US2] Add CombatTracker to session page layout in `frontend/src/app/session/[id]/page.tsx`
+- [x] T091 [US2] Add MapCanvas to session page (conditional on map_mode) in `frontend/src/app/session/[id]/page.tsx`
+- [x] T092 [US2] Connect combat state updates to CombatTracker
 
 **Checkpoint**: User Story 2 (Combat Encounter) is fully functional and testable independently
 
