@@ -1,9 +1,10 @@
 /**
  * DM Service
- * Orchestrates AI interactions for the Dungeon Master using Claude (Anthropic)
+ * Orchestrates AI interactions for the Dungeon Master
+ * Supports configurable LLM providers (OpenAI, Gemini)
  */
 
-import { createMessage, ModelConfig, type AnthropicMessage } from '../../config/anthropic.js';
+import { createMessage, getModelConfig, type LLMMessage } from '../../config/llm/index.js';
 import {
   SYSTEM_PROMPT,
   COMBAT_SYSTEM_SUPPLEMENT,
@@ -36,14 +37,6 @@ export interface DMServiceConfig {
   stateService: StateService;
 }
 
-/**
- * Helper to extract text content from Anthropic response
- */
-function extractResponseText(response: Awaited<ReturnType<typeof createMessage>>): string {
-  const textBlock = response.content.find(block => block.type === 'text');
-  return textBlock && 'text' in textBlock ? textBlock.text : '';
-}
-
 export class DMService {
   private sessionRepo: SessionRepository;
   private eventRepo: EventRepository;
@@ -74,6 +67,8 @@ export class DMService {
     action: string,
     characterId?: string
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     // Get session with campaign
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
@@ -113,19 +108,18 @@ export class DMService {
     // Build the action prompt
     const actionPrompt = buildPlayerActionPrompt(action, playerName, gameContext);
 
-    // Get AI response using Claude
-    const messages: AnthropicMessage[] = [
+    // Get AI response
+    const messages: LLMMessage[] = [
       { role: 'user', content: actionPrompt },
     ];
 
     const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Merge rule citations
     if (citations.length > 0 && !response.ruleCitations) {
@@ -169,6 +163,8 @@ export class DMService {
     rollResult: { dice: string; total: number; reason: string },
     dc: number | null
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -184,18 +180,17 @@ export class DMService {
 
     const prompt = buildDiceResolutionPrompt(rollResult, dc, gameContext);
 
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
     const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the AI response
     await this.eventRepo.createAIResponse(
@@ -221,6 +216,8 @@ export class DMService {
     sessionId: string,
     characters: Character[]
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -246,18 +243,17 @@ export class DMService {
       characters
     );
 
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
     const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the opening narrative
     await this.eventRepo.createAIResponse(
@@ -273,6 +269,8 @@ export class DMService {
    * Generate a session summary for saving
    */
   async generateSessionSummary(sessionId: string): Promise<string> {
+    const ModelConfig = getModelConfig();
+
     const events = await this.eventRepo.listBySession(sessionId);
 
     if (events.length === 0) {
@@ -281,7 +279,7 @@ export class DMService {
 
     const prompt = buildSessionSummaryPrompt(events);
 
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
@@ -295,7 +293,7 @@ export class DMService {
       }
     );
 
-    const summary = extractResponseText(completion) || 'Session summary unavailable.';
+    const summary = completion.content || 'Session summary unavailable.';
 
     // Update session with summary
     await this.stateService.updateNarrativeSummary(sessionId, summary);
@@ -329,6 +327,8 @@ export class DMService {
     action: string,
     characterId?: string
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -382,7 +382,7 @@ export class DMService {
     );
 
     // Get AI response with combat system supplement
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: actionPrompt },
     ];
 
@@ -391,13 +391,12 @@ export class DMService {
       messages,
       {
         model: ModelConfig.DM_NARRATIVE,
-        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
       }
     );
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Merge rule citations
     if (citations.length > 0 && !response.ruleCitations) {
@@ -425,6 +424,8 @@ export class DMService {
    * Process a monster/NPC turn in combat
    */
   async processMonsterTurn(sessionId: string): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -487,7 +488,7 @@ export class DMService {
     );
 
     // Get AI response
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
@@ -496,13 +497,12 @@ export class DMService {
       messages,
       {
         model: ModelConfig.DM_NARRATIVE,
-        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
       }
     );
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Merge rule citations
     if (citations.length > 0 && !response.ruleCitations) {
@@ -533,6 +533,8 @@ export class DMService {
     sessionId: string,
     enemies: string[]
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -548,7 +550,7 @@ export class DMService {
 
     const prompt = buildCombatStartPrompt(enemies, gameContext);
 
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
@@ -557,13 +559,12 @@ export class DMService {
       messages,
       {
         model: ModelConfig.DM_NARRATIVE,
-        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
       }
     );
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the AI response
     await this.eventRepo.createAIResponse(
@@ -582,6 +583,8 @@ export class DMService {
     sessionId: string,
     outcome: 'victory' | 'defeat' | 'retreat' | 'truce'
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -606,18 +609,17 @@ export class DMService {
 
     const prompt = buildCombatEndPrompt(outcome, survivors, fallen, gameContext);
 
-    const messages: AnthropicMessage[] = [
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
     const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = extractResponseText(completion);
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the AI response
     await this.eventRepo.createAIResponse(

@@ -73,9 +73,14 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key
 SUPABASE_ANON_KEY=your-anon-key
 
-# Anthropic (Claude)
-ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+# LLM Provider (choose one: openai or gemini)
+LLM_PROVIDER=openai
+
+# OpenAI (if LLM_PROVIDER=openai)
+OPENAI_API_KEY=sk-your-openai-key
+
+# Gemini (if LLM_PROVIDER=gemini)
+GEMINI_API_KEY=your-gemini-api-key
 
 # Server
 PORT=3001
@@ -183,10 +188,11 @@ npm run test:e2e
 - Verify `SUPABASE_URL` is correct
 - Check Supabase project is not paused (free tier pauses after inactivity)
 
-### "Anthropic rate limit"
+### "LLM API rate limit"
 
-- Check your Anthropic usage at console.anthropic.com
-- Use a lower-tier model for development: `ANTHROPIC_MODEL=claude-3-haiku-20240307`
+- **OpenAI**: Check usage at platform.openai.com; use `gpt-3.5-turbo` for development
+- **Gemini**: Check usage at console.cloud.google.com; use `gemini-1.5-flash` for development
+- Switch providers by changing `LLM_PROVIDER` env variable
 
 ### "CORS error"
 
