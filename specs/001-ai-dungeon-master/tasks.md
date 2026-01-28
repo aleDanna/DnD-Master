@@ -22,17 +22,17 @@
 
 **Purpose**: Project initialization and basic structure for frontend and backend
 
-- [ ] T001 Create backend project structure with directories: `backend/src/{api,services,models,rules,config}` and `backend/tests/{unit,integration}`
-- [ ] T002 Initialize backend Node.js/TypeScript project with package.json in `backend/`
-- [ ] T003 [P] Install backend dependencies (express, @supabase/supabase-js, openai, cors, dotenv) in `backend/`
-- [ ] T004 [P] Configure TypeScript with tsconfig.json in `backend/`
-- [ ] T005 [P] Configure ESLint and Prettier for backend in `backend/.eslintrc.js`
-- [ ] T006 Create frontend project structure with Next.js App Router in `frontend/`
-- [ ] T007 Initialize Next.js 14 project with TypeScript in `frontend/`
-- [ ] T008 [P] Install frontend dependencies (tailwindcss, @supabase/auth-helpers-nextjs) in `frontend/`
-- [ ] T009 [P] Configure Tailwind CSS with dark theme tokens in `frontend/tailwind.config.js`
-- [ ] T010 [P] Create theme CSS variables (Discord-inspired dark theme) in `frontend/src/styles/globals.css`
-- [ ] T011 [P] Configure ESLint for frontend in `frontend/.eslintrc.js`
+- [x] T001 Create backend project structure with directories: `backend/src/{api,services,models,rules,config}` and `backend/tests/{unit,integration}`
+- [x] T002 Initialize backend Node.js/TypeScript project with package.json in `backend/`
+- [x] T003 [P] Install backend dependencies (express, @supabase/supabase-js, openai, cors, dotenv) in `backend/`
+- [x] T004 [P] Configure TypeScript with tsconfig.json in `backend/`
+- [x] T005 [P] Configure ESLint and Prettier for backend in `backend/.eslintrc.js`
+- [x] T006 Create frontend project structure with Next.js App Router in `frontend/`
+- [x] T007 Initialize Next.js 14 project with TypeScript in `frontend/`
+- [x] T008 [P] Install frontend dependencies (tailwindcss, @supabase/auth-helpers-nextjs) in `frontend/`
+- [x] T009 [P] Configure Tailwind CSS with dark theme tokens in `frontend/tailwind.config.js`
+- [x] T010 [P] Create theme CSS variables (Discord-inspired dark theme) in `frontend/src/styles/globals.css`
+- [x] T011 [P] Configure ESLint for frontend in `frontend/.eslintrc.js`
 
 ---
 

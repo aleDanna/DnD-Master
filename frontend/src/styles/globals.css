@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Discord-inspired dark theme tokens */
+  --color-bg-primary: #1e1f22;
+  --color-bg-secondary: #2b2d31;
+  --color-bg-tertiary: #313338;
+  --color-bg-modifier-hover: rgba(79, 84, 92, 0.16);
+  --color-bg-modifier-active: rgba(79, 84, 92, 0.24);
+  --color-bg-modifier-selected: rgba(79, 84, 92, 0.32);
+
+  --color-text-primary: #f2f3f5;
+  --color-text-secondary: #b5bac1;
+  --color-text-muted: #949ba4;
+  --color-text-link: #00a8fc;
+
+  --color-brand-primary: #5865f2;
+  --color-brand-hover: #4752c4;
+
+  --color-status-success: #23a55a;
+  --color-status-warning: #f0b232;
+  --color-status-danger: #f23f43;
+  --color-status-info: #00a8fc;
+
+  --color-input-bg: #1e1f22;
+  --color-input-border: #3f4147;
+
+  --shadow-elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+  --shadow-elevation-medium: 0 4px 4px rgba(0, 0, 0, 0.16);
+  --shadow-elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+a {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Scrollbar styling for chat feeds */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f545c;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+/* Message styling utilities */
+@layer components {
+  .message-player {
+    @apply bg-background-tertiary rounded-lg px-4 py-2;
+  }
+
+  .message-dm {
+    @apply bg-background-secondary border-l-4 border-brand-primary rounded-lg px-4 py-2;
+  }
+
+  .message-system {
+    @apply bg-background-secondary/50 border border-input-border rounded-lg px-4 py-2 font-mono text-sm;
+  }
+
+  .dice-roll {
+    @apply inline-flex items-center gap-1 bg-status-info/20 text-status-info px-2 py-0.5 rounded font-mono text-sm;
+  }
+}
