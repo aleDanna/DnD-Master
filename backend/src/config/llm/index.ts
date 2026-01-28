@@ -1,9 +1,12 @@
 /**
  * LLM Configuration and Factory
  * Provides a configurable LLM provider based on environment settings
+ * Supports: OpenAI, Gemini, Claude
  */
 
 import { OpenAIProvider } from './openai-provider.js';
+import { GeminiProvider } from './gemini-provider.js';
+import { ClaudeProvider } from './claude-provider.js';
 import type {
   ILLMProvider,
   LLMProvider,
@@ -15,13 +18,46 @@ import type {
 export * from './types.js';
 
 /**
+ * Get the configured LLM provider from environment
+ */
+function getProviderFromEnv(): LLMProvider {
+  const provider = (process.env.LLM_PROVIDER || 'openai').toLowerCase();
+
+  if (provider === 'gemini' || provider === 'google') {
+    return 'gemini';
+  }
+  if (provider === 'claude' || provider === 'anthropic') {
+    return 'claude';
+  }
+  return 'openai';
+}
+
+/**
  * Create an LLM provider instance based on configuration
  */
 export function createLLMProvider(provider?: LLMProvider): ILLMProvider {
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn('Warning: OPENAI_API_KEY not set. AI features will not work.');
+  const selectedProvider = provider || getProviderFromEnv();
+
+  switch (selectedProvider) {
+    case 'gemini':
+      if (!process.env.GEMINI_API_KEY) {
+        console.warn('Warning: GEMINI_API_KEY not set. AI features will not work.');
+      }
+      return new GeminiProvider();
+
+    case 'claude':
+      if (!process.env.ANTHROPIC_API_KEY) {
+        console.warn('Warning: ANTHROPIC_API_KEY not set. AI features will not work.');
+      }
+      return new ClaudeProvider();
+
+    case 'openai':
+    default:
+      if (!process.env.OPENAI_API_KEY) {
+        console.warn('Warning: OPENAI_API_KEY not set. AI features will not work.');
+      }
+      return new OpenAIProvider();
   }
-  return new OpenAIProvider();
 }
 
 // Default singleton instance

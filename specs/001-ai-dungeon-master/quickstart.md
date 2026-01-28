@@ -73,8 +73,17 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key
 SUPABASE_ANON_KEY=your-anon-key
 
-# OpenAI
+# LLM Provider (choose one: openai, gemini, or claude)
+LLM_PROVIDER=openai
+
+# OpenAI (if LLM_PROVIDER=openai)
 OPENAI_API_KEY=sk-your-openai-key
+
+# Gemini (if LLM_PROVIDER=gemini)
+GEMINI_API_KEY=your-gemini-api-key
+
+# Claude (if LLM_PROVIDER=claude)
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
 
 # Server
 PORT=3001
@@ -182,10 +191,12 @@ npm run test:e2e
 - Verify `SUPABASE_URL` is correct
 - Check Supabase project is not paused (free tier pauses after inactivity)
 
-### "OpenAI rate limit"
+### "LLM API rate limit"
 
-- Check your OpenAI usage at platform.openai.com
-- Use `gpt-3.5-turbo` for development to reduce costs
+- **OpenAI**: Check usage at platform.openai.com; use `gpt-3.5-turbo` for development
+- **Gemini**: Check usage at console.cloud.google.com; use `gemini-1.5-flash` for development
+- **Claude**: Check usage at console.anthropic.com; use `claude-3-haiku` for development
+- Switch providers by changing `LLM_PROVIDER` env variable
 
 ### "CORS error"
 

@@ -13,7 +13,7 @@ This document captures technical research and decisions made during the planning
 ## 1. AI Architecture: Streaming Responses with State Validation
 
 ### Decision
-Use a two-step AI flow where OpenAI generates structured output (narrative + state changes), then the server validates before persisting.
+Use a two-step AI flow where the configurable LLM (OpenAI, Gemini, or Claude) generates structured output (narrative + state changes), then the server validates before persisting.
 
 ### Rationale
 - **Constitution Compliance**: Principle II requires server validation of all state changes; AI cannot directly modify the database

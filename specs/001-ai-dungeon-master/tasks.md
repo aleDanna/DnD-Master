@@ -89,9 +89,9 @@
 - [ ] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
 - [ ] T043 Write unit tests for rules parser in `backend/tests/unit/rules-parser.test.ts`
 
-### OpenAI Configuration
+### LLM Configuration (OpenAI / Gemini / Claude)
 
-- [x] T045 Create OpenAI provider configuration in `backend/src/config/llm/`
+- [x] T045 Create configurable LLM provider abstraction in `backend/src/config/llm/`
 - [ ] T046 Create base prompt templates in `backend/src/services/ai/prompts.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
