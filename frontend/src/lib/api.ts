@@ -27,9 +27,9 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
   const { token, ...init } = options;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(init.headers || {}),
+    ...(init.headers as Record<string, string> || {}),
   };
 
   if (token) {
