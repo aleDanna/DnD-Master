@@ -73,3 +73,10 @@ Create a `.env.local` file for local development:
 ```
 # Add environment variables here
 ```
+
+## Active Technologies
+- TypeScript 5.x (frontend and backend) (001-ai-dungeon-master)
+- PostgreSQL via Supabase (campaigns, sessions, characters, events) (001-ai-dungeon-master)
+
+## Recent Changes
+- 001-ai-dungeon-master: Added TypeScript 5.x (frontend and backend)
