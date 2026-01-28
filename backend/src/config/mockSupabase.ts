@@ -217,6 +217,32 @@ function createMockQueryBuilder(tableName: string) {
         });
       }
 
+      // Handle joins in select columns (e.g., "campaign:campaigns(id, name)")
+      const joinMatch = selectColumns.match(/(\w+):(\w+)\(([^)]+)\)/);
+      if (joinMatch) {
+        const [, alias, joinTable, joinColumns] = joinMatch;
+        const columns = joinColumns.split(',').map((c: string) => c.trim());
+        const foreignKey = `${joinTable.replace(/s$/, '')}_id`; // e.g., campaigns -> campaign_id
+
+        // Auto-create join table if it doesn't exist
+        if (!store[joinTable]) {
+          store[joinTable] = new Map();
+        }
+
+        records = records.map((record: any) => {
+          const fkValue = record[foreignKey];
+          const joinedRecord = store[joinTable].get(fkValue);
+          if (joinedRecord) {
+            const selectedFields: any = {};
+            for (const col of columns) {
+              selectedFields[col] = joinedRecord[col];
+            }
+            return { ...record, [alias]: selectedFields };
+          }
+          return { ...record, [alias]: null };
+        });
+      }
+
       // Apply ordering
       if (orderByColumn) {
         records.sort((a: any, b: any) => {
@@ -239,7 +265,15 @@ function createMockQueryBuilder(tableName: string) {
       }
 
       if (singleResult) {
-        resolve({ data: records[0] || null, error: null });
+        if (records.length === 0) {
+          // Supabase returns PGRST116 error when single() finds no rows
+          resolve({
+            data: null,
+            error: { code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned' }
+          });
+        } else {
+          resolve({ data: records[0], error: null });
+        }
       } else {
         resolve({ data: records, error: null });
       }
