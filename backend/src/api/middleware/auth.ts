@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { isMockMode } from '../../config/mockSupabase.js';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 
 export interface AuthenticatedUser {
   id: string;
@@ -16,6 +17,34 @@ declare global {
       user?: AuthenticatedUser;
       accessToken?: string;
     }
+  }
+}
+
+/**
+ * Parse mock token to extract user info
+ * Mock tokens are in format: mock-jwt-{userId}
+ */
+function parseMockToken(token: string): AuthenticatedUser | null {
+  // Check if it's a mock token format
+  if (token.startsWith('mock-jwt-')) {
+    const userId = token.substring(9); // Remove 'mock-jwt-' prefix
+    return {
+      id: userId,
+      email: `user-${userId}@mock.local`,
+      display_name: 'Mock User',
+    };
+  }
+
+  // Try to decode as a simple base64 JSON (for localStorage mock sessions)
+  try {
+    // The mock session from frontend may have user data
+    return {
+      id: 'mock-user-' + Date.now(),
+      email: 'test@mock.local',
+      display_name: 'Test User',
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -42,6 +71,29 @@ export async function authMiddleware(
     }
 
     const token = authHeader.substring(7);
+
+    // In mock mode, accept any token and create a mock user
+    if (isMockMode()) {
+      const mockUser = parseMockToken(token);
+      if (mockUser) {
+        req.user = mockUser;
+        req.accessToken = token;
+        next();
+        return;
+      }
+    }
+
+    // Real Supabase authentication
+    if (!supabaseUrl || !supabaseAnonKey) {
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'CONFIG_ERROR',
+          message: 'Supabase not configured',
+        },
+      });
+      return;
+    }
 
     // Create a Supabase client with the user's token
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -104,6 +156,24 @@ export async function optionalAuthMiddleware(
     }
 
     const token = authHeader.substring(7);
+
+    // In mock mode, accept any token
+    if (isMockMode()) {
+      const mockUser = parseMockToken(token);
+      if (mockUser) {
+        req.user = mockUser;
+        req.accessToken = token;
+      }
+      next();
+      return;
+    }
+
+    // Real Supabase authentication
+    if (!supabaseUrl || !supabaseAnonKey) {
+      next();
+      return;
+    }
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: {
