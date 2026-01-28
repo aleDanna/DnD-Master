@@ -50,59 +50,64 @@ Use a two-step AI flow where OpenAI generates structured output (narrative + sta
 ## 2. Rulebook Dataset Format
 
 ### Decision
-Store D&D rules as JSON files embedded in the backend codebase with stable IDs for citation.
+Use the pre-existing D&D rulebook text files in the `docs/` folder as the authoritative source, parsed at startup into a searchable in-memory structure.
+
+### Source Files
+- **`docs/rules.txt`** - D&D Basic Rules (Version 1.0, November 2018) - ~25,000 lines
+- **`docs/handbook.txt`** - Player's Handbook - ~47,000 lines
 
 ### Rationale
 - **Constitution Compliance**: Principle I requires AI use only the in-app dataset
-- **Citation Support**: Stable IDs enable AI responses to reference specific rules
+- **Authoritative Source**: Official D&D content already available in repository
+- **Citation Support**: Section headers and page references enable rule citations
 - **Version Control**: Rules changes are tracked in git
-- **Performance**: Local files faster than database queries for rule lookups
+- **Performance**: Parsed at startup; in-memory search for rule lookups
 
-### Dataset Structure
-```json
-{
-  "rules": {
-    "combat": {
-      "attack-roll": {
-        "id": "rule-combat-attack-roll",
-        "title": "Making an Attack Roll",
-        "text": "To make an attack roll, roll a d20 and add the appropriate modifiers...",
-        "source": "PHB p.194"
-      }
-    }
-  },
-  "spells": {
-    "fireball": {
-      "id": "spell-fireball",
-      "name": "Fireball",
-      "level": 3,
-      "school": "Evocation",
-      "casting_time": "1 action",
-      "range": "150 feet",
-      "components": "V, S, M",
-      "duration": "Instantaneous",
-      "description": "A bright streak flashes from your pointing finger..."
-    }
-  },
-  "monsters": {
-    "goblin": {
-      "id": "monster-goblin",
-      "name": "Goblin",
-      "size": "Small",
-      "type": "Humanoid",
-      "ac": 15,
-      "hp": "7 (2d6)",
-      "speed": "30 ft.",
-      "abilities": {...}
-    }
+### Implementation Approach
+```typescript
+// backend/src/rules/parser.ts
+interface RuleSection {
+  id: string;           // Generated: "rules-ch9-combat" or "phb-ch5-equipment"
+  source: 'rules' | 'handbook';
+  chapter: string;      // "Ch. 9: Combat"
+  section: string;      // "Making an Attack"
+  page?: string;        // "PHB p.194" if extractable
+  content: string;      // Full text of the section
+  keywords: string[];   // Extracted for search
+}
+
+// Parser extracts sections based on heading patterns:
+// - "Ch. X: Title" marks chapter boundaries
+// - ALL CAPS lines often indicate section headers
+// - Indentation patterns indicate subsections
+
+class RulesService {
+  private sections: Map<string, RuleSection>;
+
+  constructor() {
+    this.sections = new Map();
+    this.loadAndParse('docs/rules.txt', 'rules');
+    this.loadAndParse('docs/handbook.txt', 'handbook');
+  }
+
+  search(query: string): RuleSection[] {
+    // Full-text search across sections
+  }
+
+  getSection(id: string): RuleSection | null {
+    return this.sections.get(id);
+  }
+
+  getCitation(id: string): string {
+    // Returns formatted citation: "Basic Rules, Ch. 9: Combat - Making an Attack"
   }
 }
 ```
 
 ### Alternatives Considered
+- **Structured JSON**: Rejected (would require manual conversion; text files are authoritative)
 - **Database storage**: Rejected (adds latency, complexity; rules rarely change)
 - **External API**: Rejected (violates "in-app dataset" requirement)
-- **Markdown files**: Rejected (harder to parse, less structured for lookups)
 
 ---
 
@@ -348,7 +353,7 @@ const { data: { user } } = await supabase.auth.getUser();
 | Area | Decision | Key Rationale |
 |------|----------|---------------|
 | AI Flow | Two-step with validation | Constitution requires server validation |
-| Rules Data | Embedded JSON | In-app dataset with stable IDs |
+| Rules Data | `docs/*.txt` parsed at startup | In-app dataset with section-based citations |
 | Dice System | Centralized service | Logging, determinism, trust |
 | State Management | Tables + Event log | Persistence, replay, recap |
 | Multiplayer | Supabase Realtime | Built-in, versioned updates |

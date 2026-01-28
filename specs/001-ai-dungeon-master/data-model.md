@@ -455,6 +455,7 @@ CREATE POLICY "Characters editable by owner"
 ## Migration Strategy
 
 1. **Initial setup**: Run Supabase migrations in order
-2. **Seed data**: Load sample campaign and rulebook dataset
-3. **RLS verification**: Test all policies with different user contexts
-4. **Index verification**: Analyze query plans for common access patterns
+2. **Seed data**: Load sample campaign data
+3. **Rules parsing**: Verify `docs/rules.txt` and `docs/handbook.txt` are parsed correctly at backend startup
+4. **RLS verification**: Test all policies with different user contexts
+5. **Index verification**: Analyze query plans for common access patterns

@@ -73,6 +73,12 @@ specs/001-ai-dungeon-master/
 ### Source Code (repository root)
 
 ```text
+docs/                             # D&D rulebook source files (authoritative)
+├── rules.txt                     # D&D Basic Rules (Version 1.0, Nov 2018)
+├── rules.pdf                     # PDF version
+├── handbook.txt                  # Player's Handbook
+└── handbook.pdf                  # PDF version
+
 backend/
 ├── src/
 │   ├── api/
@@ -105,12 +111,10 @@ backend/
 │   │   ├── session.ts
 │   │   ├── event.ts
 │   │   └── combat.ts
-│   ├── rules/                     # D&D rulebook dataset
-│   │   ├── index.ts               # Dataset loader
-│   │   ├── spells.json
-│   │   ├── monsters.json
-│   │   ├── classes.json
-│   │   └── rules.json
+│   ├── rules/                     # D&D rulebook dataset loader
+│   │   ├── index.ts               # Dataset loader and search
+│   │   ├── parser.ts              # Parses docs/*.txt into structured data
+│   │   └── types.ts               # Rule citation types
 │   └── config/
 │       ├── supabase.ts
 │       └── openai.ts
@@ -183,5 +187,5 @@ frontend/
 | Aspect | Decision | Rationale |
 |--------|----------|-----------|
 | Separate backend | Express.js API | AI orchestration and state validation require server-side control; Next.js API routes insufficient for streaming + complex validation |
-| Rulebook as JSON | Embedded in codebase | Constitution requires AI use only in-app dataset; embedding ensures availability and stable IDs for citations |
+| Rulebook source | `docs/rules.txt` + `docs/handbook.txt` | Constitution requires AI use only in-app dataset; parsed at startup into searchable format for rule citations |
 | Two-step AI flow | Propose → Validate → Persist | Constitution requires server validation of all state changes; AI cannot directly modify database |
