@@ -1,0 +1,1238 @@
+openapi: 3.0.3
+info:
+  title: AI Dungeon Master API
+  description: Backend API for the AI Dungeon Master D&D campaign management system
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+  - url: https://api.dnd-master.app/api
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ============================================================================
+  # Campaigns
+  # ============================================================================
+  /campaigns:
+    get:
+      summary: List user's campaigns
+      tags: [Campaigns]
+      responses:
+        '200':
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create a new campaign
+      tags: [Campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /campaigns/{campaignId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+
+    get:
+      summary: Get campaign details
+      tags: [Campaigns]
+      responses:
+        '200':
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update campaign settings
+      tags: [Campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCampaignRequest'
+      responses:
+        '200':
+          description: Campaign updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete campaign
+      tags: [Campaigns]
+      responses:
+        '204':
+          description: Campaign deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /campaigns/{campaignId}/invite:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+
+    post:
+      summary: Invite a player to the campaign
+      tags: [Campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitePlayerRequest'
+      responses:
+        '201':
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignPlayer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /campaigns/{campaignId}/join:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+
+    post:
+      summary: Accept campaign invitation
+      tags: [Campaigns]
+      responses:
+        '200':
+          description: Joined campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignPlayer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================================================
+  # Characters
+  # ============================================================================
+  /campaigns/{campaignId}/characters:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+
+    get:
+      summary: List characters in campaign
+      tags: [Characters]
+      responses:
+        '200':
+          description: List of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Character'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Create a character
+      tags: [Characters]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCharacterRequest'
+      responses:
+        '201':
+          description: Character created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /characters/{characterId}:
+    parameters:
+      - $ref: '#/components/parameters/CharacterId'
+
+    get:
+      summary: Get character details
+      tags: [Characters]
+      responses:
+        '200':
+          description: Character details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update character
+      tags: [Characters]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCharacterRequest'
+      responses:
+        '200':
+          description: Character updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete character
+      tags: [Characters]
+      responses:
+        '204':
+          description: Character deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================================================
+  # Sessions
+  # ============================================================================
+  /campaigns/{campaignId}/sessions:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+
+    get:
+      summary: List sessions in campaign
+      tags: [Sessions]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused, ended]
+      responses:
+        '200':
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SessionSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Create a new session
+      tags: [Sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    get:
+      summary: Get session state
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Full session state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /sessions/{sessionId}/resume:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: Resume a paused session
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Session resumed with recap
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResumeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /sessions/{sessionId}/save:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: Save session state
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Session saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict - session modified by another player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+
+  /sessions/{sessionId}/end:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: End the session
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Session ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================================================
+  # Game Loop (Core DM Interaction)
+  # ============================================================================
+  /sessions/{sessionId}/action:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: Submit player action to AI DM
+      description: |
+        Core gameplay endpoint. Sends player action to AI DM and returns
+        narrative response with any mechanics resolution. Response is streamed.
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerActionRequest'
+      responses:
+        '200':
+          description: AI DM response (streamed)
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/DMResponseStream'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict - not player's turn or invalid state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStateError'
+
+  /sessions/{sessionId}/events:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    get:
+      summary: Get session event log
+      tags: [Game]
+      parameters:
+        - name: since
+          in: query
+          description: Return events after this sequence number
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Event log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================================================
+  # Dice
+  # ============================================================================
+  /sessions/{sessionId}/dice/roll:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: Roll dice (built-in RNG mode)
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiceRollRequest'
+      responses:
+        '200':
+          description: Dice roll result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiceRoll'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /sessions/{sessionId}/dice/enter:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    post:
+      summary: Enter dice roll result (player-entered mode)
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiceEnterRequest'
+      responses:
+        '200':
+          description: Roll recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiceRoll'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /sessions/{sessionId}/dice/log:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    get:
+      summary: Get dice roll history
+      tags: [Game]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Dice roll history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiceRoll'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================================================
+  # Map
+  # ============================================================================
+  /sessions/{sessionId}/map:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    get:
+      summary: Get current map state
+      tags: [Game]
+      responses:
+        '200':
+          description: Map state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Map not enabled for this campaign
+
+  /sessions/{sessionId}/map/token/{tokenId}/move:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+      - name: tokenId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    post:
+      summary: Move a token on the map
+      tags: [Game]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenMoveRequest'
+      responses:
+        '200':
+          description: Token moved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapState'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Cannot move this token
+
+  # ============================================================================
+  # Combat
+  # ============================================================================
+  /sessions/{sessionId}/combat:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+
+    get:
+      summary: Get current combat state
+      tags: [Game]
+      responses:
+        '200':
+          description: Combat state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CombatState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No active combat
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    CharacterId:
+      name: characterId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # ==========================================================================
+    # Common
+    # ==========================================================================
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    ConflictError:
+      type: object
+      required: [error, message, currentVersion]
+      properties:
+        error:
+          type: string
+          example: "CONFLICT"
+        message:
+          type: string
+        currentVersion:
+          type: integer
+
+    GameStateError:
+      type: object
+      required: [error, message, gameState]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        gameState:
+          type: string
+          enum: [not_your_turn, combat_active, invalid_action]
+
+    # ==========================================================================
+    # Campaign Schemas
+    # ==========================================================================
+    Campaign:
+      type: object
+      required: [id, ownerId, name, diceMode, mapMode, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        diceMode:
+          type: string
+          enum: [rng, player_entered]
+        mapMode:
+          type: string
+          enum: [grid_2d, narrative_only]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CampaignDetail:
+      allOf:
+        - $ref: '#/components/schemas/Campaign'
+        - type: object
+          properties:
+            players:
+              type: array
+              items:
+                $ref: '#/components/schemas/CampaignPlayer'
+            characters:
+              type: array
+              items:
+                $ref: '#/components/schemas/CharacterSummary'
+            activeSessions:
+              type: integer
+
+    CampaignPlayer:
+      type: object
+      required: [id, userId, role, inviteStatus]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: [owner, player]
+        inviteStatus:
+          type: string
+          enum: [pending, accepted, declined]
+        joinedAt:
+          type: string
+          format: date-time
+
+    CreateCampaignRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        diceMode:
+          type: string
+          enum: [rng, player_entered]
+          default: rng
+        mapMode:
+          type: string
+          enum: [grid_2d, narrative_only]
+          default: grid_2d
+
+    UpdateCampaignRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        diceMode:
+          type: string
+          enum: [rng, player_entered]
+        mapMode:
+          type: string
+          enum: [grid_2d, narrative_only]
+
+    InvitePlayerRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    # ==========================================================================
+    # Character Schemas
+    # ==========================================================================
+    CharacterSummary:
+      type: object
+      required: [id, name, race, class, level]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        race:
+          type: string
+        class:
+          type: string
+        level:
+          type: integer
+
+    Character:
+      allOf:
+        - $ref: '#/components/schemas/CharacterSummary'
+        - type: object
+          required: [userId, campaignId, maxHp, currentHp, armorClass]
+          properties:
+            userId:
+              type: string
+              format: uuid
+            campaignId:
+              type: string
+              format: uuid
+            maxHp:
+              type: integer
+            currentHp:
+              type: integer
+            armorClass:
+              type: integer
+            speed:
+              type: integer
+            strength:
+              type: integer
+            dexterity:
+              type: integer
+            constitution:
+              type: integer
+            intelligence:
+              type: integer
+            wisdom:
+              type: integer
+            charisma:
+              type: integer
+            skills:
+              type: object
+            proficiencies:
+              type: array
+              items:
+                type: string
+            equipment:
+              type: array
+              items:
+                type: object
+            spells:
+              type: array
+              items:
+                type: object
+            features:
+              type: array
+              items:
+                type: object
+            notes:
+              type: string
+
+    CreateCharacterRequest:
+      type: object
+      required: [name, race, class, maxHp, armorClass, strength, dexterity, constitution, intelligence, wisdom, charisma]
+      properties:
+        name:
+          type: string
+        race:
+          type: string
+        class:
+          type: string
+        level:
+          type: integer
+          default: 1
+        maxHp:
+          type: integer
+        armorClass:
+          type: integer
+        speed:
+          type: integer
+          default: 30
+        strength:
+          type: integer
+        dexterity:
+          type: integer
+        constitution:
+          type: integer
+        intelligence:
+          type: integer
+        wisdom:
+          type: integer
+        charisma:
+          type: integer
+
+    UpdateCharacterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        currentHp:
+          type: integer
+        equipment:
+          type: array
+          items:
+            type: object
+        notes:
+          type: string
+
+    # ==========================================================================
+    # Session Schemas
+    # ==========================================================================
+    SessionSummary:
+      type: object
+      required: [id, campaignId, status, startedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        campaignId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, paused, ended]
+        startedAt:
+          type: string
+          format: date-time
+        lastActivity:
+          type: string
+          format: date-time
+
+    Session:
+      allOf:
+        - $ref: '#/components/schemas/SessionSummary'
+        - type: object
+          properties:
+            version:
+              type: integer
+            narrativeSummary:
+              type: string
+            currentLocation:
+              type: string
+            activeNpcs:
+              type: array
+              items:
+                type: string
+            combatState:
+              $ref: '#/components/schemas/CombatState'
+            mapState:
+              $ref: '#/components/schemas/MapState'
+
+    CreateSessionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    SessionResumeResponse:
+      type: object
+      required: [session, recap]
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        recap:
+          type: string
+          description: AI-generated recap of recent events
+
+    # ==========================================================================
+    # Game Schemas
+    # ==========================================================================
+    PlayerActionRequest:
+      type: object
+      required: [characterId, action]
+      properties:
+        characterId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          description: Free-form natural language action
+
+    DMResponseStream:
+      type: object
+      description: Server-Sent Events stream
+      properties:
+        event:
+          type: string
+          enum: [narrative, mechanics, state_change, done, error]
+        data:
+          type: string
+          description: JSON payload for the event type
+
+    Event:
+      type: object
+      required: [id, sessionId, type, sequence, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [session_start, session_end, player_action, ai_response, dice_roll, state_change, combat_start, combat_end, turn_start, turn_end]
+        actorId:
+          type: string
+          format: uuid
+        actorName:
+          type: string
+        content:
+          type: object
+        ruleCitations:
+          type: array
+          items:
+            type: string
+        sequence:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    # ==========================================================================
+    # Dice Schemas
+    # ==========================================================================
+    DiceRollRequest:
+      type: object
+      required: [dice, reason]
+      properties:
+        dice:
+          type: string
+          description: Dice notation (e.g., "1d20+5", "2d6")
+          pattern: '^\\d+d\\d+(\\+\\d+)?$'
+        reason:
+          type: string
+          description: Why this roll is being made
+        characterId:
+          type: string
+          format: uuid
+
+    DiceEnterRequest:
+      type: object
+      required: [dice, rolls, reason]
+      properties:
+        dice:
+          type: string
+        rolls:
+          type: array
+          items:
+            type: integer
+        modifier:
+          type: integer
+          default: 0
+        reason:
+          type: string
+        characterId:
+          type: string
+          format: uuid
+
+    DiceRoll:
+      type: object
+      required: [id, dice, individualRolls, total, mode, reason, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        rollerId:
+          type: string
+          format: uuid
+        rollerName:
+          type: string
+        dice:
+          type: string
+        individualRolls:
+          type: array
+          items:
+            type: integer
+        modifier:
+          type: integer
+        total:
+          type: integer
+        mode:
+          type: string
+          enum: [rng, player_entered]
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    # ==========================================================================
+    # Map Schemas
+    # ==========================================================================
+    MapState:
+      type: object
+      required: [gridWidth, gridHeight, tokens]
+      properties:
+        gridWidth:
+          type: integer
+        gridHeight:
+          type: integer
+        tokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapToken'
+        terrain:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerrainTile'
+
+    MapToken:
+      type: object
+      required: [id, type, x, y]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [player, npc, monster, object]
+        x:
+          type: integer
+        y:
+          type: integer
+        label:
+          type: string
+        color:
+          type: string
+
+    TerrainTile:
+      type: object
+      required: [x, y, type]
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+        type:
+          type: string
+          enum: [wall, difficult_terrain, water, door]
+
+    TokenMoveRequest:
+      type: object
+      required: [x, y]
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+
+    # ==========================================================================
+    # Combat Schemas
+    # ==========================================================================
+    CombatState:
+      type: object
+      required: [active, round, turnIndex, initiativeOrder, combatants]
+      properties:
+        active:
+          type: boolean
+        round:
+          type: integer
+        turnIndex:
+          type: integer
+        initiativeOrder:
+          type: array
+          items:
+            $ref: '#/components/schemas/InitiativeEntry'
+        combatants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Combatant'
+
+    InitiativeEntry:
+      type: object
+      required: [id, type, name, initiative]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [player, npc, monster]
+        name:
+          type: string
+        initiative:
+          type: integer
+
+    Combatant:
+      type: object
+      required: [id, type, currentHp, maxHp]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [player, npc, monster]
+        currentHp:
+          type: integer
+        maxHp:
+          type: integer
+        conditions:
+          type: array
+          items:
+            type: string
+        effects:
+          type: array
+          items:
+            type: object

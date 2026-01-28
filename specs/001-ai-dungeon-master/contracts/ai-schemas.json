@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI DM Response Schemas",
+  "description": "JSON schemas for AI DM structured output",
+
+  "definitions": {
+    "RuleCitation": {
+      "type": "object",
+      "required": ["ruleId", "summary"],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "description": "Unique identifier from rulebook dataset (e.g., 'rule-combat-attack-roll')"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Brief explanation of how the rule applies"
+        }
+      }
+    },
+
+    "DiceRollRequest": {
+      "type": "object",
+      "required": ["dice", "reason", "roller"],
+      "properties": {
+        "dice": {
+          "type": "string",
+          "pattern": "^\\d+d\\d+(\\+\\d+)?$",
+          "description": "Dice notation (e.g., '1d20+5')"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why this roll is needed"
+        },
+        "roller": {
+          "type": "string",
+          "description": "Who is rolling: character name or 'DM'"
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Character/monster ID if rolling for specific entity"
+        }
+      }
+    },
+
+    "StateChange": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "damage",
+            "heal",
+            "condition_add",
+            "condition_remove",
+            "effect_add",
+            "effect_remove",
+            "position_update",
+            "combat_start",
+            "combat_end",
+            "turn_advance",
+            "narrative_update",
+            "npc_add",
+            "npc_remove",
+            "item_add",
+            "item_remove"
+          ]
+        },
+        "targetId": {
+          "type": "string",
+          "description": "ID of entity being changed"
+        },
+        "value": {
+          "description": "Change value (type depends on change type)"
+        },
+        "ruleCitation": {
+          "$ref": "#/definitions/RuleCitation"
+        }
+      }
+    },
+
+    "DMResponse": {
+      "type": "object",
+      "required": ["narrative"],
+      "properties": {
+        "narrative": {
+          "type": "string",
+          "description": "Story/flavor text to display to players"
+        },
+        "mechanics": {
+          "type": "object",
+          "description": "Mechanical resolution details",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "description": "Human-readable mechanics summary"
+            },
+            "diceRolls": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/DiceRollRequest"
+              },
+              "description": "Dice rolls needed (will be executed by dice service)"
+            },
+            "ruleCitations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RuleCitation"
+              }
+            }
+          }
+        },
+        "stateChanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StateChange"
+          },
+          "description": "Proposed changes to game state (requires server validation)"
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["question", "options"],
+            "properties": {
+              "question": {
+                "type": "string"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ruleCitation": {
+                "$ref": "#/definitions/RuleCitation"
+              }
+            }
+          },
+          "description": "Clarification questions when rules are ambiguous"
+        },
+        "meta": {
+          "type": "object",
+          "properties": {
+            "combatPhase": {
+              "type": "string",
+              "enum": ["exploration", "combat_start", "player_turn", "enemy_turn", "combat_end"]
+            },
+            "suggestedActions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Suggested actions the player might take"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "DMResponseSchema": {
+    "$ref": "#/definitions/DMResponse"
+  },
+
+  "examples": {
+    "narrativeOnly": {
+      "narrative": "You enter the dusty tavern. The smell of ale and woodsmoke fills your nostrils. A grizzled bartender polishes a mug behind the counter, eyeing you suspiciously. In the corner, a hooded figure sits alone, nursing a drink."
+    },
+
+    "withMechanics": {
+      "narrative": "You swing your longsword at the goblin! The blade catches it across the shoulder, drawing a shriek of pain.",
+      "mechanics": {
+        "summary": "Attack roll: 18 + 5 = 23 (hits AC 15). Damage: 8 slashing.",
+        "diceRolls": [
+          {
+            "dice": "1d20+5",
+            "reason": "Attack roll (longsword)",
+            "roller": "Aragorn"
+          },
+          {
+            "dice": "1d8+3",
+            "reason": "Damage (longsword)",
+            "roller": "Aragorn"
+          }
+        ],
+        "ruleCitations": [
+          {
+            "ruleId": "rule-combat-attack-roll",
+            "summary": "Roll d20 + attack modifier vs target AC"
+          }
+        ]
+      },
+      "stateChanges": [
+        {
+          "type": "damage",
+          "targetId": "monster-goblin-1",
+          "value": 8,
+          "ruleCitation": {
+            "ruleId": "rule-combat-damage",
+            "summary": "Subtract damage from target HP"
+          }
+        }
+      ]
+    },
+
+    "withQuestion": {
+      "narrative": "The spell description mentions you can target either a creature or an object.",
+      "questions": [
+        {
+          "question": "Would you like to target the goblin (creature) or the rope holding the chandelier (object)?",
+          "options": ["Target the goblin", "Target the rope"],
+          "ruleCitation": {
+            "ruleId": "spell-fire-bolt",
+            "summary": "Fire Bolt can target a creature or object"
+          }
+        }
+      ]
+    },
+
+    "combatStart": {
+      "narrative": "The goblins spot you and screech in alarm! Combat begins!",
+      "mechanics": {
+        "summary": "Roll initiative to determine turn order.",
+        "diceRolls": [
+          {
+            "dice": "1d20+2",
+            "reason": "Initiative",
+            "roller": "Aragorn"
+          },
+          {
+            "dice": "1d20+2",
+            "reason": "Initiative",
+            "roller": "Goblin 1",
+            "targetId": "monster-goblin-1"
+          },
+          {
+            "dice": "1d20+2",
+            "reason": "Initiative",
+            "roller": "Goblin 2",
+            "targetId": "monster-goblin-2"
+          }
+        ],
+        "ruleCitations": [
+          {
+            "ruleId": "rule-combat-initiative",
+            "summary": "At the start of combat, every participant makes a Dexterity check to determine turn order"
+          }
+        ]
+      },
+      "stateChanges": [
+        {
+          "type": "combat_start",
+          "value": {
+            "participants": ["char-aragorn", "monster-goblin-1", "monster-goblin-2"]
+          }
+        }
+      ],
+      "meta": {
+        "combatPhase": "combat_start"
+      }
+    }
+  }
+}

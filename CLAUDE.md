@@ -8,7 +8,7 @@ DnD-Master is a web application for Dungeons & Dragons campaign management built
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js 18+
@@ -73,3 +73,10 @@ Create a `.env.local` file for local development:
 ```
 # Add environment variables here
 ```
+
+## Active Technologies
+- TypeScript 5.x (frontend and backend) (001-ai-dungeon-master)
+- PostgreSQL via Supabase (campaigns, sessions, characters, events) (001-ai-dungeon-master)
+
+## Recent Changes
+- 001-ai-dungeon-master: Added TypeScript 5.x (frontend and backend)

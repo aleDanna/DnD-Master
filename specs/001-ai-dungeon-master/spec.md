@@ -228,7 +228,10 @@ A new user creates an account and logs in to access the application. Returning u
 
 ## Assumptions
 
-- The D&D rulebook dataset is pre-loaded and structured with stable IDs for citation.
+- The D&D rulebook dataset is pre-loaded from the following source files:
+  - `docs/rules.txt` - D&D Basic Rules (Version 1.0, November 2018)
+  - `docs/handbook.txt` - Player's Handbook
+- These files serve as the authoritative rule source the AI must reference for all mechanical rulings.
 - Users have basic familiarity with D&D concepts (classes, dice, combat).
 - Sessions are expected to last 1-4 hours; the system must handle saves at any point.
 - A "campaign" may have one player (solo) or multiple players.
