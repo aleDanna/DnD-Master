@@ -7,6 +7,9 @@ dotenv.config();
 
 import { errorHandler } from './api/middleware/error-handler.js';
 import healthRouter from './api/routes/health.js';
+import campaignsRouter from './api/routes/campaigns.js';
+import sessionsRouter from './api/routes/sessions.js';
+import gameRouter from './api/routes/game.js';
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
@@ -29,13 +32,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Routes
 app.use('/api/health', healthRouter);
-
-// TODO: Add routes as they are implemented
-// app.use('/api/auth', authRouter);
-// app.use('/api/campaigns', campaignsRouter);
-// app.use('/api/characters', charactersRouter);
-// app.use('/api/sessions', sessionsRouter);
-// app.use('/api/game', gameRouter);
+app.use('/api/campaigns', campaignsRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/game', gameRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
