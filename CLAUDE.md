@@ -8,7 +8,7 @@ DnD-Master is a web application for Dungeons & Dragons campaign management built
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js 18+

@@ -81,14 +81,13 @@
 - [ ] T037 Create protected route wrapper in `frontend/src/components/ui/ProtectedRoute.tsx`
 - [ ] T038 Create API client for backend calls in `frontend/src/lib/api-client.ts`
 
-### Rules Dataset
+### Rules Dataset (parses docs/rules.txt and docs/handbook.txt)
 
-- [ ] T039 Create rules dataset loader in `backend/src/rules/index.ts`
-- [ ] T040 [P] Create sample rules JSON (combat, skills) in `backend/src/rules/rules.json`
-- [ ] T041 [P] Create sample spells JSON in `backend/src/rules/spells.json`
-- [ ] T042 [P] Create sample monsters JSON in `backend/src/rules/monsters.json`
-- [ ] T043 [P] Create sample classes JSON in `backend/src/rules/classes.json`
-- [ ] T044 Create rules service for lookups in `backend/src/services/game/rules-service.ts`
+- [ ] T039 Create RuleSection types in `backend/src/rules/types.ts`
+- [ ] T040 Create rules parser for docs/*.txt in `backend/src/rules/parser.ts`
+- [ ] T041 Create rules dataset loader (loads and indexes parsed sections) in `backend/src/rules/index.ts`
+- [ ] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
+- [ ] T043 Write unit tests for rules parser in `backend/tests/unit/rules-parser.test.ts`
 
 ### OpenAI Configuration
 
@@ -384,7 +383,7 @@ Phase 4    Phase 5    Phase 6                                                 â”
 ### Parallel Opportunities
 
 **Phase 1 (Setup)**: T003-T005 and T008-T011 can run in parallel
-**Phase 2 (Foundational)**: T014-T018, T020-T024, T035-T036, T040-T043 can run in parallel
+**Phase 2 (Foundational)**: T014-T018, T020-T024, T035-T036 can run in parallel (rules tasks T039-T043 are sequential)
 **Phase 3 (US1)**: T061-T064 (UI components) can run in parallel
 **After US1**: US2, US3, US4 can be worked on in parallel by different developers
 
@@ -407,11 +406,12 @@ Phase 4    Phase 5    Phase 6                                                 â”
 - [ ] T023 [P] Create Event type definitions
 - [ ] T024 [P] Create Combat type definitions
 
-# Launch all rule datasets in parallel:
-- [ ] T040 [P] Create sample rules JSON
-- [ ] T041 [P] Create sample spells JSON
-- [ ] T042 [P] Create sample monsters JSON
-- [ ] T043 [P] Create sample classes JSON
+# Rules tasks (sequential - parser depends on types, service depends on loader):
+- [ ] T039 Create RuleSection types
+- [ ] T040 Create rules parser (parses docs/*.txt)
+- [ ] T041 Create rules dataset loader
+- [ ] T042 Create rules service
+- [ ] T043 Write rules parser tests
 ```
 
 ---
@@ -450,14 +450,14 @@ Phase 4    Phase 5    Phase 6                                                 â”
 | Phase | Story | Tasks | Parallel Tasks |
 |-------|-------|-------|----------------|
 | 1 | Setup | 11 | 8 |
-| 2 | Foundational | 35 | 20 |
+| 2 | Foundational | 34 | 16 |
 | 3 | US1: Solo Campaign | 31 | 4 |
 | 4 | US2: Combat | 15 | 0 |
 | 5 | US3: Save/Resume | 13 | 0 |
 | 6 | US4: Multiplayer | 12 | 0 |
 | 7 | US5: Campaign/Character | 10 | 0 |
 | 8 | Polish | 10 | 7 |
-| **Total** | | **137** | **39** |
+| **Total** | | **136** | **35** |
 
 ---
 
