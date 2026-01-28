@@ -1,20 +1,20 @@
 /**
- * OpenAI client configuration
+ * Anthropic (Claude) client configuration
  */
 
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 
 // Validate environment variable
-if (!process.env.OPENAI_API_KEY) {
-  console.warn('Warning: OPENAI_API_KEY not set. AI features will not work.');
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.warn('Warning: ANTHROPIC_API_KEY not set. AI features will not work.');
 }
 
 /**
- * OpenAI client instance
- * Uses gpt-4 by default for complex DM reasoning
+ * Anthropic client instance
+ * Uses Claude Sonnet by default for DM reasoning
  */
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+export const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 /**
@@ -22,13 +22,13 @@ export const openai = new OpenAI({
  */
 export const ModelConfig = {
   // Primary model for narrative and complex decisions
-  DM_NARRATIVE: 'gpt-4-turbo-preview',
+  DM_NARRATIVE: 'claude-sonnet-4-20250514',
 
   // Faster model for simple validations
-  VALIDATION: 'gpt-3.5-turbo',
+  VALIDATION: 'claude-3-haiku-20240307',
 
   // Model for combat calculations (accuracy matters)
-  COMBAT: 'gpt-4-turbo-preview',
+  COMBAT: 'claude-sonnet-4-20250514',
 
   // Maximum tokens for responses
   MAX_TOKENS: {
@@ -61,16 +61,25 @@ export const RateLimits = {
 } as const;
 
 /**
- * Helper to create a chat completion with retry logic
+ * Message type for Anthropic API
  */
-export async function createChatCompletion(
-  messages: OpenAI.ChatCompletionMessageParam[],
+export interface AnthropicMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Helper to create a message with retry logic
+ */
+export async function createMessage(
+  systemPrompt: string,
+  messages: AnthropicMessage[],
   options: {
     model?: string;
     maxTokens?: number;
     temperature?: number;
   } = {}
-): Promise<OpenAI.ChatCompletion> {
+): Promise<Anthropic.Message> {
   const {
     model = ModelConfig.DM_NARRATIVE,
     maxTokens = ModelConfig.MAX_TOKENS.NARRATIVE,
@@ -81,11 +90,12 @@ export async function createChatCompletion(
 
   for (let attempt = 0; attempt < RateLimits.MAX_RETRIES; attempt++) {
     try {
-      const response = await openai.chat.completions.create({
+      const response = await anthropic.messages.create({
         model,
-        messages,
         max_tokens: maxTokens,
         temperature,
+        system: systemPrompt,
+        messages,
       });
 
       return response;
@@ -93,12 +103,12 @@ export async function createChatCompletion(
       lastError = error instanceof Error ? error : new Error(String(error));
 
       // Don't retry on authentication errors
-      if (error instanceof OpenAI.AuthenticationError) {
+      if (error instanceof Anthropic.AuthenticationError) {
         throw error;
       }
 
       // Rate limit handling
-      if (error instanceof OpenAI.RateLimitError) {
+      if (error instanceof Anthropic.RateLimitError) {
         const delay = RateLimits.RETRY_DELAY_MS * Math.pow(2, attempt);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -113,19 +123,24 @@ export async function createChatCompletion(
     }
   }
 
-  throw lastError || new Error('Failed to complete chat request');
+  throw lastError || new Error('Failed to complete message request');
 }
 
 /**
- * Check if OpenAI is configured and working
+ * Check if Anthropic is configured and working
  */
-export async function checkOpenAIConnection(): Promise<boolean> {
-  if (!process.env.OPENAI_API_KEY) {
+export async function checkAnthropicConnection(): Promise<boolean> {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return false;
   }
 
   try {
-    await openai.models.list();
+    // Make a minimal API call to verify connection
+    await anthropic.messages.create({
+      model: ModelConfig.VALIDATION,
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'ping' }],
+    });
     return true;
   } catch {
     return false;

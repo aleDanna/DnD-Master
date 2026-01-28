@@ -11,7 +11,7 @@ This guide helps developers get the AI Dungeon Master running locally for develo
 - npm or yarn
 - Git
 - Supabase account (free tier works)
-- OpenAI API key
+- Anthropic API key (for Claude)
 
 ## 1. Clone and Install
 
@@ -73,9 +73,9 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key
 SUPABASE_ANON_KEY=your-anon-key
 
-# OpenAI
-OPENAI_API_KEY=sk-your-openai-key
-OPENAI_MODEL=gpt-4-turbo-preview
+# Anthropic (Claude)
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
 # Server
 PORT=3001
@@ -183,10 +183,10 @@ npm run test:e2e
 - Verify `SUPABASE_URL` is correct
 - Check Supabase project is not paused (free tier pauses after inactivity)
 
-### "OpenAI rate limit"
+### "Anthropic rate limit"
 
-- Check your OpenAI usage at platform.openai.com
-- Use a lower-tier model for development: `OPENAI_MODEL=gpt-3.5-turbo`
+- Check your Anthropic usage at console.anthropic.com
+- Use a lower-tier model for development: `ANTHROPIC_MODEL=claude-3-haiku-20240307`
 
 ### "CORS error"
 

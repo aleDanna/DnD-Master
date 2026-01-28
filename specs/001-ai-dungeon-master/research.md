@@ -13,7 +13,7 @@ This document captures technical research and decisions made during the planning
 ## 1. AI Architecture: Streaming Responses with State Validation
 
 ### Decision
-Use a two-step AI flow where OpenAI generates structured output (narrative + state changes), then the server validates before persisting.
+Use a two-step AI flow where Claude (Anthropic) generates structured output (narrative + state changes), then the server validates before persisting.
 
 ### Rationale
 - **Constitution Compliance**: Principle II requires server validation of all state changes; AI cannot directly modify the database
@@ -28,7 +28,7 @@ Use a two-step AI flow where OpenAI generates structured output (narrative + sta
    - Campaign settings (dice_mode, map_mode)
    - Relevant rulebook context
    - Player action
-3. OpenAI streams response with structured JSON blocks:
+3. Claude streams response with structured JSON blocks:
    - Narrative text (streamed immediately to client)
    - State change proposals (parsed and validated)
    - Rule citations (validated against dataset)

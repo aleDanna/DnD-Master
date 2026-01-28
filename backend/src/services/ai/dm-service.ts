@@ -1,9 +1,9 @@
 /**
  * DM Service
- * Orchestrates AI interactions for the Dungeon Master
+ * Orchestrates AI interactions for the Dungeon Master using Claude (Anthropic)
  */
 
-import { createChatCompletion, ModelConfig } from '../../config/openai.js';
+import { createMessage, ModelConfig, type AnthropicMessage } from '../../config/anthropic.js';
 import {
   SYSTEM_PROMPT,
   COMBAT_SYSTEM_SUPPLEMENT,
@@ -28,13 +28,20 @@ import type { Campaign } from '../../models/campaign.js';
 import type { Session } from '../../models/session.js';
 import type { Character } from '../../models/character.js';
 import type { GameEvent } from '../../models/event.js';
-import type OpenAI from 'openai';
 
 export interface DMServiceConfig {
   sessionRepo: SessionRepository;
   eventRepo: EventRepository;
   campaignRepo: CampaignRepository;
   stateService: StateService;
+}
+
+/**
+ * Helper to extract text content from Anthropic response
+ */
+function extractResponseText(response: Awaited<ReturnType<typeof createMessage>>): string {
+  const textBlock = response.content.find(block => block.type === 'text');
+  return textBlock && 'text' in textBlock ? textBlock.text : '';
 }
 
 export class DMService {
@@ -106,19 +113,18 @@ export class DMService {
     // Build the action prompt
     const actionPrompt = buildPlayerActionPrompt(action, playerName, gameContext);
 
-    // Get AI response
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    // Get AI response using Claude
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: actionPrompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
       maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
       temperature: ModelConfig.TEMPERATURE.NARRATIVE,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Merge rule citations
@@ -178,18 +184,17 @@ export class DMService {
 
     const prompt = buildDiceResolutionPrompt(rollResult, dc, gameContext);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
       maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
       temperature: ModelConfig.TEMPERATURE.NARRATIVE,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Log the AI response
@@ -241,18 +246,17 @@ export class DMService {
       characters
     );
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
       maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
       temperature: ModelConfig.TEMPERATURE.NARRATIVE,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Log the opening narrative
@@ -277,18 +281,21 @@ export class DMService {
 
     const prompt = buildSessionSummaryPrompt(events);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: 'You are a helpful assistant that writes concise session summaries for D&D campaigns.' },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
-      model: ModelConfig.VALIDATION, // Use faster model for summaries
-      maxTokens: 500,
-      temperature: 0.3,
-    });
+    const completion = await createMessage(
+      'You are a helpful assistant that writes concise session summaries for D&D campaigns.',
+      messages,
+      {
+        model: ModelConfig.VALIDATION, // Use faster model for summaries
+        maxTokens: 500,
+        temperature: 0.3,
+      }
+    );
 
-    const summary = completion.choices[0]?.message?.content || 'Session summary unavailable.';
+    const summary = extractResponseText(completion) || 'Session summary unavailable.';
 
     // Update session with summary
     await this.stateService.updateNarrativeSummary(sessionId, summary);
@@ -375,18 +382,21 @@ export class DMService {
     );
 
     // Get AI response with combat system supplement
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: actionPrompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
-      model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
-    });
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
+        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      }
+    );
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Merge rule citations
@@ -477,18 +487,21 @@ export class DMService {
     );
 
     // Get AI response
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
-      model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
-    });
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
+        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      }
+    );
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Merge rule citations
@@ -535,18 +548,21 @@ export class DMService {
 
     const prompt = buildCombatStartPrompt(enemies, gameContext);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
-      model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
-    });
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
+        temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      }
+    );
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Log the AI response
@@ -590,18 +606,17 @@ export class DMService {
 
     const prompt = buildCombatEndPrompt(outcome, survivors, fallen, gameContext);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: AnthropicMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
       maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
       temperature: ModelConfig.TEMPERATURE.NARRATIVE,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
+    const responseText = extractResponseText(completion);
     const response = parseAIResponse(responseText);
 
     // Log the AI response
