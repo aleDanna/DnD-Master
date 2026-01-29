@@ -9,7 +9,7 @@ import { db } from './database.js';
 import { getJwtSecret, getJwtExpiresIn } from './env.js';
 
 /**
- * User interface matching the profiles table
+ * User interface matching the users table
  */
 export interface User {
   id: string;
@@ -94,7 +94,7 @@ export async function registerUser(
   displayName?: string
 ): Promise<AuthResponse> {
   // Check if user already exists
-  const existingUser = await db.findOne<any>('profiles', { email });
+  const existingUser = await db.findOne<any>('users', { email });
   if (existingUser) {
     throw new Error('User with this email already exists');
   }
@@ -103,7 +103,7 @@ export async function registerUser(
   const passwordHash = await hashPassword(password);
 
   // Create user in database
-  const user = await db.insert<User>('profiles', {
+  const user = await db.insert<User>('users', {
     email,
     password_hash: passwordHash,
     display_name: displayName || email.split('@')[0],
@@ -134,7 +134,7 @@ export async function loginUser(
   password: string
 ): Promise<AuthResponse> {
   // Find user by email
-  const userRow = await db.findOne<any>('profiles', { email });
+  const userRow = await db.findOne<any>('users', { email });
   if (!userRow) {
     throw new Error('Invalid email or password');
   }
@@ -170,7 +170,7 @@ export async function loginUser(
  * Get user by ID
  */
 export async function getUserById(userId: string): Promise<User | null> {
-  const row = await db.findOne<any>('profiles', { id: userId });
+  const row = await db.findOne<any>('users', { id: userId });
   if (!row) return null;
 
   return {
@@ -202,7 +202,7 @@ export async function updateUser(
   updates: Partial<Pick<User, 'display_name' | 'avatar_url'>>
 ): Promise<User | null> {
   const row = await db.update<any>(
-    'profiles',
+    'users',
     {
       ...updates,
       updated_at: new Date(),
@@ -232,7 +232,7 @@ export async function changePassword(
   newPassword: string
 ): Promise<boolean> {
   // Get current user
-  const userRow = await db.findOne<any>('profiles', { id: userId });
+  const userRow = await db.findOne<any>('users', { id: userId });
   if (!userRow) {
     throw new Error('User not found');
   }
@@ -248,7 +248,7 @@ export async function changePassword(
 
   // Update password
   await db.update(
-    'profiles',
+    'users',
     { password_hash: newPasswordHash, updated_at: new Date() },
     { id: userId }
   );
