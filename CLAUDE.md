@@ -12,6 +12,9 @@ DnD-Master is a web application for Dungeons & Dragons campaign management built
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js 18+
+- **Database**: PostgreSQL with pgvector extension
+- **Backend**: Express.js with TypeScript
+- **Authentication**: JWT (JSON Web Tokens)
 
 ## Project Structure
 
@@ -71,12 +74,26 @@ API routes are located in `src/app/api/`. Each route should:
 Create a `.env.local` file for local development:
 
 ```
-# Add environment variables here
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/dnd_master
+
+# Authentication
+JWT_SECRET=your-jwt-secret-key
+JWT_EXPIRES_IN=7d
+
+# LLM Provider
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your-openai-api-key
+
+# Frontend
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ## Active Technologies
-- TypeScript 5.x (frontend and backend) (001-ai-dungeon-master)
-- PostgreSQL via Supabase (campaigns, sessions, characters, events) (001-ai-dungeon-master)
+- TypeScript 5.x (frontend and backend)
+- PostgreSQL with pgvector extension (campaigns, sessions, characters, events, rules)
+- Express.js backend with JWT authentication
 
 ## Recent Changes
-- 001-ai-dungeon-master: Added TypeScript 5.x (frontend and backend)
+- Migrated from Supabase to plain PostgreSQL
+- Implemented custom JWT authentication
