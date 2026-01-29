@@ -19,8 +19,13 @@ import {
   getCurrentUser,
 } from '@/lib/auth';
 
+interface Session {
+  access_token: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
@@ -35,6 +40,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,17 +52,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         if (storedUser && token) {
           setUser(storedUser);
+          setSession({ access_token: token });
           // Verify token is still valid by fetching current user
           const currentUser = await getCurrentUser();
           if (currentUser) {
             setUser(currentUser);
+            // Re-fetch token in case it was refreshed
+            const currentToken = getStoredToken();
+            setSession(currentToken ? { access_token: currentToken } : null);
           } else {
             setUser(null);
+            setSession(null);
           }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         setUser(null);
+        setSession(null);
       } finally {
         setLoading(false);
       }
@@ -70,6 +82,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await apiSignIn(email, password);
       if (result.user) {
         setUser(result.user);
+        const token = getStoredToken();
+        setSession(token ? { access_token: token } : null);
       }
       return { error: result.error };
     },
@@ -81,6 +95,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await apiRegister(email, password, displayName || email.split('@')[0]);
       if (result.user) {
         setUser(result.user);
+        const token = getStoredToken();
+        setSession(token ? { access_token: token } : null);
       }
       return { error: result.error };
     },
@@ -90,10 +106,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     await apiSignOut();
     setUser(null);
+    setSession(null);
   }, []);
 
   const value: AuthContextType = {
     user,
+    session,
     loading,
     signIn,
     signUp,
