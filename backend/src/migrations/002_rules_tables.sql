@@ -289,6 +289,41 @@ BEGIN
 END;
 $$;
 
+-- Function for full-text search using tsvector
+CREATE OR REPLACE FUNCTION search_rules_fulltext(
+  search_query text,
+  match_count int DEFAULT 20,
+  filter_document_id uuid DEFAULT NULL
+)
+RETURNS TABLE (
+  id uuid,
+  rank float
+)
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+  tsquery_value tsquery;
+BEGIN
+  -- Convert search query to tsquery using websearch_to_tsquery for natural language
+  tsquery_value := websearch_to_tsquery('english', search_query);
+
+  RETURN QUERY
+  SELECT
+    re.id,
+    ts_rank(re.search_vector, tsquery_value)::float AS rank
+  FROM rule_entries re
+  JOIN rule_sections rs ON re.section_id = rs.id
+  JOIN rule_chapters rc ON rs.chapter_id = rc.id
+  WHERE
+    re.search_vector @@ tsquery_value
+    AND (filter_document_id IS NULL OR rc.document_id = filter_document_id)
+  ORDER BY ts_rank(re.search_vector, tsquery_value) DESC
+  LIMIT match_count;
+END;
+$$;
+
 -- Grant execute permissions to authenticated users
 GRANT EXECUTE ON FUNCTION search_rules_semantic TO authenticated;
+GRANT EXECUTE ON FUNCTION search_rules_fulltext TO authenticated;
 GRANT EXECUTE ON FUNCTION update_entry_embedding TO authenticated;

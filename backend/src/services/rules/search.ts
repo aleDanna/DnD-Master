@@ -14,7 +14,7 @@ import {
   SearchResponse,
   MatchType,
 } from '../../models/rules.types.js';
-import { generateEmbedding, formatEmbeddingForPgvector } from './embeddings.js';
+import { generateEmbedding, formatEmbeddingForPgvector, isEmbeddingAvailable } from './embeddings.js';
 
 // RRF constant (standard value)
 const RRF_K = 60;
@@ -82,7 +82,7 @@ export class RulesSearchService {
   }
 
   /**
-   * Full-text search using PostgreSQL tsvector
+   * Full-text search using PostgreSQL tsvector via RPC
    */
   async fulltextSearch(
     query: string,
@@ -90,63 +90,45 @@ export class RulesSearchService {
   ): Promise<RuleSearchResult[]> {
     const limit = options.limit || SEARCH_POOL_SIZE;
 
-    // Convert query to tsquery format
-    const tsquery = this.toTsQuery(query);
+    try {
+      // Use RPC for full-text search
+      const { data, error } = await this.client.rpc('search_rules_fulltext', {
+        search_query: query,
+        match_count: limit,
+        filter_document_id: options.documentId || null,
+      });
 
-    // Build the query
-    let queryBuilder = this.client
-      .from('rule_entries')
-      .select(
-        `
-        id, section_id, title, content, page_reference, order_index, created_at,
-        rule_sections!inner (
-          id, chapter_id, title, order_index, page_start, page_end, created_at,
-          rule_chapters!inner (
-            id, document_id, title, order_index, page_start, page_end, created_at,
-            source_documents!inner (
-              id, name, file_type, file_hash, total_pages, ingested_at, ingested_by, status, error_log, created_at, updated_at
-            )
-          )
-        )
-      `
-      )
-      .textSearch('search_vector', tsquery, {
-        type: 'websearch',
-        config: 'english',
-      })
-      .limit(limit);
+      if (error) {
+        console.error('Full-text search error:', error);
+        return [];
+      }
 
-    // Filter by document if specified
-    if (options.documentId) {
-      queryBuilder = queryBuilder.eq(
-        'rule_sections.rule_chapters.document_id',
-        options.documentId
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Fetch full entry data with context
+      const entryIds = data.map((r: any) => r.id);
+      const fullEntries = await this.fetchEntriesWithContext(entryIds);
+
+      // Map ranks to entries
+      const rankMap = new Map<string, number>(
+        data.map((r: any) => [r.id, r.rank as number])
       );
-    }
 
-    const { data, error } = await queryBuilder;
+      // Normalize ranks
+      const maxRank = Math.max(...data.map((r: any) => r.rank as number));
 
-    if (error) {
+      return fullEntries.map(entry => ({
+        entry,
+        relevance: maxRank > 0 ? (rankMap.get(entry.id) || 0) / maxRank : 0,
+        matchType: 'fulltext' as MatchType,
+        highlights: this.highlightMatches(entry.content, query),
+      }));
+    } catch (error) {
       console.error('Full-text search error:', error);
       return [];
     }
-
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    // Transform results
-    return data.map((row: any, index: number) => {
-      const entryWithContext = this.transformToEntryWithContext(row);
-      const highlights = this.highlightMatches(row.content, query);
-
-      return {
-        entry: entryWithContext,
-        relevance: 1 - index / data.length, // Rank-based relevance
-        matchType: 'fulltext' as MatchType,
-        highlights,
-      };
-    });
   }
 
   /**
@@ -156,6 +138,12 @@ export class RulesSearchService {
     query: string,
     options: { limit?: number; documentId?: string } = {}
   ): Promise<RuleSearchResult[]> {
+    // Check if embeddings are available
+    if (!isEmbeddingAvailable()) {
+      console.warn('Semantic search unavailable: OPENAI_API_KEY not set');
+      return [];
+    }
+
     const limit = options.limit || SEARCH_POOL_SIZE;
 
     try {
@@ -202,6 +190,7 @@ export class RulesSearchService {
 
   /**
    * Hybrid search using Reciprocal Rank Fusion (RRF)
+   * Falls back to fulltext-only if embeddings are unavailable
    */
   async hybridSearch(
     query: string,
@@ -209,11 +198,21 @@ export class RulesSearchService {
   ): Promise<RuleSearchResult[]> {
     const limit = options.limit || SEARCH_POOL_SIZE;
 
-    // Run both searches in parallel
+    // Run both searches in parallel (semantic will return empty if unavailable)
     const [fulltextResults, semanticResults] = await Promise.all([
       this.fulltextSearch(query, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
       this.semanticSearch(query, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
     ]);
+
+    // If semantic search returned nothing, just return fulltext results
+    if (semanticResults.length === 0) {
+      return fulltextResults.slice(0, limit);
+    }
+
+    // If fulltext search returned nothing, just return semantic results
+    if (fulltextResults.length === 0) {
+      return semanticResults.slice(0, limit);
+    }
 
     // Build RRF score maps
     const rrfScores = new Map<string, number>();

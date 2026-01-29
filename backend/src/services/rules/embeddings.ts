@@ -15,6 +15,13 @@ const RATE_LIMIT_DELAY_MS = 100;
 let openaiClient: OpenAI | null = null;
 
 /**
+ * Check if embedding generation is available (OPENAI_API_KEY is set)
+ */
+export function isEmbeddingAvailable(): boolean {
+  return !!process.env.OPENAI_API_KEY;
+}
+
+/**
  * Get or create OpenAI client instance
  */
 function getOpenAIClient(): OpenAI {
