@@ -9,21 +9,29 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Discord-inspired dark theme
-        background: {
-          primary: '#1e1f22',
-          secondary: '#2b2d31',
-          tertiary: '#313338',
-          modifier: {
-            hover: 'rgba(79, 84, 92, 0.16)',
-            active: 'rgba(79, 84, 92, 0.24)',
-            selected: 'rgba(79, 84, 92, 0.32)',
-          },
-        },
+        // Direct color mappings for utility classes (bg-background, text-foreground, etc.)
+        background: '#ffffff',
+        foreground: '#1a1a1a',
+        surface: '#f9fafb',
+        border: '#d1d5db',
+        muted: '#6b7280',
+        primary: '#5865f2',
+        success: '#23a55a',
+        warning: '#f0b232',
+        danger: '#f23f43',
+
+        // Discord-inspired dark theme (nested - use with bg-background-primary, etc.)
+        'background-primary': '#1e1f22',
+        'background-secondary': '#2b2d31',
+        'background-tertiary': '#313338',
+        'background-modifier-hover': 'rgba(79, 84, 92, 0.16)',
+        'background-modifier-active': 'rgba(79, 84, 92, 0.24)',
+        'background-modifier-selected': 'rgba(79, 84, 92, 0.32)',
+
         text: {
-          primary: '#f2f3f5',
-          secondary: '#b5bac1',
-          muted: '#949ba4',
+          primary: '#1a1a1a',
+          secondary: '#374151',
+          muted: '#6b7280',
           link: '#00a8fc',
         },
         brand: {
@@ -37,8 +45,8 @@ module.exports = {
           info: '#00a8fc',
         },
         input: {
-          background: '#1e1f22',
-          border: '#3f4147',
+          background: '#ffffff',
+          border: '#d1d5db',
         },
       },
       fontFamily: {
