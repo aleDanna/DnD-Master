@@ -1,49 +1,76 @@
 -- DnD-Master Database Initialization Script
--- PostgreSQL with pgvector extension
+-- PostgreSQL with optional pgvector extension
 -- Run this script to initialize the database schema
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgvector";
+
+-- Try to enable pgvector (optional - semantic search will be disabled if not available)
+-- To install pgvector: https://github.com/pgvector/pgvector#installation
+DO $$
+BEGIN
+  CREATE EXTENSION IF NOT EXISTS vector;
+  RAISE NOTICE 'pgvector extension enabled - semantic search available';
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pgvector extension not available - semantic search will be disabled';
+  RAISE NOTICE 'Full-text search will still work. To enable semantic search, install pgvector.';
+END $$;
 
 -- =============================================================================
 -- ENUM TYPES
 -- =============================================================================
 
--- Dice mode for campaigns
-CREATE TYPE dice_mode AS ENUM ('rng', 'player_entered');
+-- Create types only if they don't exist
+DO $$ BEGIN
+  CREATE TYPE dice_mode AS ENUM ('rng', 'player_entered');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Map mode for campaigns
-CREATE TYPE map_mode AS ENUM ('grid_2d', 'narrative_only');
+DO $$ BEGIN
+  CREATE TYPE map_mode AS ENUM ('grid_2d', 'narrative_only');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Player role in campaigns
-CREATE TYPE player_role AS ENUM ('owner', 'player');
+DO $$ BEGIN
+  CREATE TYPE player_role AS ENUM ('owner', 'player');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Invite status for campaign players
-CREATE TYPE invite_status AS ENUM ('pending', 'accepted', 'declined');
+DO $$ BEGIN
+  CREATE TYPE invite_status AS ENUM ('pending', 'accepted', 'declined');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Session status
-CREATE TYPE session_status AS ENUM ('active', 'paused', 'ended');
+DO $$ BEGIN
+  CREATE TYPE session_status AS ENUM ('active', 'paused', 'ended');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Event types
-CREATE TYPE event_type AS ENUM (
-  'session_start',
-  'session_end',
-  'player_action',
-  'ai_response',
-  'dice_roll',
-  'state_change',
-  'combat_start',
-  'combat_end',
-  'turn_start',
-  'turn_end'
-);
+DO $$ BEGIN
+  CREATE TYPE event_type AS ENUM (
+    'session_start',
+    'session_end',
+    'player_action',
+    'ai_response',
+    'dice_roll',
+    'state_change',
+    'combat_start',
+    'combat_end',
+    'turn_start',
+    'turn_end'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Document processing status
-CREATE TYPE document_status AS ENUM ('processing', 'completed', 'failed');
+DO $$ BEGIN
+  CREATE TYPE document_status AS ENUM ('processing', 'completed', 'failed');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- File types for source documents
-CREATE TYPE file_type AS ENUM ('pdf', 'txt');
+DO $$ BEGIN
+  CREATE TYPE file_type AS ENUM ('pdf', 'txt');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- =============================================================================
 -- CORE TABLES
@@ -221,14 +248,15 @@ CREATE TABLE IF NOT EXISTS rule_sections (
 CREATE INDEX IF NOT EXISTS idx_rule_sections_chapter_id ON rule_sections(chapter_id);
 CREATE INDEX IF NOT EXISTS idx_rule_sections_order ON rule_sections(chapter_id, order_index);
 
--- Rule entries (individual rules with embeddings)
+-- Rule entries (individual rules)
+-- Note: content_embedding uses FLOAT[] for compatibility when pgvector is not installed
 CREATE TABLE IF NOT EXISTS rule_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   section_id UUID NOT NULL REFERENCES rule_sections(id) ON DELETE CASCADE,
   title VARCHAR(255),
   content TEXT NOT NULL,
-  content_embedding vector(1536),  -- OpenAI ada-002 embedding dimension
-  content_tsv tsvector,            -- Full-text search vector
+  content_embedding FLOAT[],  -- Stores embeddings as float array (works without pgvector)
+  content_tsv tsvector,       -- Full-text search vector
   page_reference VARCHAR(50),
   order_index INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -237,7 +265,6 @@ CREATE TABLE IF NOT EXISTS rule_entries (
 -- Create indexes for rule_entries
 CREATE INDEX IF NOT EXISTS idx_rule_entries_section_id ON rule_entries(section_id);
 CREATE INDEX IF NOT EXISTS idx_rule_entries_order ON rule_entries(section_id, order_index);
-CREATE INDEX IF NOT EXISTS idx_rule_entries_embedding ON rule_entries USING ivfflat (content_embedding vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX IF NOT EXISTS idx_rule_entries_tsv ON rule_entries USING gin(content_tsv);
 
 -- Rule categories (for organizing rules)
@@ -282,38 +309,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function for semantic search on rule entries
-CREATE OR REPLACE FUNCTION search_rules_semantic(
-  query_embedding vector(1536),
-  match_threshold float DEFAULT 0.7,
-  match_count int DEFAULT 10
-)
-RETURNS TABLE (
-  id UUID,
-  section_id UUID,
-  title VARCHAR(255),
-  content TEXT,
-  page_reference VARCHAR(50),
-  similarity float
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    re.id,
-    re.section_id,
-    re.title,
-    re.content,
-    re.page_reference,
-    1 - (re.content_embedding <=> query_embedding) AS similarity
-  FROM rule_entries re
-  WHERE re.content_embedding IS NOT NULL
-    AND 1 - (re.content_embedding <=> query_embedding) > match_threshold
-  ORDER BY re.content_embedding <=> query_embedding
-  LIMIT match_count;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function for full-text search on rule entries
+-- Function for full-text search on rule entries (always available)
 CREATE OR REPLACE FUNCTION search_rules_fulltext(
   search_query text,
   match_count int DEFAULT 10,
@@ -337,9 +333,76 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function for semantic search (requires pgvector)
+-- This function calculates cosine similarity manually using FLOAT[] arrays
+CREATE OR REPLACE FUNCTION search_rules_semantic(
+  query_embedding FLOAT[],
+  match_threshold float DEFAULT 0.7,
+  match_count int DEFAULT 10
+)
+RETURNS TABLE (
+  id UUID,
+  section_id UUID,
+  title VARCHAR(255),
+  content TEXT,
+  page_reference VARCHAR(50),
+  similarity float
+) AS $$
+DECLARE
+  has_pgvector boolean;
+BEGIN
+  -- Check if pgvector is available
+  SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector') INTO has_pgvector;
+
+  IF has_pgvector THEN
+    -- Use pgvector's optimized cosine distance
+    RETURN QUERY EXECUTE '
+      SELECT
+        re.id,
+        re.section_id,
+        re.title,
+        re.content,
+        re.page_reference,
+        1 - (re.content_embedding::vector <=> $1::vector) AS similarity
+      FROM rule_entries re
+      WHERE re.content_embedding IS NOT NULL
+        AND 1 - (re.content_embedding::vector <=> $1::vector) > $2
+      ORDER BY re.content_embedding::vector <=> $1::vector
+      LIMIT $3'
+    USING query_embedding, match_threshold, match_count;
+  ELSE
+    -- Fallback: Calculate cosine similarity manually (slower but works without pgvector)
+    RETURN QUERY
+    SELECT
+      re.id,
+      re.section_id,
+      re.title,
+      re.content,
+      re.page_reference,
+      (
+        SELECT SUM(a * b) / (SQRT(SUM(a * a)) * SQRT(SUM(b * b)))
+        FROM unnest(re.content_embedding) WITH ORDINALITY AS arr1(a, i)
+        JOIN unnest(query_embedding) WITH ORDINALITY AS arr2(b, j) ON arr1.i = arr2.j
+      )::float AS similarity
+    FROM rule_entries re
+    WHERE re.content_embedding IS NOT NULL
+      AND array_length(re.content_embedding, 1) = array_length(query_embedding, 1)
+    ORDER BY similarity DESC
+    LIMIT match_count;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- =============================================================================
 -- TRIGGERS
 -- =============================================================================
+
+-- Drop existing triggers if they exist (to allow re-running script)
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+DROP TRIGGER IF EXISTS update_campaigns_updated_at ON campaigns;
+DROP TRIGGER IF EXISTS update_characters_updated_at ON characters;
+DROP TRIGGER IF EXISTS update_source_documents_updated_at ON source_documents;
+DROP TRIGGER IF EXISTS update_rule_entries_tsv ON rule_entries;
 
 -- Trigger for updating updated_at on users
 CREATE TRIGGER update_users_updated_at
@@ -388,10 +451,28 @@ INSERT INTO rule_categories (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- =============================================================================
--- GRANTS (Adjust as needed for your setup)
+-- POST-INITIALIZATION NOTICE
 -- =============================================================================
 
--- Grant permissions to application user (replace 'app_user' with your actual user)
--- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO app_user;
--- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO app_user;
--- GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_user;
+DO $$
+DECLARE
+  has_pgvector boolean;
+BEGIN
+  SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector') INTO has_pgvector;
+
+  RAISE NOTICE '';
+  RAISE NOTICE '====================================================';
+  RAISE NOTICE 'DnD-Master Database Initialization Complete!';
+  RAISE NOTICE '====================================================';
+
+  IF has_pgvector THEN
+    RAISE NOTICE 'pgvector: ENABLED (semantic search available)';
+  ELSE
+    RAISE NOTICE 'pgvector: NOT INSTALLED (semantic search disabled)';
+    RAISE NOTICE 'Full-text search is still available.';
+    RAISE NOTICE 'To enable semantic search, install pgvector:';
+    RAISE NOTICE '  https://github.com/pgvector/pgvector#installation';
+  END IF;
+
+  RAISE NOTICE '====================================================';
+END $$;
