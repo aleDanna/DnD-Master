@@ -76,7 +76,8 @@ function createMockUser(email: string, metadata: Record<string, unknown> = {}): 
 
 function createMockSession(user: User): Session {
   return {
-    access_token: `mock-token-${Date.now()}`,
+    // Use mock-jwt-{userId} format so backend can extract user ID
+    access_token: `mock-jwt-${user.id}`,
     token_type: 'bearer',
     expires_in: 3600,
     expires_at: Math.floor(Date.now() / 1000) + 3600,

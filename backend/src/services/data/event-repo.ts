@@ -297,6 +297,28 @@ export class EventRepository {
   }
 
   /**
+   * Create a session save event
+   */
+  async createSessionSave(sessionId: string, summary: string): Promise<GameEvent> {
+    return this.create({
+      session_id: sessionId,
+      type: 'session_save',
+      content: { timestamp: new Date().toISOString(), summary },
+    });
+  }
+
+  /**
+   * Create a session resume event
+   */
+  async createSessionResume(sessionId: string): Promise<GameEvent> {
+    return this.create({
+      session_id: sessionId,
+      type: 'session_resume',
+      content: { timestamp: new Date().toISOString() },
+    });
+  }
+
+  /**
    * Map database row to GameEvent type
    */
   private mapToEvent(data: Database['public']['Tables']['events']['Row']): GameEvent {

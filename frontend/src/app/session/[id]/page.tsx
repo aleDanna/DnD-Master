@@ -5,8 +5,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/ui/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import { ChatFeed, ChatInput, type ChatMessage } from '@/components/chat';
-import { DiceLog, DiceRoller } from '@/components/game/DiceLog';
-import { sessionApi, gameApi } from '@/lib/api';
+import { DiceLog, DiceRoller, CombatTracker, MapCanvas } from '@/components/game';
+import { sessionApi, gameApi, combatApi, type CombatState } from '@/lib/api';
+import type { TokenData } from '@/components/game/Token';
+
+interface MapState {
+  grid_width: number;
+  grid_height: number;
+  tokens: TokenData[];
+  terrain: Array<{ x: number; y: number; type: 'wall' | 'difficult' | 'water' | 'pit' }>;
+}
 
 interface SessionData {
   id: string;
@@ -15,6 +23,8 @@ interface SessionData {
   status: 'active' | 'paused' | 'ended';
   narrative_summary: string | null;
   current_location: string | null;
+  combat_state: CombatState | null;
+  map_state: MapState | null;
   campaign: {
     id: string;
     name: string;
@@ -47,8 +57,13 @@ export default function SessionPlayPage() {
   const [loading, setLoading] = useState(true);
   const [sendingAction, setSendingAction] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [combatState, setCombatState] = useState<CombatState | null>(null);
+  const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   const sessionId = params.id as string;
+  const isInCombat = combatState?.active ?? false;
+  const showMapPanel = sessionData?.campaign.map_mode === 'grid_2d';
 
   // Load session data
   useEffect(() => {
@@ -63,7 +78,12 @@ export default function SessionPlayPage() {
           return;
         }
 
-        setSessionData(result.data!);
+        setSessionData(result.data as SessionData);
+
+        // Load combat state if exists
+        if (result.data?.combat_state) {
+          setCombatState(result.data.combat_state as CombatState);
+        }
 
         // Load events
         const eventsResult = await gameApi.getEvents(authSession.access_token, sessionId, {
@@ -203,6 +223,91 @@ export default function SessionPlayPage() {
     }
   };
 
+  // Combat handlers
+  const handleNextTurn = useCallback(async () => {
+    if (!authSession?.access_token) return;
+
+    try {
+      const result = await combatApi.nextTurn(authSession.access_token, sessionId);
+
+      if (!result.success) {
+        setError(result.error?.message || 'Failed to advance turn');
+        return;
+      }
+
+      setCombatState(result.data!.combat_state);
+
+      // Add narrative if monster took a turn
+      if (result.data!.narrative) {
+        const dmMessage: ChatMessage = {
+          id: `dm-combat-${Date.now()}`,
+          type: 'dm',
+          content: result.data!.narrative,
+          sender: 'Dungeon Master',
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, dmMessage]);
+      }
+
+      // Check if combat should end
+      if (result.data!.should_end) {
+        const systemMessage: ChatMessage = {
+          id: `sys-${Date.now()}`,
+          type: 'system',
+          content: `Combat is ending: ${result.data!.outcome}`,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, systemMessage]);
+      }
+    } catch (err) {
+      setError('Failed to advance turn');
+      console.error('Next turn error:', err);
+    }
+  }, [authSession, sessionId]);
+
+  const handleEndCombat = useCallback(
+    async (outcome: 'victory' | 'defeat' | 'retreat' | 'truce') => {
+      if (!authSession?.access_token) return;
+
+      try {
+        const result = await combatApi.endCombat(authSession.access_token, sessionId, outcome);
+
+        if (!result.success) {
+          setError(result.error?.message || 'Failed to end combat');
+          return;
+        }
+
+        setCombatState(null);
+
+        // Add combat end narrative
+        const dmMessage: ChatMessage = {
+          id: `dm-combat-end-${Date.now()}`,
+          type: 'dm',
+          content: result.data!.narrative,
+          sender: 'Dungeon Master',
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, dmMessage]);
+      } catch (err) {
+        setError('Failed to end combat');
+        console.error('End combat error:', err);
+      }
+    },
+    [authSession, sessionId]
+  );
+
+  const handleTokenSelect = useCallback((token: TokenData | null) => {
+    setSelectedTokenId(token?.id ?? null);
+  }, []);
+
+  const handleTokenMove = useCallback(
+    async (tokenId: string, newX: number, newY: number) => {
+      // TODO: Implement token move API call
+      console.log('Move token:', tokenId, 'to', newX, newY);
+    },
+    []
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -259,8 +364,46 @@ export default function SessionPlayPage() {
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* Map panel (conditional) */}
+        {showMapPanel && showMap && sessionData.map_state && (
+          <div className="w-96 border-r border-border bg-surface flex flex-col">
+            <div className="p-2 border-b border-border flex items-center justify-between">
+              <span className="text-sm font-medium">Battle Map</span>
+              <Button variant="ghost" size="sm" onClick={() => setShowMap(false)}>
+                ×
+              </Button>
+            </div>
+            <MapCanvas
+              mapState={sessionData.map_state}
+              currentTurnTokenId={
+                combatState?.initiative_order[combatState.turn_index]?.id
+              }
+              selectedTokenId={selectedTokenId ?? undefined}
+              onTokenSelect={handleTokenSelect}
+              onTokenMove={handleTokenMove}
+              className="flex-1"
+            />
+          </div>
+        )}
+
         {/* Chat area */}
         <div className="flex-1 flex flex-col">
+          {/* Combat banner */}
+          {isInCombat && (
+            <div className="bg-danger/20 border-b border-danger/30 px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚔️</span>
+                <span className="font-bold text-danger">COMBAT</span>
+                <span className="text-sm text-muted">Round {combatState?.round}</span>
+              </div>
+              {showMapPanel && !showMap && (
+                <Button variant="ghost" size="sm" onClick={() => setShowMap(true)}>
+                  Show Map
+                </Button>
+              )}
+            </div>
+          )}
+
           <ChatFeed
             messages={messages}
             loading={sendingAction}
@@ -277,18 +420,31 @@ export default function SessionPlayPage() {
             onSubmit={handleSubmitAction}
             disabled={sessionData.status !== 'active'}
             loading={sendingAction}
-            placeholder="What do you do?"
+            placeholder={isInCombat ? 'Describe your combat action...' : 'What do you do?'}
           />
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 border-l border-border bg-surface p-4 overflow-y-auto hidden lg:block">
-          <div className="space-y-6">
-            <DiceRoller
-              onRoll={handleRollDice}
-              disabled={sessionData.status !== 'active'}
-            />
-            <DiceLog entries={diceRolls} />
+        <div className="w-80 border-l border-border bg-surface overflow-y-auto hidden lg:block">
+          <div className="p-4 space-y-4">
+            {/* Combat Tracker */}
+            {isInCombat && combatState && (
+              <CombatTracker
+                combatState={combatState}
+                isLoading={sendingAction}
+                onNextTurn={handleNextTurn}
+                onEndCombat={handleEndCombat}
+              />
+            )}
+
+            {/* Dice tools */}
+            <div className="space-y-4">
+              <DiceRoller
+                onRoll={handleRollDice}
+                disabled={sessionData.status !== 'active'}
+              />
+              <DiceLog entries={diceRolls} />
+            </div>
           </div>
         </div>
       </div>

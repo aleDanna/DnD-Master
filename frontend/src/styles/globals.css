@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  /* Discord-inspired dark theme tokens */
-  --color-bg-primary: #1e1f22;
-  --color-bg-secondary: #2b2d31;
-  --color-bg-tertiary: #313338;
-  --color-bg-modifier-hover: rgba(79, 84, 92, 0.16);
-  --color-bg-modifier-active: rgba(79, 84, 92, 0.24);
-  --color-bg-modifier-selected: rgba(79, 84, 92, 0.32);
+  /* Light theme tokens */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-modifier-hover: rgba(0, 0, 0, 0.04);
+  --color-bg-modifier-active: rgba(0, 0, 0, 0.08);
+  --color-bg-modifier-selected: rgba(0, 0, 0, 0.12);
 
-  --color-text-primary: #f2f3f5;
-  --color-text-secondary: #b5bac1;
-  --color-text-muted: #949ba4;
-  --color-text-link: #00a8fc;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
+  --color-text-link: #5865f2;
 
   --color-brand-primary: #5865f2;
   --color-brand-hover: #4752c4;
@@ -24,12 +24,14 @@
   --color-status-danger: #f23f43;
   --color-status-info: #00a8fc;
 
-  --color-input-bg: #1e1f22;
-  --color-input-border: #3f4147;
+  --color-input-bg: #ffffff;
+  --color-input-border: #d1d5db;
+  --color-input-text: #1a1a1a;
+  --color-input-placeholder: #6b7280;
 
-  --shadow-elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
-  --shadow-elevation-medium: 0 4px 4px rgba(0, 0, 0, 0.16);
-  --shadow-elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+  --shadow-elevation-low: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-elevation-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-elevation-high: 0 10px 15px rgba(0, 0, 0, 0.1);
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
@@ -48,6 +50,26 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+}
+
+/* Input styling - ensure black text and visible placeholders */
+input,
+textarea,
+select {
+  color: #1a1a1a !important;
+  background-color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1;
+}
+
+/* Select options */
+select option {
+  color: #1a1a1a;
+  background-color: #ffffff;
 }
 
 a {

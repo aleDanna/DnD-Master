@@ -1,16 +1,24 @@
 /**
  * DM Service
  * Orchestrates AI interactions for the Dungeon Master
+ * Supports configurable LLM providers (OpenAI, Gemini)
  */
 
-import { createChatCompletion, ModelConfig } from '../../config/openai.js';
+import { createMessage, getModelConfig, type LLMMessage } from '../../config/llm/index.js';
 import {
   SYSTEM_PROMPT,
+  COMBAT_SYSTEM_SUPPLEMENT,
   buildGameContext,
   buildPlayerActionPrompt,
   buildDiceResolutionPrompt,
   buildSessionStartPrompt,
   buildSessionSummaryPrompt,
+  buildSessionRecapPrompt,
+  buildCombatStartPrompt,
+  buildCombatTurnPrompt,
+  buildCombatActionPrompt,
+  buildMonsterTurnPrompt,
+  buildCombatEndPrompt,
 } from '../../ai/prompts.js';
 import { rulesService } from '../../rules/service.js';
 import { parseAIResponse, type AIResponse } from './response-parser.js';
@@ -22,7 +30,6 @@ import type { Campaign } from '../../models/campaign.js';
 import type { Session } from '../../models/session.js';
 import type { Character } from '../../models/character.js';
 import type { GameEvent } from '../../models/event.js';
-import type OpenAI from 'openai';
 
 export interface DMServiceConfig {
   sessionRepo: SessionRepository;
@@ -61,6 +68,8 @@ export class DMService {
     action: string,
     characterId?: string
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     // Get session with campaign
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
@@ -101,19 +110,17 @@ export class DMService {
     const actionPrompt = buildPlayerActionPrompt(action, playerName, gameContext);
 
     // Get AI response
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: LLMMessage[] = [
       { role: 'user', content: actionPrompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Merge rule citations
     if (citations.length > 0 && !response.ruleCitations) {
@@ -157,6 +164,8 @@ export class DMService {
     rollResult: { dice: string; total: number; reason: string },
     dc: number | null
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -172,19 +181,17 @@ export class DMService {
 
     const prompt = buildDiceResolutionPrompt(rollResult, dc, gameContext);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the AI response
     await this.eventRepo.createAIResponse(
@@ -210,6 +217,8 @@ export class DMService {
     sessionId: string,
     characters: Character[]
   ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
     const session = await this.sessionRepo.getWithCampaign(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -235,19 +244,17 @@ export class DMService {
       characters
     );
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
       model: ModelConfig.DM_NARRATIVE,
-      maxTokens: ModelConfig.MAX_TOKENS.NARRATIVE,
-      temperature: ModelConfig.TEMPERATURE.NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
     });
 
-    const responseText = completion.choices[0]?.message?.content || '';
-    const response = parseAIResponse(responseText);
+    const response = parseAIResponse(completion.content);
 
     // Log the opening narrative
     await this.eventRepo.createAIResponse(
@@ -263,6 +270,8 @@ export class DMService {
    * Generate a session summary for saving
    */
   async generateSessionSummary(sessionId: string): Promise<string> {
+    const ModelConfig = getModelConfig();
+
     const events = await this.eventRepo.listBySession(sessionId);
 
     if (events.length === 0) {
@@ -271,18 +280,21 @@ export class DMService {
 
     const prompt = buildSessionSummaryPrompt(events);
 
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: 'You are a helpful assistant that writes concise session summaries for D&D campaigns.' },
+    const messages: LLMMessage[] = [
       { role: 'user', content: prompt },
     ];
 
-    const completion = await createChatCompletion(messages, {
-      model: ModelConfig.VALIDATION, // Use faster model for summaries
-      maxTokens: 500,
-      temperature: 0.3,
-    });
+    const completion = await createMessage(
+      'You are a helpful assistant that writes concise session summaries for D&D campaigns.',
+      messages,
+      {
+        model: ModelConfig.VALIDATION, // Use faster model for summaries
+        maxTokens: 500,
+        temperature: 0.3,
+      }
+    );
 
-    const summary = completion.choices[0]?.message?.content || 'Session summary unavailable.';
+    const summary = completion.content || 'Session summary unavailable.';
 
     // Update session with summary
     await this.stateService.updateNarrativeSummary(sessionId, summary);
@@ -304,6 +316,437 @@ export class DMService {
     await this.sessionRepo.endSession(sessionId);
 
     return summary;
+  }
+
+  /**
+   * Save a session (generates summary and pauses)
+   */
+  async saveSession(sessionId: string): Promise<{ session: Session; summary: string }> {
+    // Generate summary
+    const summary = await this.generateSessionSummary(sessionId);
+
+    // Save the session with summary
+    const session = await this.sessionRepo.saveSession(sessionId, summary);
+
+    // Log session save event
+    await this.eventRepo.createSessionSave(sessionId, summary);
+
+    return { session, summary };
+  }
+
+  /**
+   * Generate a recap for resuming a session
+   */
+  async generateRecap(sessionId: string): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Get recent events for context
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 5);
+
+    // Build the recap prompt
+    const prompt = buildSessionRecapPrompt(
+      session.narrative_summary || 'The adventure continues...',
+      session.current_location,
+      session.active_npcs || [],
+      recentEvents
+    );
+
+    const messages: LLMMessage[] = [
+      { role: 'user', content: prompt },
+    ];
+
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
+      model: ModelConfig.DM_NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
+    });
+
+    const response = parseAIResponse(completion.content);
+
+    // Log the recap as an AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      'Session Recap'
+    );
+
+    return response;
+  }
+
+  /**
+   * Resume a session and generate recap
+   */
+  async resumeSession(sessionId: string): Promise<{ session: Session; recap: AIResponse }> {
+    // Resume the session
+    const session = await this.sessionRepo.resumeSession(sessionId);
+
+    // Generate a recap
+    const recap = await this.generateRecap(sessionId);
+
+    // Log session resume event
+    await this.eventRepo.createSessionResume(sessionId);
+
+    return { session, recap };
+  }
+
+  /**
+   * Process a combat action during an active combat
+   */
+  async processCombatAction(
+    sessionId: string,
+    playerId: string,
+    playerName: string,
+    action: string,
+    characterId?: string
+  ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    if (!session.combat_state?.active) {
+      throw new Error('No active combat');
+    }
+
+    const campaign = await this.campaignRepo.getById(session.campaign_id);
+    if (!campaign) {
+      throw new Error('Campaign not found');
+    }
+
+    // Log the player action
+    await this.eventRepo.createPlayerAction(
+      sessionId,
+      playerId,
+      playerName,
+      action,
+      characterId
+    );
+
+    // Get recent events for context
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 10);
+
+    // Get combat-relevant rules
+    const { context: rulesContext, citations } = rulesService.getRulesContext(
+      `combat ${action}`,
+      2000
+    );
+
+    // Build the game context with combat supplement
+    const gameContext = buildGameContext(
+      campaign,
+      session,
+      [],
+      recentEvents,
+      rulesContext
+    );
+
+    // Build combat action prompt
+    const isPlayer = session.combat_state.combatants.find(
+      c => c.id === characterId
+    )?.type === 'player';
+    const actionPrompt = buildCombatActionPrompt(
+      action,
+      playerName,
+      isPlayer ?? true,
+      gameContext
+    );
+
+    // Get AI response with combat system supplement
+    const messages: LLMMessage[] = [
+      { role: 'user', content: actionPrompt },
+    ];
+
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
+      }
+    );
+
+    const response = parseAIResponse(completion.content);
+
+    // Merge rule citations
+    if (citations.length > 0 && !response.ruleCitations) {
+      response.ruleCitations = citations;
+    }
+
+    // Log the AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      response.mechanics,
+      response.stateChanges,
+      response.ruleCitations
+    );
+
+    // Apply state changes if any
+    if (response.stateChanges && response.stateChanges.length > 0) {
+      await this.stateService.applyStateChanges(sessionId, response.stateChanges);
+    }
+
+    return response;
+  }
+
+  /**
+   * Process a monster/NPC turn in combat
+   */
+  async processMonsterTurn(sessionId: string): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    if (!session.combat_state?.active) {
+      throw new Error('No active combat');
+    }
+
+    const campaign = await this.campaignRepo.getById(session.campaign_id);
+    if (!campaign) {
+      throw new Error('Campaign not found');
+    }
+
+    // Get current combatant
+    const currentEntry = session.combat_state.initiative_order[session.combat_state.turn_index];
+    const currentCombatant = session.combat_state.combatants.find(
+      c => c.id === currentEntry.id
+    );
+
+    if (!currentCombatant || currentCombatant.type === 'player') {
+      throw new Error('Not a monster/NPC turn');
+    }
+
+    // Get recent events for context
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 10);
+
+    // Get combat rules context
+    const { context: rulesContext, citations } = rulesService.getRulesContext(
+      'combat monster action',
+      1500
+    );
+
+    // Build the game context
+    const gameContext = buildGameContext(
+      campaign,
+      session,
+      [],
+      recentEvents,
+      rulesContext
+    );
+
+    // Get available targets (active player characters)
+    const availableTargets = session.combat_state.combatants
+      .filter(c => c.type === 'player' && c.is_active)
+      .map(c => ({
+        name: c.name,
+        type: c.type,
+        hp: c.current_hp,
+      }));
+
+    // Build monster turn prompt
+    const prompt = buildMonsterTurnPrompt(
+      currentCombatant.name,
+      currentCombatant.type,
+      currentCombatant.current_hp,
+      currentCombatant.max_hp,
+      availableTargets,
+      gameContext
+    );
+
+    // Get AI response
+    const messages: LLMMessage[] = [
+      { role: 'user', content: prompt },
+    ];
+
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
+      }
+    );
+
+    const response = parseAIResponse(completion.content);
+
+    // Merge rule citations
+    if (citations.length > 0 && !response.ruleCitations) {
+      response.ruleCitations = citations;
+    }
+
+    // Log the AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      response.mechanics,
+      response.stateChanges,
+      response.ruleCitations
+    );
+
+    // Apply state changes if any
+    if (response.stateChanges && response.stateChanges.length > 0) {
+      await this.stateService.applyStateChanges(sessionId, response.stateChanges);
+    }
+
+    return response;
+  }
+
+  /**
+   * Generate narrative for combat start
+   */
+  async generateCombatStartNarrative(
+    sessionId: string,
+    enemies: string[]
+  ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const campaign = await this.campaignRepo.getById(session.campaign_id);
+    if (!campaign) {
+      throw new Error('Campaign not found');
+    }
+
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 5);
+    const gameContext = buildGameContext(campaign, session, [], recentEvents);
+
+    const prompt = buildCombatStartPrompt(enemies, gameContext);
+
+    const messages: LLMMessage[] = [
+      { role: 'user', content: prompt },
+    ];
+
+    const completion = await createMessage(
+      SYSTEM_PROMPT + COMBAT_SYSTEM_SUPPLEMENT,
+      messages,
+      {
+        model: ModelConfig.DM_NARRATIVE,
+        maxTokens: ModelConfig.MAX_TOKENS.narrative,
+        temperature: ModelConfig.TEMPERATURE.narrative,
+      }
+    );
+
+    const response = parseAIResponse(completion.content);
+
+    // Log the AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      response.mechanics
+    );
+
+    return response;
+  }
+
+  /**
+   * Generate narrative for combat end
+   */
+  async generateCombatEndNarrative(
+    sessionId: string,
+    outcome: 'victory' | 'defeat' | 'retreat' | 'truce'
+  ): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const campaign = await this.campaignRepo.getById(session.campaign_id);
+    if (!campaign) {
+      throw new Error('Campaign not found');
+    }
+
+    // Get survivors and fallen from the last known combat state
+    const combatState = session.combat_state;
+    const survivors = combatState?.combatants
+      .filter(c => c.is_active && c.current_hp > 0)
+      .map(c => c.name) || [];
+    const fallen = combatState?.combatants
+      .filter(c => !c.is_active || c.current_hp <= 0)
+      .map(c => c.name) || [];
+
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 10);
+    const gameContext = buildGameContext(campaign, session, [], recentEvents);
+
+    const prompt = buildCombatEndPrompt(outcome, survivors, fallen, gameContext);
+
+    const messages: LLMMessage[] = [
+      { role: 'user', content: prompt },
+    ];
+
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
+      model: ModelConfig.DM_NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
+    });
+
+    const response = parseAIResponse(completion.content);
+
+    // Log the AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      response.mechanics,
+      response.stateChanges,
+      response.ruleCitations
+    );
+
+    // Apply state changes if any
+    if (response.stateChanges && response.stateChanges.length > 0) {
+      await this.stateService.applyStateChanges(sessionId, response.stateChanges);
+    }
+
+    return response;
+  }
+
+  /**
+   * Check if current session is in combat and it's a player's turn
+   */
+  async isPlayerTurn(sessionId: string, characterId?: string): Promise<boolean> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session || !session.combat_state?.active) {
+      return false;
+    }
+
+    const currentEntry = session.combat_state.initiative_order[session.combat_state.turn_index];
+    const currentCombatant = session.combat_state.combatants.find(
+      c => c.id === currentEntry.id
+    );
+
+    if (!currentCombatant || currentCombatant.type !== 'player') {
+      return false;
+    }
+
+    // If character ID is provided, check if it matches
+    if (characterId && currentCombatant.id !== characterId) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if session is in active combat
+   */
+  async isInCombat(sessionId: string): Promise<boolean> {
+    const session = await this.sessionRepo.getById(sessionId);
+    return session?.combat_state?.active === true;
   }
 }
 

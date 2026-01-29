@@ -125,11 +125,12 @@ export class StateService {
     if (!combatant) return;
 
     if (change.type === 'condition_add') {
-      if (!combatant.conditions.includes(change.value)) {
-        combatant.conditions.push(change.value);
+      // Check if condition already exists
+      if (!combatant.conditions.some(c => c.name === change.value)) {
+        combatant.conditions.push({ name: change.value });
       }
     } else if (change.type === 'condition_remove') {
-      combatant.conditions = combatant.conditions.filter(c => c !== change.value);
+      combatant.conditions = combatant.conditions.filter(c => c.name !== change.value);
     }
 
     updates.combat_state = combatState;
@@ -234,10 +235,19 @@ export class StateService {
     // Sort by initiative (descending)
     const sorted = [...combatants].sort((a, b) => b.initiative - a.initiative);
 
+    // Build initiative order from sorted combatants
+    const initiativeOrder = sorted.map(c => ({
+      id: c.id,
+      type: c.type,
+      name: c.name,
+      initiative: c.initiative,
+    }));
+
     const combatState: CombatState = {
       active: true,
       round: 1,
-      current_combatant_index: 0,
+      turn_index: 0,
+      initiative_order: initiativeOrder,
       combatants: sorted,
     };
 
@@ -283,40 +293,53 @@ export class StateService {
     }
 
     const combatState = { ...session.combat_state };
-    const currentIndex = combatState.current_combatant_index;
-    const currentCombatant = combatState.combatants[currentIndex];
+    const currentIndex = combatState.turn_index;
+    const currentEntry = combatState.initiative_order[currentIndex];
+    const currentCombatant = combatState.combatants.find(c => c.id === currentEntry.id);
 
     // Create turn end event
-    await this.eventRepo.create({
-      session_id: sessionId,
-      type: 'turn_end',
-      content: {
-        combatant_id: currentCombatant.id,
-        combatant_name: currentCombatant.name,
-        round: combatState.round,
-      },
-    });
-
-    // Move to next combatant
-    let nextIndex = currentIndex + 1;
-    if (nextIndex >= combatState.combatants.length) {
-      nextIndex = 0;
-      combatState.round += 1;
+    if (currentCombatant) {
+      await this.eventRepo.create({
+        session_id: sessionId,
+        type: 'turn_end',
+        content: {
+          combatant_id: currentCombatant.id,
+          combatant_name: currentCombatant.name,
+          round: combatState.round,
+        },
+      });
     }
 
-    combatState.current_combatant_index = nextIndex;
-    const nextCombatant = combatState.combatants[nextIndex];
+    // Move to next active combatant
+    let nextIndex = currentIndex;
+    let attempts = 0;
+    do {
+      nextIndex = (nextIndex + 1) % combatState.initiative_order.length;
+      if (nextIndex === 0) {
+        combatState.round += 1;
+      }
+      attempts++;
+      const entry = combatState.initiative_order[nextIndex];
+      const combatant = combatState.combatants.find(c => c.id === entry.id);
+      if (combatant?.is_active) break;
+    } while (attempts < combatState.initiative_order.length);
+
+    combatState.turn_index = nextIndex;
+    const nextEntry = combatState.initiative_order[nextIndex];
+    const nextCombatant = combatState.combatants.find(c => c.id === nextEntry.id);
 
     // Create turn start event
-    await this.eventRepo.create({
-      session_id: sessionId,
-      type: 'turn_start',
-      content: {
-        combatant_id: nextCombatant.id,
-        combatant_name: nextCombatant.name,
-        round: combatState.round,
-      },
-    });
+    if (nextCombatant) {
+      await this.eventRepo.create({
+        session_id: sessionId,
+        type: 'turn_start',
+        content: {
+          combatant_id: nextCombatant.id,
+          combatant_name: nextCombatant.name,
+          round: combatState.round,
+        },
+      });
+    }
 
     return this.sessionRepo.update(
       sessionId,
@@ -419,6 +442,97 @@ export class StateService {
       session.version
     );
   }
+
+  /**
+   * Try to apply state changes with conflict detection (for multiplayer)
+   * Returns { success: boolean, session: Session, conflictError?: string }
+   */
+  async tryApplyStateChanges(
+    sessionId: string,
+    changes: StateChangeContent[],
+    expectedVersion: number
+  ): Promise<{ success: boolean; session: Session; conflictError?: string }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Check for version conflict
+    if (session.version !== expectedVersion) {
+      return {
+        success: false,
+        session,
+        conflictError: `Version conflict: expected ${expectedVersion}, but session is at version ${session.version}. Another player may have made changes.`,
+      };
+    }
+
+    try {
+      const updatedSession = await this.applyStateChanges(sessionId, changes);
+      return { success: true, session: updatedSession };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('modified by another request')) {
+        return {
+          success: false,
+          session,
+          conflictError: 'Session was modified by another player. Please refresh and try again.',
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get current session version (for multiplayer conflict detection)
+   */
+  async getSessionVersion(sessionId: string): Promise<number | null> {
+    const session = await this.sessionRepo.getById(sessionId);
+    return session?.version ?? null;
+  }
+
+  /**
+   * Check if session has been modified since a given version
+   */
+  async hasBeenModified(sessionId: string, sinceVersion: number): Promise<boolean> {
+    const currentVersion = await this.getSessionVersion(sessionId);
+    return currentVersion !== null && currentVersion > sinceVersion;
+  }
+
+  /**
+   * Lock session for exclusive access during complex operations
+   * Uses advisory locking via version increment
+   */
+  async lockSession(sessionId: string): Promise<{ version: number; session: Session }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Touch the session to claim it
+    const updated = await this.sessionRepo.update(sessionId, {}, session.version);
+    return { version: updated.version, session: updated };
+  }
+
+  /**
+   * Get active player count in a session (for multiplayer awareness)
+   */
+  async getActivePlayerInfo(sessionId: string): Promise<{
+    sessionId: string;
+    version: number;
+    lastActivity: string;
+    isActive: boolean;
+  }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    return {
+      sessionId: session.id,
+      version: session.version,
+      lastActivity: session.last_activity,
+      isActive: session.status === 'active',
+    };
+  }
 }
 
 /**
@@ -426,7 +540,11 @@ export class StateService {
  */
 export function createStateService(
   sessionRepo: SessionRepository,
-  eventRepo: EventRepository
+  eventRepo?: EventRepository
 ): StateService {
-  return new StateService(sessionRepo, eventRepo);
+  // If eventRepo is not provided, create a minimal stub
+  const repo = eventRepo || ({
+    create: async () => ({ id: '', session_id: '', type: 'state_change', actor_id: null, actor_name: null, content: {}, rule_citations: [], sequence: 0, created_at: '' }),
+  } as unknown as EventRepository);
+  return new StateService(sessionRepo, repo);
 }

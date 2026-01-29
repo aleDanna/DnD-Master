@@ -124,30 +124,64 @@ function DiceLogEntry({ entry }: DiceLogEntryProps) {
 
 // Dice roller component
 interface DiceRollerProps {
-  onRoll: (dice: string, reason?: string) => void;
+  onRoll: (dice: string, reason?: string, manualValue?: number) => void;
   disabled?: boolean;
+  mode?: 'rng' | 'player_entered';
 }
 
-export function DiceRoller({ onRoll, disabled = false }: DiceRollerProps) {
+export function DiceRoller({ onRoll, disabled = false, mode = 'rng' }: DiceRollerProps) {
   const [customDice, setCustomDice] = useState('');
   const [reason, setReason] = useState('');
+  const [manualValue, setManualValue] = useState('');
 
   const quickDice = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '2d6'];
 
   const handleQuickRoll = (dice: string) => {
     if (disabled) return;
-    onRoll(dice, reason || undefined);
+    if (mode === 'player_entered') {
+      // In player-entered mode, set the dice and wait for manual value
+      setCustomDice(dice);
+    } else {
+      onRoll(dice, reason || undefined);
+    }
   };
 
   const handleCustomRoll = () => {
     if (disabled || !customDice.trim()) return;
-    onRoll(customDice.trim(), reason || undefined);
+
+    if (mode === 'player_entered') {
+      const value = parseInt(manualValue, 10);
+      if (isNaN(value) || value < 1) {
+        return; // Invalid value
+      }
+      onRoll(customDice.trim(), reason || undefined, value);
+      setManualValue('');
+    } else {
+      onRoll(customDice.trim(), reason || undefined);
+    }
     setCustomDice('');
   };
 
+  const isManualMode = mode === 'player_entered';
+
   return (
     <div className="bg-surface border border-border rounded-lg p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3">Quick Dice</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-foreground">
+          {isManualMode ? 'Enter Dice Results' : 'Quick Dice'}
+        </h3>
+        {isManualMode && (
+          <span className="text-xs px-2 py-0.5 bg-warning/20 text-warning rounded">
+            Physical Dice Mode
+          </span>
+        )}
+      </div>
+
+      {isManualMode && (
+        <p className="text-xs text-muted mb-3">
+          Roll your physical dice, then enter the result below.
+        </p>
+      )}
 
       {/* Quick dice buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -156,20 +190,23 @@ export function DiceRoller({ onRoll, disabled = false }: DiceRollerProps) {
             key={dice}
             onClick={() => handleQuickRoll(dice)}
             disabled={disabled}
-            className="
+            className={`
               px-3 py-1.5 text-sm font-mono
-              bg-background hover:bg-border
               border border-border rounded
               transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
-            "
+              ${customDice === dice && isManualMode
+                ? 'bg-primary text-white border-primary'
+                : 'bg-background hover:bg-border'
+              }
+            `}
           >
             {dice}
           </button>
         ))}
       </div>
 
-      {/* Custom roll */}
+      {/* Custom roll / Manual entry */}
       <div className="space-y-2">
         <div className="flex gap-2">
           <input
@@ -185,9 +222,27 @@ export function DiceRoller({ onRoll, disabled = false }: DiceRollerProps) {
               disabled:opacity-50
             "
           />
+
+          {isManualMode && (
+            <input
+              type="number"
+              value={manualValue}
+              onChange={(e) => setManualValue(e.target.value)}
+              placeholder="Result"
+              disabled={disabled}
+              min="1"
+              className="
+                w-24 px-3 py-1.5 text-sm font-mono text-center
+                bg-background border border-border rounded
+                focus:outline-none focus:ring-1 focus:ring-primary
+                disabled:opacity-50
+              "
+            />
+          )}
+
           <button
             onClick={handleCustomRoll}
-            disabled={disabled || !customDice.trim()}
+            disabled={disabled || !customDice.trim() || (isManualMode && !manualValue)}
             className="
               px-4 py-1.5 text-sm font-medium
               bg-primary hover:bg-primary/90 text-white rounded
@@ -195,7 +250,7 @@ export function DiceRoller({ onRoll, disabled = false }: DiceRollerProps) {
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
-            Roll
+            {isManualMode ? 'Submit' : 'Roll'}
           </button>
         </div>
 

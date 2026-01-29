@@ -132,6 +132,73 @@ export const campaignApi = {
       method: 'DELETE',
       token,
     }),
+
+  // Multiplayer API
+  invite: (token: string, campaignId: string, email: string, role: 'player' | 'dm' = 'player') =>
+    request<{
+      id: string;
+      email: string;
+      role: 'player' | 'dm';
+      expires_at: string;
+      invite_url: string;
+    }>(`/api/campaigns/${campaignId}/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ email, role }),
+      token,
+    }),
+
+  getInvites: (token: string, campaignId: string) =>
+    request<
+      Array<{
+        id: string;
+        email: string;
+        role: 'player' | 'dm';
+        created_at: string;
+        expires_at: string;
+      }>
+    >(`/api/campaigns/${campaignId}/invites`, { token }),
+
+  revokeInvite: (token: string, campaignId: string, inviteId: string) =>
+    request(`/api/campaigns/${campaignId}/invites/${inviteId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  joinWithToken: (token: string, inviteToken: string) =>
+    request<{
+      campaign_id: string;
+      role: 'player' | 'dm';
+      joined_at: string;
+    }>(`/api/campaigns/join/${inviteToken}`, {
+      method: 'POST',
+      token,
+    }),
+
+  getPlayers: (token: string, campaignId: string) =>
+    request<
+      Array<{
+        id: string;
+        user_id: string;
+        role: 'player' | 'dm';
+        joined_at: string;
+        user?: {
+          id: string;
+          name?: string;
+        };
+      }>
+    >(`/api/campaigns/${campaignId}/players`, { token }),
+
+  removePlayer: (token: string, campaignId: string, userId: string) =>
+    request(`/api/campaigns/${campaignId}/players/${userId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  leave: (token: string, campaignId: string) =>
+    request(`/api/campaigns/${campaignId}/leave`, {
+      method: 'POST',
+      token,
+    }),
 };
 
 /**
@@ -193,8 +260,32 @@ export const sessionApi = {
   pause: (token: string, id: string) =>
     request(`/api/sessions/${id}/pause`, { method: 'POST', token }),
 
-  resume: (token: string, id: string) =>
-    request(`/api/sessions/${id}/resume`, { method: 'POST', token }),
+  save: (token: string, id: string) =>
+    request<{
+      session: {
+        id: string;
+        status: 'paused';
+        narrative_summary: string;
+      };
+      summary: string;
+    }>(`/api/sessions/${id}/save`, { method: 'POST', token }),
+
+  resume: (token: string, id: string, skipRecap = false) =>
+    request<{
+      session: {
+        id: string;
+        status: 'active';
+        narrative_summary: string | null;
+      };
+      recap: {
+        narrative: string;
+        mechanics?: string;
+      } | null;
+    }>(`/api/sessions/${id}/resume`, {
+      method: 'POST',
+      body: JSON.stringify({ skipRecap }),
+      token,
+    }),
 
   end: (token: string, id: string) =>
     request(`/api/sessions/${id}/end`, { method: 'POST', token }),
@@ -290,4 +381,255 @@ export const gameApi = {
         created_at: string;
       }>
     >(`/api/game/${sessionId}/dice-log`, { token }),
+};
+
+/**
+ * Combat types
+ */
+interface Condition {
+  name: string;
+  duration?: number;
+}
+
+interface Combatant {
+  id: string;
+  type: 'player' | 'npc' | 'monster';
+  name: string;
+  initiative: number;
+  current_hp: number;
+  max_hp: number;
+  armor_class: number;
+  conditions: Condition[];
+  is_active: boolean;
+}
+
+interface InitiativeEntry {
+  id: string;
+  type: 'player' | 'npc' | 'monster';
+  name: string;
+  initiative: number;
+}
+
+interface CombatState {
+  active: boolean;
+  round: number;
+  turn_index: number;
+  initiative_order: InitiativeEntry[];
+  combatants: Combatant[];
+}
+
+export type { CombatState, Combatant, InitiativeEntry, Condition };
+
+/**
+ * Combat API
+ */
+/**
+ * Character types
+ */
+interface Character {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  name: string;
+  race: string;
+  class: string;
+  level: number;
+  max_hp: number;
+  current_hp: number;
+  armor_class: number;
+  speed: number;
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  skills: Record<string, { proficient: boolean; expertise: boolean; bonus: number }>;
+  proficiencies: string[];
+  equipment: Array<{ name: string; quantity: number; equipped: boolean; description?: string }>;
+  spells: Array<{ id: string; name: string; level: number; prepared: boolean }>;
+  features: Array<{ name: string; source: string; description: string }>;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  isOwner?: boolean;
+}
+
+interface CreateCharacterInput {
+  campaign_id: string;
+  name: string;
+  race: string;
+  class: string;
+  level?: number;
+  max_hp: number;
+  current_hp: number;
+  armor_class: number;
+  speed?: number;
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  skills?: Character['skills'];
+  proficiencies?: string[];
+  equipment?: Character['equipment'];
+  spells?: Character['spells'];
+  features?: Character['features'];
+  notes?: string;
+}
+
+interface UpdateCharacterInput {
+  name?: string;
+  race?: string;
+  class?: string;
+  level?: number;
+  max_hp?: number;
+  current_hp?: number;
+  armor_class?: number;
+  speed?: number;
+  strength?: number;
+  dexterity?: number;
+  constitution?: number;
+  intelligence?: number;
+  wisdom?: number;
+  charisma?: number;
+  skills?: Character['skills'];
+  proficiencies?: string[];
+  equipment?: Character['equipment'];
+  spells?: Character['spells'];
+  features?: Character['features'];
+  notes?: string;
+}
+
+export type { Character, CreateCharacterInput, UpdateCharacterInput };
+
+/**
+ * Character API
+ */
+export const characterApi = {
+  list: (token: string) =>
+    request<Character[]>('/api/characters', { token }),
+
+  listByCampaign: (token: string, campaignId: string) =>
+    request<Character[]>(`/api/characters/campaign/${campaignId}`, { token }),
+
+  get: (token: string, id: string) =>
+    request<Character & { isOwner: boolean }>(`/api/characters/${id}`, { token }),
+
+  create: (token: string, data: CreateCharacterInput) =>
+    request<Character>('/api/characters', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  update: (token: string, id: string, data: UpdateCharacterInput) =>
+    request<Character>(`/api/characters/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  delete: (token: string, id: string) =>
+    request(`/api/characters/${id}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  updateHp: (token: string, id: string, currentHp: number, maxHp?: number) =>
+    request<Character>(`/api/characters/${id}/hp`, {
+      method: 'PATCH',
+      body: JSON.stringify({ current_hp: currentHp, max_hp: maxHp }),
+      token,
+    }),
+};
+
+export const combatApi = {
+  getCombatState: (token: string, sessionId: string) =>
+    request<{
+      combat_state: CombatState | null;
+      is_active: boolean;
+    }>(`/api/game/${sessionId}/combat`, { token }),
+
+  startCombat: (
+    token: string,
+    sessionId: string,
+    participants: Array<{
+      id: string;
+      type: 'player' | 'npc' | 'monster';
+      name: string;
+      current_hp: number;
+      max_hp: number;
+      armor_class: number;
+      initiative_modifier?: number;
+    }>
+  ) =>
+    request<{
+      combat_state: CombatState;
+      narrative: string;
+    }>(`/api/game/${sessionId}/combat/start`, {
+      method: 'POST',
+      body: JSON.stringify({ participants }),
+      token,
+    }),
+
+  nextTurn: (token: string, sessionId: string) =>
+    request<{
+      combat_state: CombatState;
+      narrative?: string;
+      current_combatant: Combatant;
+      should_end: boolean;
+      outcome?: 'victory' | 'defeat' | 'ongoing';
+    }>(`/api/game/${sessionId}/combat/next-turn`, {
+      method: 'POST',
+      token,
+    }),
+
+  endCombat: (
+    token: string,
+    sessionId: string,
+    outcome: 'victory' | 'defeat' | 'retreat' | 'truce',
+    summary?: string
+  ) =>
+    request<{
+      outcome: string;
+      narrative: string;
+    }>(`/api/game/${sessionId}/combat/end`, {
+      method: 'POST',
+      body: JSON.stringify({ outcome, summary }),
+      token,
+    }),
+
+  submitCombatAction: (
+    token: string,
+    sessionId: string,
+    action: string,
+    characterId?: string
+  ) =>
+    request<{
+      narrative: string;
+      mechanics?: string;
+      stateChanges?: Array<{
+        type: string;
+        target?: string;
+        value?: unknown;
+        description: string;
+      }>;
+      requiresRoll?: {
+        dice: string;
+        reason: string;
+        dc?: number;
+      };
+      ruleCitations?: Array<{
+        title: string;
+        source: string;
+        excerpt?: string;
+      }>;
+      combat_state: CombatState | null;
+    }>(`/api/game/${sessionId}/combat/action`, {
+      method: 'POST',
+      body: JSON.stringify({ action, character_id: characterId }),
+      token,
+    }),
 };

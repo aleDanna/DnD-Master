@@ -44,61 +44,61 @@
 
 ### Database & Supabase Setup
 
-- [ ] T012 Create Supabase project configuration in `backend/src/config/supabase.ts`
-- [ ] T013 Create database migration for profiles table in `backend/supabase/migrations/001_profiles.sql`
-- [ ] T014 [P] Create database migration for campaigns table in `backend/supabase/migrations/002_campaigns.sql`
-- [ ] T015 [P] Create database migration for campaign_players table in `backend/supabase/migrations/003_campaign_players.sql`
-- [ ] T016 [P] Create database migration for characters table in `backend/supabase/migrations/004_characters.sql`
-- [ ] T017 [P] Create database migration for sessions table in `backend/supabase/migrations/005_sessions.sql`
-- [ ] T018 [P] Create database migration for events table in `backend/supabase/migrations/006_events.sql`
-- [ ] T019 Create RLS policies migration in `backend/supabase/migrations/007_rls_policies.sql`
+- [x] T012 Create Supabase project configuration in `backend/src/config/supabase.ts`
+- [x] T013 Create database migration for profiles table in `backend/supabase/migrations/001_profiles.sql`
+- [x] T014 [P] Create database migration for campaigns table in `backend/supabase/migrations/002_campaigns.sql`
+- [x] T015 [P] Create database migration for campaign_players table in `backend/supabase/migrations/003_campaign_players.sql`
+- [x] T016 [P] Create database migration for characters table in `backend/supabase/migrations/004_characters.sql`
+- [x] T017 [P] Create database migration for sessions table in `backend/supabase/migrations/005_sessions.sql`
+- [x] T018 [P] Create database migration for events table in `backend/supabase/migrations/006_events.sql`
+- [x] T019 Create RLS policies migration in `backend/supabase/migrations/007_rls_policies.sql`
 
 ### TypeScript Models (Shared Types)
 
-- [ ] T020 [P] Create Campaign type definitions in `backend/src/models/campaign.ts`
-- [ ] T021 [P] Create Character type definitions in `backend/src/models/character.ts`
-- [ ] T022 [P] Create Session type definitions in `backend/src/models/session.ts`
-- [ ] T023 [P] Create Event type definitions in `backend/src/models/event.ts`
-- [ ] T024 [P] Create Combat type definitions in `backend/src/models/combat.ts`
-- [ ] T025 Create shared types index in `backend/src/models/index.ts`
+- [x] T020 [P] Create Campaign type definitions in `backend/src/models/campaign.ts`
+- [x] T021 [P] Create Character type definitions in `backend/src/models/character.ts`
+- [x] T022 [P] Create Session type definitions in `backend/src/models/session.ts`
+- [x] T023 [P] Create Event type definitions in `backend/src/models/event.ts`
+- [x] T024 [P] Create Combat type definitions in `backend/src/models/combat.ts`
+- [x] T025 Create shared types index in `backend/src/models/index.ts`
 
 ### Backend API Framework
 
-- [ ] T026 Create Express app entry point in `backend/src/index.ts`
-- [ ] T027 [P] Create auth middleware for JWT validation in `backend/src/api/middleware/auth.ts`
-- [ ] T028 [P] Create validation middleware in `backend/src/api/middleware/validation.ts`
-- [ ] T029 [P] Create error handling middleware in `backend/src/api/middleware/error-handler.ts`
-- [ ] T030 Configure CORS and JSON body parsing in `backend/src/index.ts`
-- [ ] T031 Create health check endpoint in `backend/src/api/routes/health.ts`
+- [x] T026 Create Express app entry point in `backend/src/index.ts`
+- [x] T027 [P] Create auth middleware for JWT validation in `backend/src/api/middleware/auth.ts`
+- [x] T028 [P] Create validation middleware in `backend/src/api/middleware/validation.ts`
+- [x] T029 [P] Create error handling middleware in `backend/src/api/middleware/error-handler.ts`
+- [x] T030 Configure CORS and JSON body parsing in `backend/src/index.ts`
+- [x] T031 Create health check endpoint in `backend/src/api/routes/health.ts`
 
 ### Frontend Auth & Layout
 
-- [ ] T032 Create Supabase client for frontend in `frontend/src/lib/supabase.ts`
-- [ ] T033 Create auth context provider in `frontend/src/components/ui/AuthProvider.tsx`
-- [ ] T034 Create root layout with ThemeProvider in `frontend/src/app/layout.tsx`
-- [ ] T035 [P] Create Login page in `frontend/src/app/auth/login/page.tsx`
-- [ ] T036 [P] Create Signup page in `frontend/src/app/auth/signup/page.tsx`
-- [ ] T037 Create protected route wrapper in `frontend/src/components/ui/ProtectedRoute.tsx`
-- [ ] T038 Create API client for backend calls in `frontend/src/lib/api-client.ts`
+- [x] T032 Create Supabase client for frontend in `frontend/src/lib/supabase.ts`
+- [x] T033 Create auth context provider in `frontend/src/components/ui/AuthProvider.tsx`
+- [x] T034 Create root layout with ThemeProvider in `frontend/src/app/layout.tsx`
+- [x] T035 [P] Create Login page in `frontend/src/app/auth/login/page.tsx`
+- [x] T036 [P] Create Signup page in `frontend/src/app/auth/signup/page.tsx`
+- [x] T037 Create protected route wrapper in `frontend/src/components/ui/ProtectedRoute.tsx`
+- [x] T038 Create API client for backend calls in `frontend/src/lib/api.ts`
 
 ### Rules Dataset (parses docs/rules.txt and docs/handbook.txt)
 
-- [ ] T039 Create RuleSection types in `backend/src/rules/types.ts`
-- [ ] T040 Create rules parser for docs/*.txt in `backend/src/rules/parser.ts`
-- [ ] T041 Create rules dataset loader (loads and indexes parsed sections) in `backend/src/rules/index.ts`
-- [ ] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
-- [ ] T043 Write unit tests for rules parser in `backend/tests/unit/rules-parser.test.ts`
+- [x] T039 Create RuleSection types in `backend/src/rules/types.ts`
+- [x] T040 Create rules parser for docs/*.txt in `backend/src/rules/parser.ts`
+- [x] T041 Create rules dataset loader (loads and indexes parsed sections) in `backend/src/rules/index.ts`
+- [x] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
+- [x] T043 Write unit tests for rules parser in `backend/src/rules/__tests__/parser.test.ts`
 
-### OpenAI Configuration
+### LLM Configuration (OpenAI / Gemini / Claude)
 
-- [ ] T045 Create OpenAI client configuration in `backend/src/config/openai.ts`
-- [ ] T046 Create base prompt templates in `backend/src/services/ai/prompts.ts`
+- [x] T045 Create configurable LLM provider abstraction in `backend/src/config/llm/`
+- [x] T046 Create base prompt templates in `backend/src/ai/prompts.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
 ---
 
-## Phase 3: User Story 1 - Solo Campaign with AI DM (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Solo Campaign with AI DM (Priority: P1) 🎯 MVP [COMPLETED]
 
 **Goal**: A player creates a campaign, starts a session, and has a natural conversation with the AI DM
 
@@ -106,70 +106,70 @@
 
 ### Backend - Data Repositories
 
-- [ ] T047 [US1] Implement CampaignRepository in `backend/src/services/data/campaign-repo.ts`
-- [ ] T048 [US1] Implement SessionRepository in `backend/src/services/data/session-repo.ts`
-- [ ] T049 [US1] Implement EventRepository in `backend/src/services/data/event-repo.ts`
+- [x] T047 [US1] Implement CampaignRepository in `backend/src/services/data/campaign-repo.ts`
+- [x] T048 [US1] Implement SessionRepository in `backend/src/services/data/session-repo.ts`
+- [x] T049 [US1] Implement EventRepository in `backend/src/services/data/event-repo.ts`
 
 ### Backend - Game Services
 
-- [ ] T050 [US1] Implement DiceService with RNG and logging in `backend/src/services/game/dice-service.ts`
-- [ ] T051 [US1] Implement StateService for session state management in `backend/src/services/game/state-service.ts`
+- [x] T050 [US1] Implement DiceService with RNG and logging in `backend/src/services/game/dice-service.ts`
+- [x] T051 [US1] Implement StateService for session state management in `backend/src/services/game/state-service.ts`
 
 ### Backend - AI Services
 
-- [ ] T052 [US1] Create AI response parser in `backend/src/services/ai/response-parser.ts`
-- [ ] T053 [US1] Implement DMService for AI orchestration in `backend/src/services/ai/dm-service.ts`
-- [ ] T054 [US1] Create DM system prompt with rules grounding in `backend/src/services/ai/prompts.ts`
+- [x] T052 [US1] Create AI response parser in `backend/src/services/ai/response-parser.ts`
+- [x] T053 [US1] Implement DMService for AI orchestration in `backend/src/services/ai/dm-service.ts`
+- [x] T054 [US1] Create DM system prompt with rules grounding in `backend/src/ai/prompts.ts`
 
 ### Backend - API Routes
 
-- [ ] T055 [US1] Create campaigns routes (create, get, list) in `backend/src/api/routes/campaigns.ts`
-- [ ] T056 [US1] Create sessions routes (create, get) in `backend/src/api/routes/sessions.ts`
-- [ ] T057 [US1] Create game action endpoint (POST /sessions/:id/action) in `backend/src/api/routes/game.ts`
-- [ ] T058 [US1] Implement streaming response for AI output in `backend/src/api/routes/game.ts`
-- [ ] T059 [US1] Create dice roll endpoint in `backend/src/api/routes/game.ts`
-- [ ] T060 [US1] Create events list endpoint in `backend/src/api/routes/game.ts`
+- [x] T055 [US1] Create campaigns routes (create, get, list) in `backend/src/api/routes/campaigns.ts`
+- [x] T056 [US1] Create sessions routes (create, get) in `backend/src/api/routes/sessions.ts`
+- [x] T057 [US1] Create game action endpoint (POST /sessions/:id/action) in `backend/src/api/routes/game.ts`
+- [x] T058 [US1] Implement streaming response for AI output in `backend/src/api/routes/game.ts`
+- [x] T059 [US1] Create dice roll endpoint in `backend/src/api/routes/game.ts`
+- [x] T060 [US1] Create events list endpoint in `backend/src/api/routes/game.ts`
 
 ### Frontend - Shared UI Components
 
-- [ ] T061 [P] [US1] Create Button component in `frontend/src/components/ui/Button.tsx`
-- [ ] T062 [P] [US1] Create Modal component in `frontend/src/components/ui/Modal.tsx`
-- [ ] T063 [P] [US1] Create Input component in `frontend/src/components/ui/Input.tsx`
-- [ ] T064 [P] [US1] Create Card component in `frontend/src/components/ui/Card.tsx`
+- [x] T061 [P] [US1] Create Button component in `frontend/src/components/ui/Button.tsx`
+- [x] T062 [P] [US1] Create Modal component in `frontend/src/components/ui/Modal.tsx`
+- [x] T063 [P] [US1] Create Input component in `frontend/src/components/ui/Input.tsx`
+- [x] T064 [P] [US1] Create Card component in `frontend/src/components/ui/Card.tsx`
 
 ### Frontend - Chat Components
 
-- [ ] T065 [US1] Create ChatFeed component in `frontend/src/components/chat/ChatFeed.tsx`
-- [ ] T066 [US1] Create ChatInput component in `frontend/src/components/chat/ChatInput.tsx`
-- [ ] T067 [US1] Create MessageBubble component (player/AI variants) in `frontend/src/components/chat/MessageBubble.tsx`
-- [ ] T068 [US1] Create SystemMessage component for mechanics in `frontend/src/components/chat/SystemMessage.tsx`
+- [x] T065 [US1] Create ChatFeed component in `frontend/src/components/chat/ChatFeed.tsx`
+- [x] T066 [US1] Create ChatInput component in `frontend/src/components/chat/ChatInput.tsx`
+- [x] T067 [US1] Create MessageBubble component (player/AI variants) in `frontend/src/components/chat/MessageBubble.tsx`
+- [x] T068 [US1] Create SystemMessage component for mechanics in `frontend/src/components/chat/SystemMessage.tsx`
 
 ### Frontend - Game Components
 
-- [ ] T069 [US1] Create DiceLog panel component in `frontend/src/components/game/DiceLog.tsx`
+- [x] T069 [US1] Create DiceLog panel component in `frontend/src/components/game/DiceLog.tsx`
 
 ### Frontend - Campaign Components
 
-- [ ] T070 [US1] Create CampaignCard component in `frontend/src/components/campaign/CampaignCard.tsx`
+- [x] T070 [US1] Create CampaignCard component in `frontend/src/components/campaign/CampaignCard.tsx`
 
 ### Frontend - Pages
 
-- [ ] T071 [US1] Create dashboard page (campaign list) in `frontend/src/app/page.tsx`
-- [ ] T072 [US1] Create new campaign page in `frontend/src/app/campaigns/new/page.tsx`
-- [ ] T073 [US1] Create campaign detail page in `frontend/src/app/campaigns/[id]/page.tsx`
-- [ ] T074 [US1] Create session play page with chat layout in `frontend/src/app/session/[id]/page.tsx`
+- [x] T071 [US1] Create dashboard page (campaign list) in `frontend/src/app/dashboard/page.tsx`
+- [x] T072 [US1] Create new campaign page in `frontend/src/app/dashboard/campaigns/new/page.tsx`
+- [x] T073 [US1] Create campaign detail page in `frontend/src/app/dashboard/campaigns/[id]/page.tsx`
+- [x] T074 [US1] Create session play page with chat layout in `frontend/src/app/session/[id]/page.tsx`
 
 ### Integration
 
-- [ ] T075 [US1] Connect frontend session page to backend game action endpoint
-- [ ] T076 [US1] Implement streaming message display in ChatFeed component
-- [ ] T077 [US1] Wire up dice log updates from events endpoint
+- [x] T075 [US1] Connect frontend session page to backend game action endpoint
+- [x] T076 [US1] Implement streaming message display in ChatFeed component
+- [x] T077 [US1] Wire up dice log updates from events endpoint
 
 **Checkpoint**: User Story 1 (Solo Campaign with AI DM) is fully functional and testable independently
 
 ---
 
-## Phase 4: User Story 2 - Combat Encounter (Priority: P2)
+## Phase 4: User Story 2 - Combat Encounter (Priority: P2) [COMPLETED]
 
 **Goal**: Player engages in combat with initiative, turn order, HP tracking, and dice integration
 
@@ -177,39 +177,39 @@
 
 ### Backend - Combat Service
 
-- [ ] T078 [US2] Implement CombatService with initiative and turn management in `backend/src/services/game/combat-service.ts`
-- [ ] T079 [US2] Add combat state handling to StateService in `backend/src/services/game/state-service.ts`
-- [ ] T080 [US2] Update DMService to handle combat scenarios in `backend/src/services/ai/dm-service.ts`
-- [ ] T081 [US2] Add combat-specific prompts in `backend/src/services/ai/prompts.ts`
+- [x] T078 [US2] Implement CombatService with initiative and turn management in `backend/src/services/game/combat-service.ts`
+- [x] T079 [US2] Add combat state handling to StateService in `backend/src/services/game/state-service.ts`
+- [x] T080 [US2] Update DMService to handle combat scenarios in `backend/src/services/ai/dm-service.ts`
+- [x] T081 [US2] Add combat-specific prompts in `backend/src/services/ai/prompts.ts`
 
 ### Backend - Combat API
 
-- [ ] T082 [US2] Create combat state endpoint (GET /sessions/:id/combat) in `backend/src/api/routes/game.ts`
-- [ ] T083 [US2] Handle combat start/end in game action endpoint in `backend/src/api/routes/game.ts`
+- [x] T082 [US2] Create combat state endpoint (GET /sessions/:id/combat) in `backend/src/api/routes/game.ts`
+- [x] T083 [US2] Handle combat start/end in game action endpoint in `backend/src/api/routes/game.ts`
 
 ### Frontend - Combat Components
 
-- [ ] T084 [US2] Create CombatTracker component in `frontend/src/components/game/CombatTracker.tsx`
-- [ ] T085 [US2] Create InitiativeList component in `frontend/src/components/game/InitiativeList.tsx`
-- [ ] T086 [US2] Create CombatantCard component (HP, conditions) in `frontend/src/components/game/CombatantCard.tsx`
+- [x] T084 [US2] Create CombatTracker component in `frontend/src/components/game/CombatTracker.tsx`
+- [x] T085 [US2] Create InitiativeList component in `frontend/src/components/game/InitiativeList.tsx`
+- [x] T086 [US2] Create CombatantCard component (HP, conditions) in `frontend/src/components/game/CombatantCard.tsx`
 
 ### Frontend - Map Components
 
-- [ ] T087 [US2] Create MapCanvas component (2D grid) in `frontend/src/components/game/MapCanvas.tsx`
-- [ ] T088 [US2] Create Token component for map in `frontend/src/components/game/Token.tsx`
-- [ ] T089 [US2] Implement drag-and-drop token movement in MapCanvas
+- [x] T087 [US2] Create MapCanvas component (2D grid) in `frontend/src/components/game/MapCanvas.tsx`
+- [x] T088 [US2] Create Token component for map in `frontend/src/components/game/Token.tsx`
+- [x] T089 [US2] Implement drag-and-drop token movement in MapCanvas
 
 ### Frontend - Integration
 
-- [ ] T090 [US2] Add CombatTracker to session page layout in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T091 [US2] Add MapCanvas to session page (conditional on map_mode) in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T092 [US2] Connect combat state updates to CombatTracker
+- [x] T090 [US2] Add CombatTracker to session page layout in `frontend/src/app/session/[id]/page.tsx`
+- [x] T091 [US2] Add MapCanvas to session page (conditional on map_mode) in `frontend/src/app/session/[id]/page.tsx`
+- [x] T092 [US2] Connect combat state updates to CombatTracker
 
 **Checkpoint**: User Story 2 (Combat Encounter) is fully functional and testable independently
 
 ---
 
-## Phase 5: User Story 3 - Session Save and Resume with Recap (Priority: P2)
+## Phase 5: User Story 3 - Session Save and Resume with Recap (Priority: P2) [COMPLETED]
 
 **Goal**: Player can save session, leave, return, and resume with AI-generated recap
 
@@ -217,37 +217,37 @@
 
 ### Backend - Session Persistence
 
-- [ ] T093 [US3] Implement session save logic in SessionRepository in `backend/src/services/data/session-repo.ts`
-- [ ] T094 [US3] Create recap generation in DMService in `backend/src/services/ai/dm-service.ts`
-- [ ] T095 [US3] Add recap prompt template in `backend/src/services/ai/prompts.ts`
+- [x] T093 [US3] Implement session save logic in SessionRepository in `backend/src/services/data/session-repo.ts`
+- [x] T094 [US3] Create recap generation in DMService in `backend/src/services/ai/dm-service.ts`
+- [x] T095 [US3] Add recap prompt template in `backend/src/ai/prompts.ts`
 
 ### Backend - Session API
 
-- [ ] T096 [US3] Create save session endpoint (POST /sessions/:id/save) in `backend/src/api/routes/sessions.ts`
-- [ ] T097 [US3] Create resume session endpoint (POST /sessions/:id/resume) in `backend/src/api/routes/sessions.ts`
-- [ ] T098 [US3] Create end session endpoint (POST /sessions/:id/end) in `backend/src/api/routes/sessions.ts`
+- [x] T096 [US3] Create save session endpoint (POST /sessions/:id/save) in `backend/src/api/routes/sessions.ts`
+- [x] T097 [US3] Create resume session endpoint (POST /sessions/:id/resume) in `backend/src/api/routes/sessions.ts`
+- [x] T098 [US3] Create end session endpoint (POST /sessions/:id/end) in `backend/src/api/routes/sessions.ts`
 
 ### Frontend - Recap Components
 
-- [ ] T099 [US3] Create RecapPanel component in `frontend/src/components/game/RecapPanel.tsx`
-- [ ] T100 [US3] Create SessionControls component (save, end buttons) in `frontend/src/components/game/SessionControls.tsx`
+- [x] T099 [US3] Create RecapPanel component in `frontend/src/components/game/RecapPanel.tsx`
+- [x] T100 [US3] Create SessionControls component (save, end buttons) in `frontend/src/components/game/SessionControls.tsx`
 
 ### Frontend - Session List
 
-- [ ] T101 [US3] Add session list to campaign detail page in `frontend/src/app/campaigns/[id]/page.tsx`
-- [ ] T102 [US3] Create SessionCard component (status, resume button) in `frontend/src/components/campaign/SessionCard.tsx`
+- [x] T101 [US3] Add session list to campaign detail page in `frontend/src/app/dashboard/campaigns/[id]/page.tsx`
+- [x] T102 [US3] Create SessionCard component (status, resume button) in `frontend/src/components/campaign/SessionCard.tsx`
 
 ### Frontend - Integration
 
-- [ ] T103 [US3] Add RecapPanel to session page (shows on resume) in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T104 [US3] Implement save/resume flow with confirmation modal
-- [ ] T105 [US3] Add SessionControls to session page header
+- [x] T103 [US3] Add RecapPanel to session page (shows on resume) in `frontend/src/app/session/[id]/page.tsx`
+- [x] T104 [US3] Implement save/resume flow with confirmation modal
+- [x] T105 [US3] Add SessionControls to session page header
 
 **Checkpoint**: User Story 3 (Session Save/Resume) is fully functional and testable independently
 
 ---
 
-## Phase 6: User Story 4 - Multiplayer Campaign (Priority: P3)
+## Phase 6: User Story 4 - Multiplayer Campaign (Priority: P3) [COMPLETED]
 
 **Goal**: Campaign owner invites players, multiple players join and participate together
 
@@ -255,36 +255,36 @@
 
 ### Backend - Multiplayer
 
-- [ ] T106 [US4] Implement CampaignPlayerRepository in `backend/src/services/data/campaign-player-repo.ts`
-- [ ] T107 [US4] Add multiplayer support to StateService (versioned updates) in `backend/src/services/game/state-service.ts`
-- [ ] T108 [US4] Implement conflict detection for concurrent actions in `backend/src/services/game/state-service.ts`
+- [x] T106 [US4] Implement CampaignPlayerRepository in `backend/src/services/data/campaign-player-repo.ts`
+- [x] T107 [US4] Add multiplayer support to StateService (versioned updates) in `backend/src/services/game/state-service.ts`
+- [x] T108 [US4] Implement conflict detection for concurrent actions in `backend/src/services/game/state-service.ts`
 
 ### Backend - Invite API
 
-- [ ] T109 [US4] Create invite endpoint (POST /campaigns/:id/invite) in `backend/src/api/routes/campaigns.ts`
-- [ ] T110 [US4] Create join endpoint (POST /campaigns/:id/join) in `backend/src/api/routes/campaigns.ts`
-- [ ] T111 [US4] Create campaign players list endpoint in `backend/src/api/routes/campaigns.ts`
+- [x] T109 [US4] Create invite endpoint (POST /campaigns/:id/invite) in `backend/src/api/routes/campaigns.ts`
+- [x] T110 [US4] Create join endpoint (POST /campaigns/:id/join) in `backend/src/api/routes/campaigns.ts`
+- [x] T111 [US4] Create campaign players list endpoint in `backend/src/api/routes/campaigns.ts`
 
 ### Backend - Realtime
 
-- [ ] T112 [US4] Setup Supabase Realtime subscriptions for sessions in `backend/src/services/realtime/session-sync.ts`
+- [x] T112 [US4] Setup Supabase Realtime subscriptions for sessions in `backend/src/services/realtime/session-sync.ts`
 
 ### Frontend - Invite Components
 
-- [ ] T113 [US4] Create InviteDialog component in `frontend/src/components/campaign/InviteDialog.tsx`
-- [ ] T114 [US4] Create PlayerList component in `frontend/src/components/campaign/PlayerList.tsx`
+- [x] T113 [US4] Create InviteDialog component in `frontend/src/components/campaign/InviteDialog.tsx`
+- [x] T114 [US4] Create PlayerList component in `frontend/src/components/campaign/PlayerList.tsx`
 
 ### Frontend - Integration
 
-- [ ] T115 [US4] Add invite button and PlayerList to campaign detail page
-- [ ] T116 [US4] Create invitation acceptance page in `frontend/src/app/campaigns/join/[token]/page.tsx`
-- [ ] T117 [US4] Implement Supabase Realtime subscription in session page for live updates
+- [x] T115 [US4] Add invite button and PlayerList to campaign detail page
+- [x] T116 [US4] Create invitation acceptance page in `frontend/src/app/campaigns/join/[token]/page.tsx`
+- [x] T117 [US4] Implement Supabase Realtime subscription in session page for live updates
 
 **Checkpoint**: User Story 4 (Multiplayer) is fully functional and testable independently
 
 ---
 
-## Phase 7: User Story 5 - Campaign and Character Management (Priority: P3)
+## Phase 7: User Story 5 - Campaign and Character Management (Priority: P3) [COMPLETED]
 
 **Goal**: Full CRUD for campaigns and characters with settings configuration
 
@@ -292,44 +292,44 @@
 
 ### Backend - Character Management
 
-- [ ] T118 [US5] Implement CharacterRepository in `backend/src/services/data/character-repo.ts`
+- [x] T118 [US5] Implement CharacterRepository in `backend/src/services/data/character-repo.ts`
 
 ### Backend - API
 
-- [ ] T119 [US5] Add campaign update/delete endpoints in `backend/src/api/routes/campaigns.ts`
-- [ ] T120 [US5] Create characters CRUD routes in `backend/src/api/routes/characters.ts`
+- [x] T119 [US5] Add campaign update/delete endpoints in `backend/src/api/routes/campaigns.ts`
+- [x] T120 [US5] Create characters CRUD routes in `backend/src/api/routes/characters.ts`
 
 ### Frontend - Campaign Settings
 
-- [ ] T121 [US5] Create SettingsForm component (dice_mode, map_mode) in `frontend/src/components/campaign/SettingsForm.tsx`
-- [ ] T122 [US5] Add settings section to campaign detail page
+- [x] T121 [US5] Create SettingsForm component (dice_mode, map_mode) in `frontend/src/components/campaign/SettingsForm.tsx`
+- [x] T122 [US5] Add settings section to campaign detail page
 
 ### Frontend - Character Management
 
-- [ ] T123 [US5] Create character editor page in `frontend/src/app/characters/[id]/page.tsx`
-- [ ] T124 [US5] Create CharacterCard component in `frontend/src/components/campaign/CharacterCard.tsx`
-- [ ] T125 [US5] Create CharacterForm component in `frontend/src/components/campaign/CharacterForm.tsx`
-- [ ] T126 [US5] Add character list to campaign detail page
-- [ ] T127 [US5] Create new character page in `frontend/src/app/campaigns/[id]/characters/new/page.tsx`
+- [x] T123 [US5] Create character editor page in `frontend/src/app/characters/[id]/page.tsx`
+- [x] T124 [US5] Create CharacterCard component in `frontend/src/components/campaign/CharacterCard.tsx`
+- [x] T125 [US5] Create CharacterForm component in `frontend/src/components/campaign/CharacterForm.tsx`
+- [x] T126 [US5] Add character list to campaign detail page
+- [x] T127 [US5] Create new character page in `frontend/src/app/campaigns/[id]/characters/new/page.tsx`
 
 **Checkpoint**: User Story 5 (Campaign/Character Management) is fully functional and testable independently
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 8: Polish & Cross-Cutting Concerns [COMPLETED]
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T128 [P] Add loading states to all async operations in frontend components
-- [ ] T129 [P] Add error boundary component in `frontend/src/components/ui/ErrorBoundary.tsx`
-- [ ] T130 [P] Implement toast notifications for success/error feedback
-- [ ] T131 Add responsive mobile layout to session page
-- [ ] T132 [P] Add keyboard shortcuts (Enter to send message, Escape to close modals)
-- [ ] T133 Implement player-entered dice mode UI in DiceLog component
-- [ ] T134 [P] Add structured logging to all backend services
-- [ ] T135 [P] Create environment validation on startup in `backend/src/config/env.ts`
-- [ ] T136 Run quickstart.md validation - verify all setup steps work
-- [ ] T137 [P] Code cleanup - remove console.logs, unused imports
+- [x] T128 [P] Add loading states to all async operations in frontend components
+- [x] T129 [P] Add error boundary component in `frontend/src/components/ui/ErrorBoundary.tsx`
+- [x] T130 [P] Implement toast notifications for success/error feedback
+- [x] T131 Add responsive mobile layout to session page
+- [x] T132 [P] Add keyboard shortcuts (Enter to send message, Escape to close modals)
+- [x] T133 Implement player-entered dice mode UI in DiceLog component
+- [x] T134 [P] Add structured logging to all backend services
+- [x] T135 [P] Create environment validation on startup in `backend/src/config/env.ts`
+- [x] T136 Run quickstart.md validation - verify all setup steps work
+- [x] T137 [P] Code cleanup - remove console.logs, unused imports
 
 ---
 

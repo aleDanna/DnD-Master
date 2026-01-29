@@ -11,7 +11,7 @@ Build an AI-powered web application that serves as a Dungeon Master for D&D camp
 - Next.js frontend with Discord-inspired dark theme for chat-centric gameplay
 - Node.js/Express backend handling game state, AI orchestration, and rules validation
 - Supabase for PostgreSQL database and authentication
-- OpenAI for AI DM responses with server-side validation of all state changes
+- Configurable LLM provider (OpenAI, Gemini, or Claude) for AI DM responses with server-side validation
 - Two-step AI flow: AI proposes narrative + state changes → Server validates → Persist
 
 ## Technical Context
@@ -19,7 +19,7 @@ Build an AI-powered web application that serves as a Dungeon Master for D&D camp
 **Language/Version**: TypeScript 5.x (frontend and backend)
 **Primary Dependencies**:
 - Frontend: Next.js 14, React 18, Tailwind CSS
-- Backend: Express.js, Supabase JS Client, OpenAI SDK
+- Backend: Express.js, Supabase JS Client, OpenAI/Gemini/Anthropic SDKs
 **Storage**: PostgreSQL via Supabase (campaigns, sessions, characters, events)
 **Testing**: Jest (unit), Playwright (E2E), Supertest (API integration)
 **Target Platform**: Web (responsive: desktop-first, mobile-friendly)
@@ -117,7 +117,12 @@ backend/
 │   │   └── types.ts               # Rule citation types
 │   └── config/
 │       ├── supabase.ts
-│       └── openai.ts
+│       └── llm/                  # Configurable LLM providers
+│           ├── index.ts          # Factory and unified interface
+│           ├── types.ts          # Provider interface types
+│           ├── openai-provider.ts
+│           ├── gemini-provider.ts
+│           └── claude-provider.ts
 └── tests/
     ├── unit/
     │   ├── dice-service.test.ts
