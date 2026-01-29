@@ -44,55 +44,55 @@
 
 ### Database & Supabase Setup
 
-- [ ] T012 Create Supabase project configuration in `backend/src/config/supabase.ts`
-- [ ] T013 Create database migration for profiles table in `backend/supabase/migrations/001_profiles.sql`
-- [ ] T014 [P] Create database migration for campaigns table in `backend/supabase/migrations/002_campaigns.sql`
-- [ ] T015 [P] Create database migration for campaign_players table in `backend/supabase/migrations/003_campaign_players.sql`
-- [ ] T016 [P] Create database migration for characters table in `backend/supabase/migrations/004_characters.sql`
-- [ ] T017 [P] Create database migration for sessions table in `backend/supabase/migrations/005_sessions.sql`
-- [ ] T018 [P] Create database migration for events table in `backend/supabase/migrations/006_events.sql`
-- [ ] T019 Create RLS policies migration in `backend/supabase/migrations/007_rls_policies.sql`
+- [x] T012 Create Supabase project configuration in `backend/src/config/supabase.ts`
+- [x] T013 Create database migration for profiles table in `backend/supabase/migrations/001_profiles.sql`
+- [x] T014 [P] Create database migration for campaigns table in `backend/supabase/migrations/002_campaigns.sql`
+- [x] T015 [P] Create database migration for campaign_players table in `backend/supabase/migrations/003_campaign_players.sql`
+- [x] T016 [P] Create database migration for characters table in `backend/supabase/migrations/004_characters.sql`
+- [x] T017 [P] Create database migration for sessions table in `backend/supabase/migrations/005_sessions.sql`
+- [x] T018 [P] Create database migration for events table in `backend/supabase/migrations/006_events.sql`
+- [x] T019 Create RLS policies migration in `backend/supabase/migrations/007_rls_policies.sql`
 
 ### TypeScript Models (Shared Types)
 
-- [ ] T020 [P] Create Campaign type definitions in `backend/src/models/campaign.ts`
-- [ ] T021 [P] Create Character type definitions in `backend/src/models/character.ts`
-- [ ] T022 [P] Create Session type definitions in `backend/src/models/session.ts`
-- [ ] T023 [P] Create Event type definitions in `backend/src/models/event.ts`
-- [ ] T024 [P] Create Combat type definitions in `backend/src/models/combat.ts`
-- [ ] T025 Create shared types index in `backend/src/models/index.ts`
+- [x] T020 [P] Create Campaign type definitions in `backend/src/models/campaign.ts`
+- [x] T021 [P] Create Character type definitions in `backend/src/models/character.ts`
+- [x] T022 [P] Create Session type definitions in `backend/src/models/session.ts`
+- [x] T023 [P] Create Event type definitions in `backend/src/models/event.ts`
+- [x] T024 [P] Create Combat type definitions in `backend/src/models/combat.ts`
+- [x] T025 Create shared types index in `backend/src/models/index.ts`
 
 ### Backend API Framework
 
-- [ ] T026 Create Express app entry point in `backend/src/index.ts`
-- [ ] T027 [P] Create auth middleware for JWT validation in `backend/src/api/middleware/auth.ts`
-- [ ] T028 [P] Create validation middleware in `backend/src/api/middleware/validation.ts`
-- [ ] T029 [P] Create error handling middleware in `backend/src/api/middleware/error-handler.ts`
-- [ ] T030 Configure CORS and JSON body parsing in `backend/src/index.ts`
-- [ ] T031 Create health check endpoint in `backend/src/api/routes/health.ts`
+- [x] T026 Create Express app entry point in `backend/src/index.ts`
+- [x] T027 [P] Create auth middleware for JWT validation in `backend/src/api/middleware/auth.ts`
+- [x] T028 [P] Create validation middleware in `backend/src/api/middleware/validation.ts`
+- [x] T029 [P] Create error handling middleware in `backend/src/api/middleware/error-handler.ts`
+- [x] T030 Configure CORS and JSON body parsing in `backend/src/index.ts`
+- [x] T031 Create health check endpoint in `backend/src/api/routes/health.ts`
 
 ### Frontend Auth & Layout
 
-- [ ] T032 Create Supabase client for frontend in `frontend/src/lib/supabase.ts`
-- [ ] T033 Create auth context provider in `frontend/src/components/ui/AuthProvider.tsx`
-- [ ] T034 Create root layout with ThemeProvider in `frontend/src/app/layout.tsx`
-- [ ] T035 [P] Create Login page in `frontend/src/app/auth/login/page.tsx`
-- [ ] T036 [P] Create Signup page in `frontend/src/app/auth/signup/page.tsx`
-- [ ] T037 Create protected route wrapper in `frontend/src/components/ui/ProtectedRoute.tsx`
-- [ ] T038 Create API client for backend calls in `frontend/src/lib/api-client.ts`
+- [x] T032 Create Supabase client for frontend in `frontend/src/lib/supabase.ts`
+- [x] T033 Create auth context provider in `frontend/src/components/ui/AuthProvider.tsx`
+- [x] T034 Create root layout with ThemeProvider in `frontend/src/app/layout.tsx`
+- [x] T035 [P] Create Login page in `frontend/src/app/auth/login/page.tsx`
+- [x] T036 [P] Create Signup page in `frontend/src/app/auth/signup/page.tsx`
+- [x] T037 Create protected route wrapper in `frontend/src/components/ui/ProtectedRoute.tsx`
+- [x] T038 Create API client for backend calls in `frontend/src/lib/api.ts`
 
 ### Rules Dataset (parses docs/rules.txt and docs/handbook.txt)
 
-- [ ] T039 Create RuleSection types in `backend/src/rules/types.ts`
-- [ ] T040 Create rules parser for docs/*.txt in `backend/src/rules/parser.ts`
-- [ ] T041 Create rules dataset loader (loads and indexes parsed sections) in `backend/src/rules/index.ts`
-- [ ] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
-- [ ] T043 Write unit tests for rules parser in `backend/tests/unit/rules-parser.test.ts`
+- [x] T039 Create RuleSection types in `backend/src/rules/types.ts`
+- [x] T040 Create rules parser for docs/*.txt in `backend/src/rules/parser.ts`
+- [x] T041 Create rules dataset loader (loads and indexes parsed sections) in `backend/src/rules/index.ts`
+- [x] T042 Create rules service for lookups and citations in `backend/src/services/game/rules-service.ts`
+- [x] T043 Write unit tests for rules parser in `backend/src/rules/__tests__/parser.test.ts`
 
 ### LLM Configuration (OpenAI / Gemini / Claude)
 
 - [x] T045 Create configurable LLM provider abstraction in `backend/src/config/llm/`
-- [ ] T046 Create base prompt templates in `backend/src/services/ai/prompts.ts`
+- [x] T046 Create base prompt templates in `backend/src/ai/prompts.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
