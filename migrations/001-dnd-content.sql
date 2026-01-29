@@ -985,29 +985,190 @@ FROM rule_categories WHERE slug = 'resting';
 
 -- Core Classes from Basic Rules
 INSERT INTO classes (name, slug, description, hit_die, primary_ability, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_choices, skill_count, starting_equipment, source_document, source_page) VALUES
+('Barbarian', 'barbarian', 'A fierce warrior of primitive background who can enter a battle rage. For some, their rage springs from a communion with fierce animal spirits. Others draw from a roiling reservoir of anger at a world full of pain.', 'd12', 'Strength', ARRAY['Strength', 'Constitution'], ARRAY['Light armor', 'Medium armor', 'Shields'], ARRAY['Simple weapons', 'Martial weapons'], NULL, ARRAY['Animal Handling', 'Athletics', 'Intimidation', 'Nature', 'Perception', 'Survival'], 2, 'A greataxe or any martial melee weapon, two handaxes or any simple weapon, an explorer''s pack and four javelins', 'handbook.txt', 46),
+
+('Bard', 'bard', 'An inspiring magician whose power echoes the music of creation. Whether scholar, skald, or scoundrel, a bard weaves magic through words and music to inspire allies, demoralize foes, manipulate minds, create illusions, and even heal wounds.', 'd8', 'Charisma', ARRAY['Dexterity', 'Charisma'], ARRAY['Light armor'], ARRAY['Simple weapons', 'Hand crossbows', 'Longswords', 'Rapiers', 'Shortswords'], ARRAY['Three musical instruments of your choice'], ARRAY['Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival', 'Deception', 'Intimidation', 'Performance', 'Persuasion'], 3, 'A rapier or a longsword or any simple weapon, a diplomat''s pack or an entertainer''s pack, a lute or any other musical instrument, leather armor and a dagger', 'handbook.txt', 51),
+
 ('Cleric', 'cleric', 'A priestly champion who wields divine magic in service of a higher power. Clerics are intermediaries between the mortal world and the distant planes of the gods. As varied as the gods they serve, clerics strive to embody the handiwork of their deities.', 'd8', 'Wisdom', ARRAY['Wisdom', 'Charisma'], ARRAY['Light armor', 'Medium armor', 'Shields'], ARRAY['Simple weapons'], NULL, ARRAY['History', 'Insight', 'Medicine', 'Persuasion', 'Religion'], 2, 'A mace or warhammer, scale mail or leather armor or chain mail, a light crossbow and 20 bolts or any simple weapon, a priest''s pack or an explorer''s pack, a shield and a holy symbol', 'rules.txt', 20),
+
+('Druid', 'druid', 'A priest of the Old Faith, wielding the powers of nature and adopting animal forms. Drawing on the divine essence of nature itself, you can cast spells to shape that essence to your will. The power of nature is yours to command.', 'd8', 'Wisdom', ARRAY['Intelligence', 'Wisdom'], ARRAY['Light armor (nonmetal)', 'Medium armor (nonmetal)', 'Shields (nonmetal)'], ARRAY['Clubs', 'Daggers', 'Darts', 'Javelins', 'Maces', 'Quarterstaffs', 'Scimitars', 'Sickles', 'Slings', 'Spears'], ARRAY['Herbalism kit'], ARRAY['Arcana', 'Animal Handling', 'Insight', 'Medicine', 'Nature', 'Perception', 'Religion', 'Survival'], 2, 'A wooden shield or any simple weapon, a scimitar or any simple melee weapon, leather armor, an explorer''s pack, and a druidic focus', 'handbook.txt', 64),
 
 ('Fighter', 'fighter', 'A master of martial combat, skilled with a variety of weapons and armor. Fighters learn the basics of all combat styles. Every fighter can swing an axe, fence with a rapier, wield a longsword or a greatsword, use a bow, and even trap foes in a net with some degree of skill.', 'd10', 'Strength or Dexterity', ARRAY['Strength', 'Constitution'], ARRAY['All armor', 'Shields'], ARRAY['Simple weapons', 'Martial weapons'], NULL, ARRAY['Acrobatics', 'Animal Handling', 'Athletics', 'History', 'Insight', 'Intimidation', 'Perception', 'Survival'], 2, 'Chain mail or leather armor with longbow and 20 arrows, a martial weapon and a shield or two martial weapons, a light crossbow and 20 bolts or two handaxes, a dungeoneer''s pack or an explorer''s pack', 'rules.txt', 24),
 
+('Monk', 'monk', 'A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection. Monks make careful study of a magical energy that most monastic traditions call ki.', 'd8', 'Dexterity and Wisdom', ARRAY['Strength', 'Dexterity'], NULL, ARRAY['Simple weapons', 'Shortswords'], ARRAY['One type of artisan''s tools or one musical instrument'], ARRAY['Acrobatics', 'Athletics', 'History', 'Insight', 'Religion', 'Stealth'], 2, 'A shortsword or any simple weapon, a dungeoneer''s pack or an explorer''s pack, 10 darts', 'handbook.txt', 76),
+
+('Paladin', 'paladin', 'A holy warrior bound to a sacred oath. Whatever their origin and their mission, paladins are united by their oaths to stand against the forces of evil. Whether sworn before a god''s altar, paladins are bound by an oath.', 'd10', 'Strength and Charisma', ARRAY['Wisdom', 'Charisma'], ARRAY['All armor', 'Shields'], ARRAY['Simple weapons', 'Martial weapons'], NULL, ARRAY['Athletics', 'Insight', 'Intimidation', 'Medicine', 'Persuasion', 'Religion'], 2, 'A martial weapon and a shield or two martial weapons, five javelins or any simple melee weapon, a priest''s pack or an explorer''s pack, chain mail and a holy symbol', 'handbook.txt', 82),
+
+('Ranger', 'ranger', 'A warrior who combats threats on the edges of civilization. Far from the bustle of cities and towns, past the hedges that shelter the most distant farms from the terrors of the wild, amid the dense-packed trees of trackless forests.', 'd10', 'Dexterity and Wisdom', ARRAY['Strength', 'Dexterity'], ARRAY['Light armor', 'Medium armor', 'Shields'], ARRAY['Simple weapons', 'Martial weapons'], NULL, ARRAY['Animal Handling', 'Athletics', 'Insight', 'Investigation', 'Nature', 'Perception', 'Stealth', 'Survival'], 3, 'Scale mail or leather armor, two shortswords or two simple melee weapons, a dungeoneer''s pack or an explorer''s pack, a longbow and a quiver of 20 arrows', 'handbook.txt', 89),
+
 ('Rogue', 'rogue', 'A scoundrel who uses stealth and trickery to overcome obstacles and enemies. Rogues devote as much effort to mastering the use of a variety of skills as they do to perfecting their combat abilities, giving them a broad expertise that few other characters can match.', 'd8', 'Dexterity', ARRAY['Dexterity', 'Intelligence'], ARRAY['Light armor'], ARRAY['Simple weapons', 'Hand crossbows', 'Longswords', 'Rapiers', 'Shortswords'], ARRAY['Thieves'' tools'], ARRAY['Acrobatics', 'Athletics', 'Deception', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Performance', 'Persuasion', 'Sleight of Hand', 'Stealth'], 4, 'A rapier or a shortsword, a shortbow and quiver of 20 arrows or a shortsword, a burglar''s pack or a dungeoneer''s pack or an explorer''s pack, leather armor, two daggers, and thieves'' tools', 'rules.txt', 26),
+
+('Sorcerer', 'sorcerer', 'A spellcaster who draws on inherent magic from a gift or bloodline. Magic is a part of every sorcerer, suffusing body, mind, and spirit with a latent power that waits to be tapped.', 'd6', 'Charisma', ARRAY['Constitution', 'Charisma'], NULL, ARRAY['Daggers', 'Darts', 'Slings', 'Quarterstaffs', 'Light crossbows'], NULL, ARRAY['Arcana', 'Deception', 'Insight', 'Intimidation', 'Persuasion', 'Religion'], 2, 'A light crossbow and 20 bolts or any simple weapon, a component pouch or an arcane focus, a dungeoneer''s pack or an explorer''s pack, two daggers', 'handbook.txt', 99),
+
+('Warlock', 'warlock', 'A wielder of magic that is derived from a bargain with an extraplanar entity. Warlocks are seekers of the knowledge that lies hidden in the fabric of the multiverse. Through pacts made with mysterious beings.', 'd8', 'Charisma', ARRAY['Wisdom', 'Charisma'], ARRAY['Light armor'], ARRAY['Simple weapons'], NULL, ARRAY['Arcana', 'Deception', 'History', 'Intimidation', 'Investigation', 'Nature', 'Religion'], 2, 'A light crossbow and 20 bolts or any simple weapon, a component pouch or an arcane focus, a scholar''s pack or a dungeoneer''s pack, leather armor, any simple weapon, and two daggers', 'handbook.txt', 105),
 
 ('Wizard', 'wizard', 'A scholarly magic-user capable of manipulating the structures of reality. Drawing on the subtle weave of magic that permeates the cosmos, wizards cast spells of explosive fire, arcing lightning, subtle deception, and brute-force mind control.', 'd6', 'Intelligence', ARRAY['Intelligence', 'Wisdom'], NULL, ARRAY['Daggers', 'Darts', 'Slings', 'Quarterstaffs', 'Light crossbows'], NULL, ARRAY['Arcana', 'History', 'Insight', 'Investigation', 'Medicine', 'Religion'], 2, 'A quarterstaff or a dagger, a component pouch or an arcane focus, a scholar''s pack or an explorer''s pack, and a spellbook', 'rules.txt', 29);
 
--- Subclasses for Core Classes
+-- Subclasses for All Classes
+
+-- Barbarian Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Path of the Berserker', 'path-of-the-berserker', 'For some barbarians, rage is a means to an end—that end being violence. The Path of the Berserker is a path of untrammeled fury, slick with blood.', 3, 'handbook.txt', 49
+FROM classes c WHERE c.slug = 'barbarian';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Path of the Totem Warrior', 'path-of-the-totem-warrior', 'The Path of the Totem Warrior is a spiritual journey, as the barbarian accepts a spirit animal as guide, protector, and inspiration.', 3, 'handbook.txt', 50
+FROM classes c WHERE c.slug = 'barbarian';
+
+-- Bard Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'College of Lore', 'college-of-lore', 'Bards of the College of Lore know something about most things, collecting bits of knowledge from sources as diverse as scholarly tomes and peasant tales.', 3, 'handbook.txt', 54
+FROM classes c WHERE c.slug = 'bard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'College of Valor', 'college-of-valor', 'Bards of the College of Valor are daring skalds whose tales keep alive the memory of the great heroes of the past.', 3, 'handbook.txt', 55
+FROM classes c WHERE c.slug = 'bard';
+
+-- Cleric Subclasses
 INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
 SELECT c.id, 'Life Domain', 'life-domain', 'The Life domain focuses on the vibrant positive energy—one of the fundamental forces of the universe—that sustains all life. The gods of life promote vitality and health through healing the sick and wounded, caring for those in need, and driving away the forces of death and undeath.', 1, 'rules.txt', 21
 FROM classes c WHERE c.slug = 'cleric';
 
 INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Light Domain', 'light-domain', 'Gods of light promote the ideals of rebirth and renewal, truth, vigilance, and beauty, often using the symbol of the sun.', 1, 'handbook.txt', 60
+FROM classes c WHERE c.slug = 'cleric';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Tempest Domain', 'tempest-domain', 'Gods whose portfolios include the Tempest domain govern storms, sea, and sky. They include gods of lightning and thunder, gods of earthquakes, some fire gods, and certain gods of violence.', 1, 'handbook.txt', 62
+FROM classes c WHERE c.slug = 'cleric';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'War Domain', 'war-domain', 'War has many manifestations. It can make heroes of ordinary people. It can be desperate and horrific, with acts of cruelty and cowardice eclipsing instances of excellence and courage.', 1, 'handbook.txt', 63
+FROM classes c WHERE c.slug = 'cleric';
+
+-- Druid Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Circle of the Land', 'circle-of-the-land', 'The Circle of the Land is made up of mystics and sages who safeguard ancient knowledge and rites through a vast oral tradition.', 2, 'handbook.txt', 68
+FROM classes c WHERE c.slug = 'druid';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Circle of the Moon', 'circle-of-the-moon', 'Druids of the Circle of the Moon are fierce guardians of the wilds. Their order gathers under the full moon to share news and trade warnings.', 2, 'handbook.txt', 69
+FROM classes c WHERE c.slug = 'druid';
+
+-- Fighter Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
 SELECT c.id, 'Champion', 'champion', 'The archetypal Champion focuses on the development of raw physical power honed to deadly perfection. Those who model themselves on this archetype combine rigorous training with physical excellence to deal devastating blows.', 3, 'rules.txt', 25
 FROM classes c WHERE c.slug = 'fighter';
 
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Battle Master', 'battle-master', 'Those who emulate the archetypal Battle Master employ martial techniques passed down through generations. To a Battle Master, combat is an academic field.', 3, 'handbook.txt', 73
+FROM classes c WHERE c.slug = 'fighter';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Eldritch Knight', 'eldritch-knight', 'The archetypal Eldritch Knight combines the martial mastery common to all fighters with a careful study of magic.', 3, 'handbook.txt', 74
+FROM classes c WHERE c.slug = 'fighter';
+
+-- Monk Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Way of the Open Hand', 'way-of-the-open-hand', 'Monks of the Way of the Open Hand are the ultimate masters of martial arts combat, whether armed or unarmed.', 3, 'handbook.txt', 79
+FROM classes c WHERE c.slug = 'monk';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Way of Shadow', 'way-of-shadow', 'Monks of the Way of Shadow follow a tradition that values stealth and subterfuge. These monks serve as spies and assassins.', 3, 'handbook.txt', 80
+FROM classes c WHERE c.slug = 'monk';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Way of the Four Elements', 'way-of-the-four-elements', 'You follow a monastic tradition that teaches you to harness the elements. Many monks of this tradition tattoo their bodies with representations of their ki powers.', 3, 'handbook.txt', 80
+FROM classes c WHERE c.slug = 'monk';
+
+-- Paladin Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Oath of Devotion', 'oath-of-devotion', 'The Oath of Devotion binds a paladin to the loftiest ideals of justice, virtue, and order. Sometimes called cavaliers, white knights, or holy warriors.', 3, 'handbook.txt', 85
+FROM classes c WHERE c.slug = 'paladin';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Oath of the Ancients', 'oath-of-the-ancients', 'The Oath of the Ancients is as old as the race of elves and the rituals of the druids. Paladins who swear this oath cast their lot with the side of the light.', 3, 'handbook.txt', 86
+FROM classes c WHERE c.slug = 'paladin';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Oath of Vengeance', 'oath-of-vengeance', 'The Oath of Vengeance is a solemn commitment to punish those who have committed a grievous sin. When evil forces slaughter helpless villagers, when an entire people turns against the will of the gods.', 3, 'handbook.txt', 87
+FROM classes c WHERE c.slug = 'paladin';
+
+-- Ranger Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Hunter', 'hunter', 'Emulating the Hunter archetype means accepting your place as a bulwark between civilization and the terrors of the wilderness.', 3, 'handbook.txt', 93
+FROM classes c WHERE c.slug = 'ranger';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Beast Master', 'beast-master', 'The Beast Master archetype embodies a friendship between the civilized races and the beasts of the world.', 3, 'handbook.txt', 93
+FROM classes c WHERE c.slug = 'ranger';
+
+-- Rogue Subclasses
 INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
 SELECT c.id, 'Thief', 'thief', 'You hone your skills in the larcenous arts. Burglars, bandits, cutpurses, and other criminals typically follow this archetype, but so do rogues who prefer to think of themselves as professional treasure seekers, explorers, delvers, and investigators.', 3, 'rules.txt', 27
 FROM classes c WHERE c.slug = 'rogue';
 
 INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Assassin', 'assassin', 'You focus your training on the grim art of death. Those who adhere to this archetype are diverse: hired killers, spies, bounty hunters, and even specially anointed priests.', 3, 'handbook.txt', 97
+FROM classes c WHERE c.slug = 'rogue';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Arcane Trickster', 'arcane-trickster', 'Some rogues enhance their fine-honed skills of stealth and agility with magic, learning tricks of enchantment and illusion.', 3, 'handbook.txt', 97
+FROM classes c WHERE c.slug = 'rogue';
+
+-- Sorcerer Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Draconic Bloodline', 'draconic-bloodline', 'Your innate magic comes from draconic magic that was mingled with your blood or that of your ancestors.', 1, 'handbook.txt', 102
+FROM classes c WHERE c.slug = 'sorcerer';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'Wild Magic', 'wild-magic', 'Your innate magic comes from the wild forces of chaos that underlie the order of creation.', 1, 'handbook.txt', 103
+FROM classes c WHERE c.slug = 'sorcerer';
+
+-- Warlock Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'The Archfey', 'the-archfey', 'Your patron is a lord or lady of the fey, a creature of legend who holds secrets that were forgotten before the mortal races were born.', 1, 'handbook.txt', 108
+FROM classes c WHERE c.slug = 'warlock';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'The Fiend', 'the-fiend', 'You have made a pact with a fiend from the lower planes of existence, a being whose aims are evil.', 1, 'handbook.txt', 109
+FROM classes c WHERE c.slug = 'warlock';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'The Great Old One', 'the-great-old-one', 'Your patron is a mysterious entity whose nature is utterly foreign to the fabric of reality.', 1, 'handbook.txt', 109
+FROM classes c WHERE c.slug = 'warlock';
+
+-- Wizard Subclasses
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Abjuration', 'school-of-abjuration', 'The School of Abjuration emphasizes magic that blocks, banishes, or protects.', 2, 'handbook.txt', 115
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Conjuration', 'school-of-conjuration', 'As a conjurer, you favor spells that produce objects and creatures out of thin air.', 2, 'handbook.txt', 116
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Divination', 'school-of-divination', 'The counsel of a diviner is sought by royalty and commoners alike, for all seek a clearer understanding of the past, present, and future.', 2, 'handbook.txt', 116
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Enchantment', 'school-of-enchantment', 'As a member of the School of Enchantment, you have honed your ability to magically entrance and beguile other people and monsters.', 2, 'handbook.txt', 117
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
 SELECT c.id, 'School of Evocation', 'school-of-evocation', 'You focus your study on magic that creates powerful elemental effects such as bitter cold, searing flame, rolling thunder, crackling lightning, and burning acid. Some evokers find employment in military forces, serving as artillery to blast enemy armies from afar.', 2, 'rules.txt', 30
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Illusion', 'school-of-illusion', 'You focus your studies on magic that dazzles the senses, befuddles the mind, and tricks even the wisest folk.', 2, 'handbook.txt', 118
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Necromancy', 'school-of-necromancy', 'The School of Necromancy explores the cosmic forces of life, death, and undeath.', 2, 'handbook.txt', 118
+FROM classes c WHERE c.slug = 'wizard';
+
+INSERT INTO subclasses (class_id, name, slug, description, subclass_level, source_document, source_page)
+SELECT c.id, 'School of Transmutation', 'school-of-transmutation', 'You are a student of spells that modify energy and matter. To you, the world is not a fixed thing, but eminently mutable.', 2, 'handbook.txt', 119
 FROM classes c WHERE c.slug = 'wizard';
 
 -- ---------------------------------------------------------------------------
@@ -1074,27 +1235,66 @@ FROM classes c WHERE c.slug = 'cleric';
 -- 8.3 Races and Subraces
 -- ---------------------------------------------------------------------------
 
--- Core Races from Basic Rules
+-- All Playable Races
 INSERT INTO races (name, slug, description, ability_score_increase, age_description, alignment_description, size, size_description, speed, speed_description, languages, language_description, traits, source_document, source_page) VALUES
+('Dragonborn', 'dragonborn', 'Born of dragons, as their name proclaims, the dragonborn walk proudly through a world that greets them with fearful incomprehension. Shaped by draconic gods or the dragons themselves, dragonborn originally hatched from dragon eggs as a unique race, combining the best attributes of dragons and humanoids.', '{"strength": 2, "charisma": 1}', 'Young dragonborn grow quickly. They walk hours after hatching, attain the size and development of a 10-year-old human child by the age of 3, and reach adulthood by 15. They live to be around 80.', 'Dragonborn tend to extremes, making a conscious choice for one side or the other in the cosmic war between good and evil. Most dragonborn are good, but those who side with evil can be terrible villains.', 'Medium', 'Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common', 'Draconic'], 'You can speak, read, and write Common and Draconic.', '{"draconic_ancestry": "You have draconic ancestry. Choose one type of dragon from the Draconic Ancestry table. Your breath weapon and damage resistance are determined by the dragon type.", "breath_weapon": "You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation.", "damage_resistance": "You have resistance to the damage type associated with your draconic ancestry."}', 'handbook.txt', 32),
+
 ('Dwarf', 'dwarf', 'Bold and hardy, dwarves are known as skilled warriors, miners, and workers of stone and metal. Kingdoms rich in ancient grandeur, halls carved into the roots of mountains, the echoing of picks and hammers in deep mines and blazing forges, a commitment to clan and tradition, and a burning hatred of goblins and orcs—these common threads unite all dwarves.', '{"constitution": 2}', 'Dwarves mature at the same rate as humans, but they''re considered young until they reach the age of 50. On average, they live about 350 years.', 'Most dwarves are lawful, believing firmly in the benefits of a well-ordered society. They tend toward good as well, with a strong sense of fair play and a belief that everyone deserves to share in the benefits of a just order.', 'Medium', 'Dwarves stand between 4 and 5 feet tall and average about 150 pounds.', 25, 'Your speed is not reduced by wearing heavy armor.', ARRAY['Common', 'Dwarvish'], 'You can speak, read, and write Common and Dwarvish.', '{"darkvision": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "dwarven_resilience": "You have advantage on saving throws against poison, and you have resistance against poison damage.", "dwarven_combat_training": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.", "stonecunning": "Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check."}', 'rules.txt', 18),
 
 ('Elf', 'elf', 'Elves are a magical people of otherworldly grace, living in the world but not entirely part of it. They live in places of ethereal beauty, in the midst of ancient forests or in silvery spires glittering with faerie light, where soft music drifts through the air and gentle fragrances waft on the breeze.', '{"dexterity": 2}', 'Although elves reach physical maturity at about the same age as humans, the elven understanding of adulthood goes beyond physical growth to encompass worldly experience. An elf typically claims adulthood and an adult name around the age of 100 and can live to be 750 years old.', 'Elves love freedom, variety, and self-expression, so they lean strongly toward the gentler aspects of chaos. They value and protect others'' freedom as well as their own, and they are more often good than not.', 'Medium', 'Elves range from under 5 to over 6 feet tall and have slender builds.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common', 'Elvish'], 'You can speak, read, and write Common and Elvish.', '{"darkvision": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "keen_senses": "You have proficiency in the Perception skill.", "fey_ancestry": "You have advantage on saving throws against being charmed, and magic can''t put you to sleep.", "trance": "Elves don''t need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day."}', 'rules.txt', 15),
 
+('Gnome', 'gnome', 'A constant hum of busy activity pervades the warrens and neighborhoods where gnomes form their close-knit communities. Louder sounds punctuate the hum: a crunch of grinding gears here, a minor explosion there, a yelp of surprise or triumph.', '{"intelligence": 2}', 'Gnomes mature at the same rate humans do, and most are expected to settle down into an adult life by around age 40. They can live 350 to almost 500 years.', 'Gnomes are most often good. Those who tend toward law are sages, engineers, researchers, scholars, investigators, or inventors. Those who tend toward chaos are minstrels, tricksters, wanderers, or fanciful jewelers.', 'Small', 'Gnomes are between 3 and 4 feet tall and average about 40 pounds.', 25, 'Your base walking speed is 25 feet.', ARRAY['Common', 'Gnomish'], 'You can speak, read, and write Common and Gnomish.', '{"darkvision": "Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "gnome_cunning": "You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic."}', 'handbook.txt', 35),
+
+('Half-Elf', 'half-elf', 'Walking in two worlds but truly belonging to neither, half-elves combine what some say are the best qualities of their elf and human parents: human curiosity, inventiveness, and ambition tempered by the refined senses, love of nature, and artistic tastes of the elves.', '{"charisma": 2}', 'Half-elves mature at the same rate humans do and reach adulthood around the age of 20. They live much longer than humans, however, often exceeding 180 years.', 'Half-elves share the chaotic bent of their elven heritage. They value both personal freedom and creative expression, demonstrating neither love of leaders nor desire for followers.', 'Medium', 'Half-elves are about the same size as humans, ranging from 5 to 6 feet tall.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common', 'Elvish'], 'You can speak, read, and write Common, Elvish, and one extra language of your choice.', '{"darkvision": "Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "fey_ancestry": "You have advantage on saving throws against being charmed, and magic can''t put you to sleep.", "skill_versatility": "You gain proficiency in two skills of your choice."}', 'handbook.txt', 38),
+
+('Half-Orc', 'half-orc', 'Whether united under the leadership of a mighty warlock or having fought to a standstill after years of conflict, orc and human tribes sometimes form alliances, joining forces into a larger horde to the terror of civilized lands nearby.', '{"strength": 2, "constitution": 1}', 'Half-orcs mature a little faster than humans, reaching adulthood around age 14. They age noticeably faster and rarely live longer than 75 years.', 'Half-orcs inherit a tendency toward chaos from their orc parents and are not strongly inclined toward good. Half-orcs raised among orcs and willing to live out their lives among them are usually evil.', 'Medium', 'Half-orcs are somewhat larger and bulkier than humans, and they range from 5 to well over 6 feet tall.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common', 'Orc'], 'You can speak, read, and write Common and Orc.', '{"darkvision": "Thanks to your orc blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "menacing": "You gain proficiency in the Intimidation skill.", "relentless_endurance": "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. You can''t use this feature again until you finish a long rest.", "savage_attacks": "When you score a critical hit with a melee weapon attack, you can roll one of the weapon''s damage dice one additional time and add it to the extra damage of the critical hit."}', 'handbook.txt', 40),
+
 ('Halfling', 'halfling', 'The comforts of home are the goals of most halflings'' lives: a place to settle in peace and quiet, far from marauding monsters and clashing armies; a blazing fire and a generous meal; fine drink and fine conversation. Though some halflings live out their days in remote agricultural communities, others form nomadic bands that travel constantly.', '{"dexterity": 2}', 'A halfling reaches adulthood at the age of 20 and generally lives into the middle of his or her second century.', 'Most halflings are lawful good. As a rule, they are good-hearted and kind, hate to see others in pain, and have no tolerance for oppression. They are also very orderly and traditional, leaning heavily on the support of their community and the comfort of their old ways.', 'Small', 'Halflings average about 3 feet tall and weigh about 40 pounds.', 25, 'Your base walking speed is 25 feet.', ARRAY['Common', 'Halfling'], 'You can speak, read, and write Common and Halfling.', '{"lucky": "When you roll a 1 on an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.", "brave": "You have advantage on saving throws against being frightened.", "halfling_nimbleness": "You can move through the space of any creature that is of a size larger than yours."}', 'rules.txt', 16),
 
-('Human', 'human', 'In the reckonings of most worlds, humans are the youngest of the common races, late to arrive on the world scene and short-lived in comparison to dwarves, elves, and dragons. Perhaps it is because of their shorter lives that they strive to achieve as much as they can in the years they are given. Or maybe they feel they have something to prove to the elder races, and that''s why they build their mighty empires on the foundation of conquest and trade.', '{"strength": 1, "dexterity": 1, "constitution": 1, "intelligence": 1, "wisdom": 1, "charisma": 1}', 'Humans reach adulthood in their late teens and live less than a century.', 'Humans tend toward no particular alignment. The best and the worst are found among them.', 'Medium', 'Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common'], 'You can speak, read, and write Common and one extra language of your choice.', '{}', 'rules.txt', 17);
+('Human', 'human', 'In the reckonings of most worlds, humans are the youngest of the common races, late to arrive on the world scene and short-lived in comparison to dwarves, elves, and dragons. Perhaps it is because of their shorter lives that they strive to achieve as much as they can in the years they are given. Or maybe they feel they have something to prove to the elder races, and that''s why they build their mighty empires on the foundation of conquest and trade.', '{"strength": 1, "dexterity": 1, "constitution": 1, "intelligence": 1, "wisdom": 1, "charisma": 1}', 'Humans reach adulthood in their late teens and live less than a century.', 'Humans tend toward no particular alignment. The best and the worst are found among them.', 'Medium', 'Humans vary widely in height and build, from barely 5 feet tall to well over 6 feet tall.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common'], 'You can speak, read, and write Common and one extra language of your choice.', '{}', 'rules.txt', 17),
 
--- Subraces
+('Tiefling', 'tiefling', 'To be greeted with stares and whispers, to suffer violence and insult on the street, to see mistrust and fear in every eye: this is the lot of the tiefling. And to twist the knife, tieflings know that this is because a pact struck generations ago infused the essence of Asmodeus into their bloodline.', '{"intelligence": 1, "charisma": 2}', 'Tieflings mature at the same rate as humans but live a few years longer.', 'Tieflings might not have an innate tendency toward evil, but many of them end up there. Evil or not, an independent nature inclines many tieflings toward a chaotic alignment.', 'Medium', 'Tieflings are about the same size and build as humans.', 30, 'Your base walking speed is 30 feet.', ARRAY['Common', 'Infernal'], 'You can speak, read, and write Common and Infernal.', '{"darkvision": "Thanks to your infernal heritage, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.", "hellish_resistance": "You have resistance to fire damage.", "infernal_legacy": "You know the thaumaturgy cantrip. When you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell once per long rest. When you reach 5th level, you can also cast the darkness spell once per long rest. Charisma is your spellcasting ability for these spells."}', 'handbook.txt', 42);
+
+-- All Subraces
+
+-- Dwarf Subraces
 INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
 SELECT r.id, 'Hill Dwarf', 'hill-dwarf', 'As a hill dwarf, you have keen senses, deep intuition, and remarkable resilience. The gold dwarves of Faerûn in their mighty southern kingdom are hill dwarves, as are the exiled Neidar and the debased Klar of Krynn in the Dragonlance setting.', '{"wisdom": 1}', '{"dwarven_toughness": "Your hit point maximum increases by 1, and it increases by 1 every time you gain a level."}', 'rules.txt', 18
 FROM races r WHERE r.slug = 'dwarf';
 
 INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Mountain Dwarf', 'mountain-dwarf', 'As a mountain dwarf, you''re strong and hardy, accustomed to a difficult life in rugged terrain. You''re probably on the tall side (for a dwarf), and tend toward lighter coloration.', '{"strength": 2}', '{"dwarven_armor_training": "You have proficiency with light and medium armor."}', 'handbook.txt', 20
+FROM races r WHERE r.slug = 'dwarf';
+
+-- Elf Subraces
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
 SELECT r.id, 'High Elf', 'high-elf', 'As a high elf, you have a keen mind and a mastery of at least the basics of magic. In many of the worlds of D&D, there are two kinds of high elves. One type is haughty and reclusive, believing themselves to be superior to non-elves and even other elves. The other type is more common and more friendly, and often encountered among humans and other races.', '{"intelligence": 1}', '{"elf_weapon_training": "You have proficiency with the longsword, shortsword, shortbow, and longbow.", "cantrip": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.", "extra_language": "You can speak, read, and write one extra language of your choice."}', 'rules.txt', 15
 FROM races r WHERE r.slug = 'elf';
 
 INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Wood Elf', 'wood-elf', 'As a wood elf, you have keen senses and intuition, and your fleet feet carry you quickly and stealthily through your native forests. Wood elves tend to be reclusive and distrustful of non-elves.', '{"wisdom": 1}', '{"elf_weapon_training": "You have proficiency with the longsword, shortsword, shortbow, and longbow.", "fleet_of_foot": "Your base walking speed increases to 35 feet.", "mask_of_the_wild": "You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena."}', 'handbook.txt', 24
+FROM races r WHERE r.slug = 'elf';
+
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Dark Elf (Drow)', 'dark-elf-drow', 'Descended from an earlier subrace of dark-skinned elves, the drow were banished from the surface world for following the goddess Lolth down the path to evil and corruption.', '{"charisma": 1}', '{"superior_darkvision": "Your darkvision has a radius of 120 feet.", "sunlight_sensitivity": "You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight.", "drow_magic": "You know the dancing lights cantrip. When you reach 3rd level, you can cast the faerie fire spell once per day. When you reach 5th level, you can also cast the darkness spell once per day. Charisma is your spellcasting ability for these spells.", "drow_weapon_training": "You have proficiency with rapiers, shortswords, and hand crossbows."}', 'handbook.txt', 24
+FROM races r WHERE r.slug = 'elf';
+
+-- Gnome Subraces
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Forest Gnome', 'forest-gnome', 'As a forest gnome, you have a natural knack for illusion and inherent quickness and stealth. Forest gnomes are rare and secretive.', '{"dexterity": 1}', '{"natural_illusionist": "You know the minor illusion cantrip. Intelligence is your spellcasting ability for it.", "speak_with_small_beasts": "Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts."}', 'handbook.txt', 37
+FROM races r WHERE r.slug = 'gnome';
+
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Rock Gnome', 'rock-gnome', 'As a rock gnome, you have a natural inventiveness and hardiness beyond that of other gnomes.', '{"constitution": 1}', '{"artificers_lore": "Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.", "tinker": "You have proficiency with artisan''s tools (tinker''s tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device."}', 'handbook.txt', 37
+FROM races r WHERE r.slug = 'gnome';
+
+-- Halfling Subraces
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
 SELECT r.id, 'Lightfoot Halfling', 'lightfoot-halfling', 'As a lightfoot halfling, you can easily hide from notice, even using other people as cover. You''re inclined to be affable and get along well with others. Lightfoots are more prone to wanderlust than other halflings, and often dwell alongside other races or take up a nomadic life.', '{"charisma": 1}', '{"naturally_stealthy": "You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."}', 'rules.txt', 17
+FROM races r WHERE r.slug = 'halfling';
+
+INSERT INTO subraces (race_id, name, slug, description, ability_score_increase, traits, source_document, source_page)
+SELECT r.id, 'Stout Halfling', 'stout-halfling', 'As a stout halfling, you''re hardier than average and have some resistance to poison. Some say that stouts have dwarven blood.', '{"constitution": 1}', '{"stout_resilience": "You have advantage on saving throws against poison, and you have resistance against poison damage."}', 'handbook.txt', 28
 FROM races r WHERE r.slug = 'halfling';
 
 -- ---------------------------------------------------------------------------
@@ -1115,7 +1315,31 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Sacred Flame', 'sacred-flame', 0, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take 1d8 radiant damage. The target gains no benefit from cover for this saving throw.', 'This spell''s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).', 'rules.txt', 101),
 
-('Ray of Frost', 'ray-of-frost', 0, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 cold damage, and its speed is reduced by 10 feet until the start of your next turn.', 'This spell''s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).', 'rules.txt', 100);
+('Ray of Frost', 'ray-of-frost', 0, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 cold damage, and its speed is reduced by 10 feet until the start of your next turn.', 'This spell''s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).', 'rules.txt', 100),
+
+('Dancing Lights', 'dancing-lights', 0, 'Evocation', '1 action', '120 feet', 'V, S, M', 'a bit of phosphorus or wychwood, or a glowworm', 'Up to 1 minute', TRUE, FALSE, 'You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.', NULL, 'rules.txt', 89),
+
+('Guidance', 'guidance', 0, 'Divination', '1 action', 'Touch', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.', NULL, 'rules.txt', 92),
+
+('Minor Illusion', 'minor-illusion', 0, 'Illusion', '1 action', '30 feet', 'S, M', 'a bit of fleece', '1 minute', FALSE, FALSE, 'You create a sound or an image of an object within range that lasts for the duration. The illusion also ends if you dismiss it as an action or cast this spell again.', NULL, 'rules.txt', 97),
+
+('Poison Spray', 'poison-spray', 0, 'Conjuration', '1 action', '10 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage.', 'This spell''s damage increases by 1d12 when you reach 5th level (2d12), 11th level (3d12), and 17th level (4d12).', 'rules.txt', 99),
+
+('Resistance', 'resistance', 0, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'a miniature cloak', 'Up to 1 minute', TRUE, FALSE, 'You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after making the saving throw. The spell then ends.', NULL, 'rules.txt', 100),
+
+('Shocking Grasp', 'shocking-grasp', 0, 'Evocation', '1 action', 'Touch', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Lightning springs from your hand to deliver a shock to a creature you try to touch. Make a melee spell attack against the target. You have advantage on the attack roll if the target is wearing armor made of metal. On a hit, the target takes 1d8 lightning damage, and it can''t take reactions until the start of its next turn.', 'This spell''s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).', 'rules.txt', 103),
+
+('Spare the Dying', 'spare-the-dying', 0, 'Necromancy', '1 action', 'Touch', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'You touch a living creature that has 0 hit points. The creature becomes stable. This spell has no effect on undead or constructs.', NULL, 'rules.txt', 103),
+
+('Thaumaturgy', 'thaumaturgy', 0, 'Transmutation', '1 action', '30 feet', 'V', NULL, 'Up to 1 minute', FALSE, FALSE, 'You manifest a minor wonder, a sign of supernatural power, within range. You create one of the following magical effects: Your voice booms up to three times as loud as normal for 1 minute. You cause flames to flicker, brighten, dim, or change color for 1 minute. You cause harmless tremors in the ground for 1 minute. You create an instantaneous sound.', NULL, 'rules.txt', 104),
+
+('Chill Touch', 'chill-touch', 0, 'Necromancy', '1 action', '120 feet', 'V, S', NULL, '1 round', FALSE, FALSE, 'You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage, and it can''t regain hit points until the start of your next turn.', 'This spell''s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).', 'rules.txt', 88),
+
+('Eldritch Blast', 'eldritch-blast', 0, 'Evocation', '1 action', '120 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage.', 'The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones.', 'rules.txt', 90),
+
+('True Strike', 'true-strike', 0, 'Divination', '1 action', '30 feet', 'S', NULL, 'Up to 1 round', TRUE, FALSE, 'You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target''s defenses. On your next turn, you gain advantage on your first attack roll against the target, provided that this spell hasn''t ended.', NULL, 'rules.txt', 104),
+
+('Vicious Mockery', 'vicious-mockery', 0, 'Enchantment', '1 action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You unleash a string of insults laced with subtle enchantments at a creature you can see within range. If the target can hear you, it must succeed on a Wisdom saving throw or take 1d4 psychic damage and have disadvantage on the next attack roll it makes before the end of its next turn.', 'This spell''s damage increases by 1d4 when you reach 5th level (2d4), 11th level (3d4), and 17th level (4d4).', 'rules.txt', 105);
 
 -- 1st Level Spells
 INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
@@ -1133,7 +1357,45 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Bless', 'bless', 1, 'Enchantment', '1 action', '30 feet', 'V, S, M', 'a sprinkling of holy water', 'Up to 1 minute', TRUE, FALSE, 'You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a d4 and add the number rolled to the attack roll or saving throw.', 'When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.', 'rules.txt', 87),
 
-('Burning Hands', 'burning-hands', 1, 'Evocation', '1 action', 'Self (15-foot cone)', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot cone must make a Dexterity saving throw. A creature takes 3d6 fire damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.', 'rules.txt', 88);
+('Burning Hands', 'burning-hands', 1, 'Evocation', '1 action', 'Self (15-foot cone)', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot cone must make a Dexterity saving throw. A creature takes 3d6 fire damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.', 'rules.txt', 88),
+
+('Charm Person', 'charm-person', 1, 'Enchantment', '1 action', '30 feet', 'V, S', NULL, '1 hour', FALSE, FALSE, 'You attempt to charm a humanoid you can see within range. It must make a Wisdom saving throw, and does so with advantage if you or your companions are fighting it. If it fails the saving throw, it is charmed by you until the spell ends or until you or your companions do anything harmful to it.', 'When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.', 'rules.txt', 88),
+
+('Command', 'command', 1, 'Enchantment', '1 action', '60 feet', 'V', NULL, '1 round', FALSE, FALSE, 'You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. The spell has no effect if the target is undead, if it doesn''t understand your language, or if your command is directly harmful to it.', 'When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional creature for each slot level above 1st.', 'rules.txt', 88),
+
+('Comprehend Languages', 'comprehend-languages', 1, 'Divination', '1 action', 'Self', 'V, S, M', 'a pinch of soot and salt', '1 hour', FALSE, TRUE, 'For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written.', NULL, 'rules.txt', 88),
+
+('Disguise Self', 'disguise-self', 1, 'Illusion', '1 action', 'Self', 'V, S', NULL, '1 hour', FALSE, FALSE, 'You make yourself—including your clothing, armor, weapons, and other belongings on your person—look different until the spell ends or until you use your action to dismiss it. You can seem 1 foot shorter or taller and can appear thin, fat, or in between.', NULL, 'rules.txt', 90),
+
+('Guiding Bolt', 'guiding-bolt', 1, 'Evocation', '1 action', '120 feet', 'V, S', NULL, '1 round', FALSE, FALSE, 'A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes 4d6 radiant damage, and the next attack roll made against this target before the end of your next turn has advantage.', 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.', 'rules.txt', 92),
+
+('Healing Word', 'healing-word', 1, 'Evocation', '1 bonus action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on undead or constructs.', 'When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d4 for each slot level above 1st.', 'rules.txt', 93),
+
+('Identify', 'identify', 1, 'Divination', '1 minute', 'Touch', 'V, S, M', 'a pearl worth at least 100 gp and an owl feather', 'Instantaneous', FALSE, TRUE, 'You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any.', NULL, 'rules.txt', 93),
+
+('Inflict Wounds', 'inflict-wounds', 1, 'Necromancy', '1 action', 'Touch', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Make a melee spell attack against a creature you can reach. On a hit, the target takes 3d10 necrotic damage.', 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.', 'rules.txt', 94),
+
+('Mage Armor', 'mage-armor', 1, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'a piece of cured leather', '8 hours', FALSE, FALSE, 'You touch a willing creature who isn''t wearing armor, and a protective magical force surrounds it until the spell ends. The target''s base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or if you dismiss the spell as an action.', NULL, 'rules.txt', 95),
+
+('Sanctuary', 'sanctuary', 1, 'Abjuration', '1 bonus action', '30 feet', 'V, S, M', 'a small silver mirror', '1 minute', FALSE, FALSE, 'You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell.', NULL, 'rules.txt', 101),
+
+('Shield of Faith', 'shield-of-faith', 1, 'Abjuration', '1 bonus action', '60 feet', 'V, S, M', 'a small parchment with a bit of holy text written on it', 'Up to 10 minutes', TRUE, FALSE, 'A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.', NULL, 'rules.txt', 102),
+
+('Silent Image', 'silent-image', 1, 'Illusion', '1 action', '60 feet', 'V, S, M', 'a bit of fleece', 'Up to 10 minutes', TRUE, FALSE, 'You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn''t accompanied by sound, smell, or other sensory effects.', NULL, 'rules.txt', 103),
+
+('Witch Bolt', 'witch-bolt', 1, 'Evocation', '1 action', '30 feet', 'V, S, M', 'a twig from a tree that has been struck by lightning', 'Up to 1 minute', TRUE, FALSE, 'A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of lightning between you and the target. Make a ranged spell attack against that creature. On a hit, the target takes 1d12 lightning damage, and on each of your turns for the duration, you can use your action to deal 1d12 lightning damage to the target automatically.', 'When you cast this spell using a spell slot of 2nd level or higher, the initial damage increases by 1d12 for each slot level above 1st.', 'rules.txt', 106),
+
+('Faerie Fire', 'faerie-fire', 1, 'Evocation', '1 action', '60 feet', 'V', NULL, 'Up to 1 minute', TRUE, FALSE, 'Each object in a 20-foot cube within range is outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed dim light in a 10-foot radius. Any attack roll against an affected creature or object has advantage if the attacker can see it, and the affected creature or object can''t benefit from being invisible.', NULL, 'rules.txt', 91),
+
+('Fog Cloud', 'fog-cloud', 1, 'Conjuration', '1 action', '120 feet', 'V, S', NULL, 'Up to 1 hour', TRUE, FALSE, 'You create a 20-foot-radius sphere of fog centered on a point within range. The sphere spreads around corners, and its area is heavily obscured. It lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.', 'When you cast this spell using a spell slot of 2nd level or higher, the radius of the fog increases by 20 feet for each slot level above 1st.', 'rules.txt', 91),
+
+('Entangle', 'entangle', 1, 'Conjuration', '1 action', '90 feet', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into difficult terrain. A creature in the area when you cast the spell must succeed on a Strength saving throw or be restrained by the entangling plants until the spell ends.', NULL, 'rules.txt', 90),
+
+('Hunter''s Mark', 'hunters-mark', 1, 'Divination', '1 bonus action', '90 feet', 'V', NULL, 'Up to 1 hour', TRUE, FALSE, 'You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack, and you have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it.', 'When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your concentration on the spell for up to 24 hours.', 'rules.txt', 93),
+
+('Hex', 'hex', 1, 'Enchantment', '1 bonus action', '90 feet', 'V, S, M', 'the petrified eye of a newt', 'Up to 1 hour', TRUE, FALSE, 'You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 necrotic damage to the target whenever you hit it with an attack. Also, choose one ability when you cast the spell. The target has disadvantage on ability checks made with the chosen ability.', 'When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your concentration on the spell for up to 24 hours.', 'rules.txt', 93),
+
+('Color Spray', 'color-spray', 1, 'Illusion', '1 action', 'Self (15-foot cone)', 'V, S, M', 'a pinch of powder or sand that is colored red, yellow, and blue', '1 round', FALSE, FALSE, 'A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is how many hit points of creatures this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current hit points.', 'When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d10 for each slot level above 1st.', 'rules.txt', 88);
 
 -- 2nd Level Spells
 INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
@@ -1145,7 +1407,39 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Scorching Ray', 'scorching-ray', 2, 'Evocation', '1 action', '120 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'You create three rays of fire and hurl them at targets within range. You can hurl them at one target or several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 fire damage.', 'When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd.', 'rules.txt', 102),
 
-('Spiritual Weapon', 'spiritual-weapon', 2, 'Evocation', '1 bonus action', '60 feet', 'V, S', NULL, '1 minute', FALSE, FALSE, 'You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting ability modifier. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above 2nd.', 'rules.txt', 103);
+('Spiritual Weapon', 'spiritual-weapon', 2, 'Evocation', '1 bonus action', '60 feet', 'V, S', NULL, '1 minute', FALSE, FALSE, 'You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting ability modifier. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above 2nd.', 'rules.txt', 103),
+
+('Aid', 'aid', 2, 'Abjuration', '1 action', '30 feet', 'V, S, M', 'a tiny strip of white cloth', '8 hours', FALSE, FALSE, 'Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target''s hit point maximum and current hit points increase by 5 for the duration.', 'When you cast this spell using a spell slot of 3rd level or higher, a target''s hit points increase by an additional 5 for each slot level above 2nd.', 'rules.txt', 86),
+
+('Darkness', 'darkness', 2, 'Evocation', '1 action', '60 feet', 'V, M', 'bat fur and a drop of pitch or piece of coal', 'Up to 10 minutes', TRUE, FALSE, 'Magical darkness spreads from a point you choose within range to fill a 15-foot-radius sphere for the duration. The darkness spreads around corners. A creature with darkvision can''t see through this darkness, and nonmagical light can''t illuminate it.', NULL, 'rules.txt', 89),
+
+('Flaming Sphere', 'flaming-sphere', 2, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a bit of tallow, a pinch of brimstone, and a dusting of powite iron', 'Up to 1 minute', TRUE, FALSE, 'A 5-foot-diameter sphere of fire appears in an unoccupied space of your choice within range and lasts for the duration. Any creature that ends its turn within 5 feet of the sphere must make a Dexterity saving throw. The creature takes 2d6 fire damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd.', 'rules.txt', 91),
+
+('Knock', 'knock', 2, 'Transmutation', '1 action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'Choose an object that you can see within range. The object can be a door, a box, a chest, a set of manacles, a padlock, or another object that contains a mundane or magical means that prevents access. A target that is held shut by a mundane lock or that is stuck or barred becomes unlocked, unstuck, or unbarred.', NULL, 'rules.txt', 94),
+
+('Lesser Restoration', 'lesser-restoration', 2, 'Abjuration', '1 action', 'Touch', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'You touch a creature and can end either one disease or one condition afflicting it. The condition can be blinded, deafened, paralyzed, or poisoned.', NULL, 'rules.txt', 95),
+
+('Levitate', 'levitate', 2, 'Transmutation', '1 action', '60 feet', 'V, S, M', 'either a small leather loop or a piece of golden wire bent into a cup shape with a long shank on one end', 'Up to 10 minutes', TRUE, FALSE, 'One creature or loose object of your choice that you can see within range rises vertically, up to 20 feet, and remains suspended there for the duration. The spell can levitate a target that weighs up to 500 pounds.', NULL, 'rules.txt', 95),
+
+('Magic Weapon', 'magic-weapon', 2, 'Transmutation', '1 bonus action', 'Touch', 'V, S', NULL, 'Up to 1 hour', TRUE, FALSE, 'You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls.', 'When you cast this spell using a spell slot of 4th level or higher, the bonus increases to +2. When you use a spell slot of 6th level or higher, the bonus increases to +3.', 'rules.txt', 96),
+
+('Prayer of Healing', 'prayer-of-healing', 2, 'Evocation', '10 minutes', '30 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'Up to six creatures of your choice that you can see within range each regain hit points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.', 'When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d8 for each slot level above 2nd.', 'rules.txt', 99),
+
+('Shatter', 'shatter', 2, 'Evocation', '1 action', '60 feet', 'V, S, M', 'a chip of mica', 'Instantaneous', FALSE, FALSE, 'A sudden loud ringing noise, painfully intense, erupts from a point of your choice within range. Each creature in a 10-foot-radius sphere centered on that point must make a Constitution saving throw. A creature takes 3d8 thunder damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.', 'rules.txt', 102),
+
+('Spider Climb', 'spider-climb', 2, 'Transmutation', '1 action', 'Touch', 'V, S, M', 'a drop of bitumen and a spider', 'Up to 1 hour', TRUE, FALSE, 'Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. The target also gains a climbing speed equal to its walking speed.', NULL, 'rules.txt', 103),
+
+('Suggestion', 'suggestion', 2, 'Enchantment', '1 action', '30 feet', 'V, M', 'a snake''s tongue and either a bit of honeycomb or a drop of sweet oil', 'Up to 8 hours', TRUE, FALSE, 'You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you. The suggestion must be worded in such a manner as to make the course of action sound reasonable.', NULL, 'rules.txt', 103),
+
+('Web', 'web', 2, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a bit of spiderweb', 'Up to 1 hour', TRUE, FALSE, 'You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs fill a 20-foot cube from that point for the duration. The webs are difficult terrain and lightly obscure their area.', NULL, 'rules.txt', 105),
+
+('Blur', 'blur', 2, 'Illusion', '1 action', 'Self', 'V', NULL, 'Up to 1 minute', TRUE, FALSE, 'Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you. An attacker is immune to this effect if it doesn''t rely on sight, as with blindsight, or can see through illusions, as with truesight.', NULL, 'rules.txt', 87),
+
+('Mirror Image', 'mirror-image', 2, 'Illusion', '1 action', 'Self', 'V, S', NULL, '1 minute', FALSE, FALSE, 'Three illusory duplicates of yourself appear in your space. Until the spell ends, the duplicates move with you and mimic your actions, shifting position so it''s impossible to track which image is real.', NULL, 'rules.txt', 97),
+
+('Moonbeam', 'moonbeam', 2, 'Evocation', '1 action', '120 feet', 'V, S, M', 'several seeds of any moonseed plant and a piece of opalescent feldspar', 'Up to 1 minute', TRUE, FALSE, 'A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high cylinder centered on a point within range. Until the spell ends, dim light fills the cylinder. When a creature enters the spell''s area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a Constitution saving throw. It takes 2d10 radiant damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd.', 'rules.txt', 97),
+
+('Heat Metal', 'heat-metal', 2, 'Transmutation', '1 action', '60 feet', 'V, S, M', 'a piece of iron and a flame', 'Up to 1 minute', TRUE, FALSE, 'Choose a manufactured metal object, such as a metal weapon or a suit of heavy or medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 fire damage when you cast the spell. Until the spell ends, you can use a bonus action on each of your subsequent turns to cause this damage again.', 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.', 'rules.txt', 93);
 
 -- 3rd Level Spells
 INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
@@ -1159,7 +1453,129 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Fly', 'fly', 3, 'Transmutation', '1 action', 'Touch', 'V, S, M', 'a wing feather from any bird', 'Up to 10 minutes', TRUE, FALSE, 'You touch a willing creature. The target gains a flying speed of 60 feet for the duration. When the spell ends, the target falls if it is still aloft, unless it can stop the fall.', 'When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd.', 'rules.txt', 92),
 
-('Haste', 'haste', 3, 'Transmutation', '1 action', '30 feet', 'V, S, M', 'a shaving of licorice root', 'Up to 1 minute', TRUE, FALSE, 'Choose a willing creature that you can see within range. Until the spell ends, the target''s speed is doubled, it gains a +2 bonus to AC, it has advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use an Object action. When the spell ends, the target can''t move or take actions until after its next turn, as a wave of lethargy sweeps over it.', NULL, 'rules.txt', 92);
+('Haste', 'haste', 3, 'Transmutation', '1 action', '30 feet', 'V, S, M', 'a shaving of licorice root', 'Up to 1 minute', TRUE, FALSE, 'Choose a willing creature that you can see within range. Until the spell ends, the target''s speed is doubled, it gains a +2 bonus to AC, it has advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use an Object action. When the spell ends, the target can''t move or take actions until after its next turn, as a wave of lethargy sweeps over it.', NULL, 'rules.txt', 92),
+
+('Slow', 'slow', 3, 'Transmutation', '1 action', '120 feet', 'V, S, M', 'a drop of molasses', 'Up to 1 minute', TRUE, FALSE, 'You alter time around up to six creatures of your choice in a 40-foot cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration. An affected target''s speed is halved, it takes a −2 penalty to AC and Dexterity saving throws, and it can''t use reactions.', NULL, 'rules.txt', 103),
+
+('Fear', 'fear', 3, 'Illusion', '1 action', 'Self (30-foot cone)', 'V, S, M', 'a white feather or the heart of a hen', 'Up to 1 minute', TRUE, FALSE, 'You project a phantasmal image of a creature''s worst fears. Each creature in a 30-foot cone must succeed on a Wisdom saving throw or drop whatever it is holding and become frightened for the duration.', NULL, 'rules.txt', 91),
+
+('Hypnotic Pattern', 'hypnotic-pattern', 3, 'Illusion', '1 action', '120 feet', 'S, M', 'a glowing stick of incense or a crystal vial filled with phosphorescent material', 'Up to 1 minute', TRUE, FALSE, 'You create a twisting pattern of colors that weaves through the air inside a 30-foot cube within range. The pattern appears for a moment and vanishes. Each creature in the area who sees the pattern must make a Wisdom saving throw. On a failed save, the creature becomes charmed for the duration.', NULL, 'rules.txt', 93),
+
+('Major Image', 'major-image', 3, 'Illusion', '1 action', '120 feet', 'V, S, M', 'a bit of fleece', 'Up to 10 minutes', TRUE, FALSE, 'You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot cube. The image appears at a spot that you can see within range and lasts for the duration. It seems completely real, including sounds, smells, and temperature appropriate to the thing depicted.', 'When you cast this spell using a spell slot of 6th level or higher, the spell lasts until dispelled, without requiring your concentration.', 'rules.txt', 96),
+
+('Protection from Energy', 'protection-from-energy', 3, 'Abjuration', '1 action', 'Touch', 'V, S', NULL, 'Up to 1 hour', TRUE, FALSE, 'For the duration, the willing creature you touch has resistance to one damage type of your choice: acid, cold, fire, lightning, or thunder.', NULL, 'rules.txt', 100),
+
+('Revivify', 'revivify', 3, 'Necromancy', '1 action', 'Touch', 'V, S, M', 'diamonds worth 300 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You touch a creature that has died within the last minute. That creature returns to life with 1 hit point. This spell can''t return to life a creature that has died of old age, nor can it restore any missing body parts.', NULL, 'rules.txt', 101),
+
+('Spirit Guardians', 'spirit-guardians', 3, 'Conjuration', '1 action', 'Self (15-foot radius)', 'V, S, M', 'a holy symbol', 'Up to 10 minutes', TRUE, FALSE, 'You call forth spirits to protect you. They flit around you to a distance of 15 feet for the duration. If you are good or neutral, their spectral form appears angelic or fey. If you are evil, they appear fiendish.', 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d8 for each slot level above 3rd.', 'rules.txt', 103),
+
+('Vampiric Touch', 'vampiric-touch', 3, 'Necromancy', '1 action', 'Self', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'The touch of your shadow-wreathed hand can siphon life force from others to heal your wounds. Make a melee spell attack against a creature within your reach. On a hit, the target takes 3d6 necrotic damage, and you regain hit points equal to half the amount of necrotic damage dealt.', 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.', 'rules.txt', 105),
+
+('Animate Dead', 'animate-dead', 3, 'Necromancy', '1 minute', '10 feet', 'V, S, M', 'a drop of blood, a piece of flesh, and a pinch of bone dust', 'Instantaneous', FALSE, FALSE, 'This spell creates an undead servant. Choose a pile of bones or a corpse of a Medium or Small humanoid within range. Your spell imbues the target with a foul mimicry of life, raising it as an undead creature.', 'When you cast this spell using a spell slot of 4th level or higher, you animate or reassert control over two additional undead creatures for each slot level above 3rd.', 'rules.txt', 86),
+
+('Call Lightning', 'call-lightning', 3, 'Conjuration', '1 action', '120 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'A storm cloud appears in the shape of a cylinder that is 10 feet tall with a 60-foot radius, centered on a point you can see within range directly above you. The spell fails if you can''t see a point in the air where the storm cloud could appear.', 'When you cast this spell using a spell slot of 4th or higher level, the damage increases by 1d10 for each slot level above 3rd.', 'rules.txt', 88),
+
+('Tongues', 'tongues', 3, 'Divination', '1 action', 'Touch', 'V, M', 'a small clay model of a ziggurat', '1 hour', FALSE, FALSE, 'This spell grants the creature you touch the ability to understand any spoken language it hears. Moreover, when the target speaks, any creature that knows at least one language and can hear the target understands what it says.', NULL, 'rules.txt', 104),
+
+('Remove Curse', 'remove-curse', 3, 'Abjuration', '1 action', 'Touch', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner''s attunement to the object so it can be removed or discarded.', NULL, 'rules.txt', 100);
+
+-- 4th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Banishment', 'banishment', 4, 'Abjuration', '1 action', '60 feet', 'V, S, M', 'an item distasteful to the target', 'Up to 1 minute', TRUE, FALSE, 'You attempt to send one creature that you can see within range to another plane of existence. The target must succeed on a Charisma saving throw or be banished.', 'When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th.', 'rules.txt', 87),
+
+('Dimension Door', 'dimension-door', 4, 'Conjuration', '1 action', '500 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction.', NULL, 'rules.txt', 90),
+
+('Greater Invisibility', 'greater-invisibility', 4, 'Illusion', '1 action', 'Touch', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'You or a creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target''s person.', NULL, 'rules.txt', 92),
+
+('Polymorph', 'polymorph', 4, 'Transmutation', '1 action', '60 feet', 'V, S, M', 'a caterpillar cocoon', 'Up to 1 hour', TRUE, FALSE, 'This spell transforms a creature that you can see within range into a new form. An unwilling creature must make a Wisdom saving throw to avoid the effect. The spell has no effect on a shapechanger or a creature with 0 hit points.', NULL, 'rules.txt', 99),
+
+('Ice Storm', 'ice-storm', 4, 'Evocation', '1 action', '300 feet', 'V, S, M', 'a pinch of dust and a few drops of water', 'Instantaneous', FALSE, FALSE, 'A hail of rock-hard ice pounds to the ground in a 20-foot-radius, 40-foot-high cylinder centered on a point within range. Each creature in the cylinder must make a Dexterity saving throw. A creature takes 2d8 bludgeoning damage and 4d6 cold damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 5th level or higher, the bludgeoning damage increases by 1d8 for each slot level above 4th.', 'rules.txt', 93),
+
+('Wall of Fire', 'wall-of-fire', 4, 'Evocation', '1 action', '120 feet', 'V, S, M', 'a small piece of phosphorus', 'Up to 1 minute', TRUE, FALSE, 'You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick.', NULL, 'rules.txt', 105),
+
+('Death Ward', 'death-ward', 4, 'Abjuration', '1 action', 'Touch', 'V, S', NULL, '8 hours', FALSE, FALSE, 'You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 hit points as a result of taking damage, the target instead drops to 1 hit point, and the spell ends.', NULL, 'rules.txt', 89),
+
+('Freedom of Movement', 'freedom-of-movement', 4, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'a leather strap, bound around the arm or a similar appendage', '1 hour', FALSE, FALSE, 'You touch a willing creature. For the duration, the target''s movement is unaffected by difficult terrain, and spells and other magical effects can neither reduce the target''s speed nor cause the target to be paralyzed or restrained.', NULL, 'rules.txt', 91),
+
+('Stoneskin', 'stoneskin', 4, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'diamond dust worth 100 gp, which the spell consumes', 'Up to 1 hour', TRUE, FALSE, 'This spell turns the flesh of a willing creature you touch as hard as stone. Until the spell ends, the target has resistance to nonmagical bludgeoning, piercing, and slashing damage.', NULL, 'rules.txt', 103),
+
+('Blight', 'blight', 4, 'Necromancy', '1 action', '30 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw. The target takes 8d8 necrotic damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d8 for each slot level above 4th.', 'rules.txt', 87),
+
+('Confusion', 'confusion', 4, 'Enchantment', '1 action', '90 feet', 'V, S, M', 'three nut shells', 'Up to 1 minute', TRUE, FALSE, 'This spell assaults and twists creatures'' minds, spawning delusions and provoking uncontrolled action. Each creature in a 10-foot-radius sphere centered on a point you choose within range must succeed on a Wisdom saving throw when you cast this spell or be affected by it.', 'When you cast this spell using a spell slot of 5th level or higher, the radius of the sphere increases by 5 feet for each slot level above 4th.', 'rules.txt', 88);
+
+-- 5th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Cone of Cold', 'cone-of-cold', 5, 'Evocation', '1 action', 'Self (60-foot cone)', 'V, S, M', 'a small crystal or glass cone', 'Instantaneous', FALSE, FALSE, 'A blast of cold air erupts from your hands. Each creature in a 60-foot cone must make a Constitution saving throw. A creature takes 8d8 cold damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.', 'rules.txt', 88),
+
+('Hold Monster', 'hold-monster', 5, 'Enchantment', '1 action', '90 feet', 'V, S, M', 'a small, straight piece of iron', 'Up to 1 minute', TRUE, FALSE, 'Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or be paralyzed for the duration. This spell has no effect on undead.', 'When you cast this spell using a spell slot of 6th level or higher, you can target one additional creature for each slot level above 5th.', 'rules.txt', 93),
+
+('Wall of Stone', 'wall-of-stone', 5, 'Evocation', '1 action', '120 feet', 'V, S, M', 'a small block of granite', 'Up to 10 minutes', TRUE, FALSE, 'A nonmagical wall of solid stone springs into existence at a point you choose within range. The wall is 6 inches thick and is composed of ten 10-foot-by-10-foot panels.', NULL, 'rules.txt', 105),
+
+('Cloudkill', 'cloudkill', 5, 'Conjuration', '1 action', '120 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'You create a 20-foot-radius sphere of poisonous, yellow-green fog centered on a point you choose within range. The fog spreads around corners. It lasts for the duration or until strong wind disperses the fog, ending the spell.', 'When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.', 'rules.txt', 88),
+
+('Dominate Person', 'dominate-person', 5, 'Enchantment', '1 action', '60 feet', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'You attempt to beguile a humanoid that you can see within range. It must succeed on a Wisdom saving throw or be charmed by you for the duration.', 'When you cast this spell using a 6th-level spell slot, the duration is concentration, up to 10 minutes. Using a 7th-level slot, the duration is concentration, up to 1 hour. Using a slot of 8th level or higher, the duration is concentration, up to 8 hours.', 'rules.txt', 90),
+
+('Greater Restoration', 'greater-restoration', 5, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'diamond dust worth at least 100 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You imbue a creature you touch with positive energy to undo a debilitating effect. You can reduce the target''s exhaustion level by one, or end one of the following effects on the target: one effect that charmed or petrified the target, one curse, any reduction to one of the target''s ability scores, or one effect reducing the target''s hit point maximum.', NULL, 'rules.txt', 92),
+
+('Mass Cure Wounds', 'mass-cure-wounds', 5, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A wave of healing energy washes out from a point of your choice within range. Choose up to six creatures in a 30-foot-radius sphere centered on that point. Each target regains hit points equal to 3d8 + your spellcasting ability modifier.', 'When you cast this spell using a spell slot of 6th level or higher, the healing increases by 1d8 for each slot level above 5th.', 'rules.txt', 96),
+
+('Raise Dead', 'raise-dead', 5, 'Necromancy', '1 hour', 'Touch', 'V, S, M', 'a diamond worth at least 500 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You return a dead creature you touch to life, provided that it has been dead no longer than 10 days. If the creature''s soul is both willing and at liberty to rejoin the body, the creature returns to life with 1 hit point.', NULL, 'rules.txt', 100),
+
+('Telekinesis', 'telekinesis', 5, 'Transmutation', '1 action', '60 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'You gain the ability to move or manipulate creatures or objects by thought. When you cast the spell, and as your action each round for the duration, you can exert your will on one creature or object that you can see within range.', NULL, 'rules.txt', 104),
+
+('Flame Strike', 'flame-strike', 5, 'Evocation', '1 action', '60 feet', 'V, S, M', 'pinch of sulfur', 'Instantaneous', FALSE, FALSE, 'A vertical column of divine fire roars down from the heavens in a location you specify. Each creature in a 10-foot-radius, 40-foot-high cylinder centered on a point within range must make a Dexterity saving throw. A creature takes 4d6 fire damage and 4d6 radiant damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 6th level or higher, the fire damage or the radiant damage (your choice) increases by 1d6 for each slot level above 5th.', 'rules.txt', 91);
+
+-- 6th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Chain Lightning', 'chain-lightning', 6, 'Evocation', '1 action', '150 feet', 'V, S, M', 'a bit of fur; a piece of amber, glass, or a crystal rod; and three silver pins', 'Instantaneous', FALSE, FALSE, 'You create a bolt of lightning that arcs toward a target of your choice that you can see within range. Three bolts then leap from that target to as many as three other targets, each of which must be within 30 feet of the first target.', 'When you cast this spell using a spell slot of 7th level or higher, one additional bolt leaps from the first target to another target for each slot level above 6th.', 'rules.txt', 88),
+
+('Disintegrate', 'disintegrate', 6, 'Transmutation', '1 action', '60 feet', 'V, S, M', 'a lodestone and a pinch of dust', 'Instantaneous', FALSE, FALSE, 'A thin green ray springs from your pointing finger to a target that you can see within range. The target can be a creature, an object, or a creation of magical force, such as the wall created by wall of force. A creature targeted by this spell must make a Dexterity saving throw. On a failed save, the target takes 10d6 + 40 force damage.', 'When you cast this spell using a spell slot of 7th level or higher, the damage increases by 3d6 for each slot level above 6th.', 'rules.txt', 90),
+
+('Heal', 'heal', 6, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Choose a creature that you can see within range. A surge of positive energy washes through the creature, causing it to regain 70 hit points. This spell also ends blindness, deafness, and any diseases affecting the target.', 'When you cast this spell using a spell slot of 7th level or higher, the amount of healing increases by 10 for each slot level above 6th.', 'rules.txt', 92),
+
+('True Seeing', 'true-seeing', 6, 'Divination', '1 action', 'Touch', 'V, S, M', 'an ointment for the eyes that costs 25 gp; is made from mushroom powder, saffron, and fat; and is consumed by the spell', '1 hour', FALSE, FALSE, 'This spell gives the willing creature you touch the ability to see things as they actually are. For the duration, the creature has truesight, notices secret doors hidden by magic, and can see into the Ethereal Plane, all out to a range of 120 feet.', NULL, 'rules.txt', 104),
+
+('Sunbeam', 'sunbeam', 6, 'Evocation', '1 action', 'Self (60-foot line)', 'V, S, M', 'a magnifying glass', 'Up to 1 minute', TRUE, FALSE, 'A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot-long line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes 6d8 radiant damage and is blinded until your next turn.', NULL, 'rules.txt', 103),
+
+('Globe of Invulnerability', 'globe-of-invulnerability', 6, 'Abjuration', '1 action', 'Self (10-foot radius)', 'V, S, M', 'a glass or crystal bead that shatters when the spell ends', 'Up to 1 minute', TRUE, FALSE, 'An immobile, faintly shimmering barrier springs into existence in a 10-foot radius around you and remains for the duration. Any spell of 5th level or lower cast from outside the barrier can''t affect creatures or objects within it.', 'When you cast this spell using a spell slot of 7th level or higher, the barrier blocks spells of one level higher for each slot level above 6th.', 'rules.txt', 92);
+
+-- 7th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Delayed Blast Fireball', 'delayed-blast-fireball', 7, 'Evocation', '1 action', '150 feet', 'V, S, M', 'a tiny ball of bat guano and sulfur', 'Up to 1 minute', TRUE, FALSE, 'A beam of yellow light flashes from your pointing finger, then condenses to linger at a chosen point within range as a glowing bead for the duration. When the spell ends, either because your concentration is broken or because you decide to end it, the bead blossoms with a low roar into an explosion of flame that spreads around corners.', 'When you cast this spell using a spell slot of 8th level or higher, the base damage increases by 1d6 for each slot level above 7th.', 'rules.txt', 89),
+
+('Finger of Death', 'finger-of-death', 7, 'Necromancy', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'You send negative energy coursing through a creature that you can see within range, causing it searing pain. The target must make a Constitution saving throw. It takes 7d8 + 30 necrotic damage on a failed save, or half as much damage on a successful one.', NULL, 'rules.txt', 91),
+
+('Fire Storm', 'fire-storm', 7, 'Evocation', '1 action', '150 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A storm made up of sheets of roaring flame appears in a location you choose within range. The area of the storm consists of up to ten 10-foot cubes, which you can arrange as you wish.', NULL, 'rules.txt', 91),
+
+('Plane Shift', 'plane-shift', 7, 'Conjuration', '1 action', 'Touch', 'V, S, M', 'a forked, metal rod worth at least 250 gp, attuned to a particular plane of existence', 'Instantaneous', FALSE, FALSE, 'You and up to eight willing creatures who link hands in a circle are transported to a different plane of existence.', NULL, 'rules.txt', 98),
+
+('Resurrection', 'resurrection', 7, 'Necromancy', '1 hour', 'Touch', 'V, S, M', 'a diamond worth at least 1,000 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You touch a dead creature that has been dead for no more than a century, that didn''t die of old age, and that isn''t undead. If its soul is free and willing, the target returns to life with all its hit points.', NULL, 'rules.txt', 101),
+
+('Teleport', 'teleport', 7, 'Conjuration', '1 action', '10 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'This spell instantly transports you and up to eight willing creatures of your choice that you can see within range, or a single object that you can see within range, to a destination you select.', NULL, 'rules.txt', 104);
+
+-- 8th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Dominate Monster', 'dominate-monster', 8, 'Enchantment', '1 action', '60 feet', 'V, S', NULL, 'Up to 1 hour', TRUE, FALSE, 'You attempt to beguile a creature that you can see within range. It must succeed on a Wisdom saving throw or be charmed by you for the duration.', 'When you cast this spell with a 9th-level spell slot, the duration is concentration, up to 8 hours.', 'rules.txt', 90),
+
+('Earthquake', 'earthquake', 8, 'Evocation', '1 action', '500 feet', 'V, S, M', 'a pinch of dirt, a piece of rock, and a lump of clay', 'Up to 1 minute', TRUE, FALSE, 'You create a seismic disturbance at a point on the ground that you can see within range. For the duration, an intense tremor rips through the ground in a 100-foot-radius circle centered on that point.', NULL, 'rules.txt', 90),
+
+('Power Word Stun', 'power-word-stun', 8, 'Enchantment', '1 action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You speak a word of power that can overwhelm the mind of one creature you can see within range, leaving it dumbfounded. If the target has 150 hit points or fewer, it is stunned. Otherwise, the spell has no effect.', NULL, 'rules.txt', 99),
+
+('Sunburst', 'sunburst', 8, 'Evocation', '1 action', '150 feet', 'V, S, M', 'fire and a piece of sunstone', 'Instantaneous', FALSE, FALSE, 'Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes 12d6 radiant damage and is blinded for 1 minute.', NULL, 'rules.txt', 104);
+
+-- 9th Level Spells
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Meteor Swarm', 'meteor-swarm', 9, 'Evocation', '1 action', '1 mile', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius sphere centered on each point you choose must make a Dexterity saving throw. The sphere spreads around corners. A creature takes 20d6 fire damage and 20d6 bludgeoning damage on a failed save, or half as much damage on a successful one.', NULL, 'rules.txt', 97),
+
+('Power Word Kill', 'power-word-kill', 9, 'Enchantment', '1 action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You utter a word of power that can compel one creature you can see within range to die instantly. If the creature you choose has 100 hit points or fewer, it dies. Otherwise, the spell has no effect.', NULL, 'rules.txt', 99),
+
+('Time Stop', 'time-stop', 9, 'Transmutation', '1 action', 'Self', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal.', NULL, 'rules.txt', 104),
+
+('True Resurrection', 'true-resurrection', 9, 'Necromancy', '1 hour', 'Touch', 'V, S, M', 'a sprinkle of holy water and diamonds worth at least 25,000 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You touch a creature that has been dead for no longer than 200 years and that died for any reason except old age. If the creature''s soul is free and willing, the creature is restored to life with all its hit points.', NULL, 'rules.txt', 104),
+
+('Wish', 'wish', 9, 'Conjuration', '1 action', 'Self', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'Wish is the mightiest spell a mortal creature can cast. By simply speaking aloud, you can alter the very foundations of reality in accord with your desires. The basic use of this spell is to duplicate any other spell of 8th level or lower.', NULL, 'rules.txt', 106),
+
+('Gate', 'gate', 9, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a diamond worth at least 5,000 gp', 'Up to 1 minute', TRUE, FALSE, 'You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter.', NULL, 'rules.txt', 92);
 
 -- Class-Spell Relationships
 INSERT INTO class_spells (class_id, spell_id)
