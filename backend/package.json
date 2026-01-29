@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "ingest:rules": "tsx scripts/ingest-rules.ts"
+    "ingest:rules": "tsx scripts/ingest-rules.ts",
+    "db:migrate": "tsx scripts/run-migrations.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
