@@ -1,14 +1,27 @@
-// Spells Page - T022
-// Display spells list with level, school, casting time
+// Spells Page - T022, T044
+// Display spells list with filtering by level, school, concentration, ritual
 
 'use client';
 
+import { Suspense } from 'react';
 import { usePaginatedContent } from '@/hooks/handbook/useContent';
+import { useFilters, SpellFilterState } from '@/hooks/handbook/useFilters';
 import { SpellCard } from '@/components/handbook/ContentCard';
+import { FilterPanel, SPELL_FILTER_SECTIONS } from '@/components/handbook/FilterPanel';
 import { getSpells } from '@/lib/handbook/api';
 import type { SpellSummary } from '@/lib/handbook/types';
 
-export default function SpellsPage() {
+function SpellsPageContent() {
+  const { filters, setFilter, clearFilters } = useFilters<SpellFilterState>();
+
+  // Build API filter params
+  const apiFilters = {
+    level: filters.level,
+    school: filters.school,
+    concentration: filters.concentration,
+    ritual: filters.ritual,
+  };
+
   const {
     data: spells,
     isLoading,
@@ -19,8 +32,8 @@ export default function SpellsPage() {
     hasNextPage,
     hasPrevPage,
   } = usePaginatedContent<SpellSummary>(
-    'spells',
-    (page, limit) => getSpells({ page, limit }),
+    `spells:${JSON.stringify(apiFilters)}`,
+    (page, limit) => getSpells({ page, limit, ...apiFilters }),
     { initialPage: 1, limit: 20 }
   );
 
@@ -38,8 +51,15 @@ export default function SpellsPage() {
         <h2 className="font-semibold text-gray-900 dark:text-white text-xl">
           Spells
         </h2>
-        {/* Filter controls will be added in Phase 6 (US4) */}
       </div>
+
+      {/* Filter Panel */}
+      <FilterPanel
+        sections={SPELL_FILTER_SECTIONS}
+        values={filters}
+        onChange={(key, value) => setFilter(key as keyof SpellFilterState, value as SpellFilterState[keyof SpellFilterState])}
+        onClear={clearFilters}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -94,8 +114,40 @@ export default function SpellsPage() {
       ) : (
         <div className="text-center py-12 text-gray-500">
           <p>No spells found</p>
+          {Object.keys(filters).length > 0 && (
+            <button
+              onClick={clearFilters}
+              className="mt-2 text-blue-600 hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+export default function SpellsPage() {
+  return (
+    <Suspense fallback={<SpellsPageSkeleton />}>
+      <SpellsPageContent />
+    </Suspense>
+  );
+}
+
+function SpellsPageSkeleton() {
+  return (
+    <div>
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(9)].map((_, i) => (
+          <div
+            key={i}
+            className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+          />
+        ))}
+      </div>
     </div>
   );
 }

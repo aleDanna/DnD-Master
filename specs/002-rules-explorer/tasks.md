@@ -181,25 +181,25 @@
 
 ### Backend Implementation
 
-- [ ] T027 [US2] Extend `backend/src/api/handbook/rules.ts`:
+- [X] T027 [US2] Extend `backend/src/api/handbook/rules.ts`:
   - GET /api/handbook/rules/categories/:id/children - get child categories
   - Include parent_id in category response for tree building
 
 ### Frontend Components
 
-- [ ] T028 [US2] Create `frontend/src/components/handbook/RuleHierarchy.tsx`:
+- [X] T028 [US2] Create `frontend/src/components/handbook/RuleHierarchy.tsx`:
   - Collapsible tree view component
   - Expand/collapse icons
   - Lazy loading of children
 
-- [ ] T029 [US2] Create `frontend/src/app/handbook/rules/[slug]/page.tsx`:
+- [X] T029 [US2] Create `frontend/src/app/handbook/rules/[slug]/page.tsx`:
   - Rule detail view
   - Display title, summary, full content
   - Show category breadcrumb path
 
 ### Cross-Reference Support
 
-- [ ] T030 [US2] Add rule cross-reference display in rule detail:
+- [X] T030 [US2] Add rule cross-reference display in rule detail:
   - Query rule_references table
   - Render as clickable links to related rules
 
@@ -215,40 +215,40 @@
 
 ### Backend Implementation
 
-- [ ] T031 [P] [US3] Extend `backend/src/api/handbook/characters.ts`:
+- [X] T031 [P] [US3] Extend `backend/src/api/handbook/characters.ts`:
   - GET /api/handbook/classes/:slug/features - get features by level
   - GET /api/handbook/classes/:slug/subclasses - get subclass options
   - GET /api/handbook/races/:slug/subraces - get subrace options
 
-- [ ] T032 [P] [US3] Add backgrounds endpoint to `backend/src/api/handbook/characters.ts`:
+- [X] T032 [P] [US3] Add backgrounds endpoint to `backend/src/api/handbook/characters.ts`:
   - GET /api/handbook/backgrounds - list backgrounds
   - GET /api/handbook/backgrounds/:slug - get background detail
 
-- [ ] T033 [P] [US3] Add feats endpoint to `backend/src/api/handbook/characters.ts`:
+- [X] T033 [P] [US3] Add feats endpoint to `backend/src/api/handbook/characters.ts`:
   - GET /api/handbook/feats - list feats
   - GET /api/handbook/feats/:slug - get feat detail
 
 ### Frontend Components
 
-- [ ] T034 [P] [US3] Create `frontend/src/components/handbook/ClassDetail.tsx`:
+- [X] T034 [P] [US3] Create `frontend/src/components/handbook/ClassDetail.tsx`:
   - Hit die, proficiencies display
   - Features by level table
   - Subclass list with level available
 
-- [ ] T035 [P] [US3] Create `frontend/src/components/handbook/RaceDetail.tsx`:
+- [X] T035 [P] [US3] Create `frontend/src/components/handbook/RaceDetail.tsx`:
   - Ability score increases
   - Traits list
   - Subrace options
 
 ### Frontend Pages
 
-- [ ] T036 [US3] Create `frontend/src/app/handbook/characters/[type]/[slug]/page.tsx`:
+- [X] T036 [US3] Create `frontend/src/app/handbook/characters/[type]/[slug]/page.tsx`:
   - Dynamic route for class/race/background/feat detail
   - Route to appropriate detail component
 
 ### API Client Functions
 
-- [ ] T037 [US3] Add character functions to `frontend/src/lib/handbook/api.ts`:
+- [X] T037 [US3] Add character functions to `frontend/src/lib/handbook/api.ts`:
   - getClassFeatures(slug), getSubclasses(classSlug)
   - getSubraces(raceSlug)
   - getBackgrounds(), getBackground(slug)
@@ -266,42 +266,42 @@
 
 ### Backend Implementation
 
-- [ ] T038 [US4] Extend spell filtering in `backend/src/services/handbook/filterService.ts`:
+- [X] T038 [US4] Extend spell filtering in `backend/src/services/handbook/filterService.ts`:
   - Add concentration filter (boolean)
   - Add ritual filter (boolean)
   - Add class filter (join with class_spells)
 
 ### Frontend Components
 
-- [ ] T039 [P] [US4] Create `frontend/src/components/handbook/SpellCard.tsx`:
+- [X] T039 [P] [US4] Create `frontend/src/components/handbook/SpellCard.tsx`:
   - Level, school badge
   - Casting time, concentration indicator
   - Ritual indicator
 
-- [ ] T040 [P] [US4] Create `frontend/src/components/handbook/FilterPanel.tsx`:
+- [X] T040 [P] [US4] Create `frontend/src/components/handbook/FilterPanel.tsx`:
   - Generic filter component accepting filter config
   - Multi-select for enums (school, class)
   - Range select for level (0-9)
   - Toggle switches for concentration/ritual
 
-- [ ] T041 [US4] Create `frontend/src/components/handbook/SpellDetail.tsx`:
+- [X] T041 [US4] Create `frontend/src/components/handbook/SpellDetail.tsx`:
   - Full spell display: all attributes
   - Components with material details
   - At higher levels section
 
 ### Frontend Hooks
 
-- [ ] T042 [US4] Create `frontend/src/hooks/handbook/useFilters.ts`:
+- [X] T042 [US4] Create `frontend/src/hooks/handbook/useFilters.ts`:
   - Parse filters from URL query params
   - Update URL on filter change
   - Debounced filter application
 
 ### Frontend Pages
 
-- [ ] T043 [US4] Create `frontend/src/app/handbook/spells/[slug]/page.tsx`:
+- [X] T043 [US4] Create `frontend/src/app/handbook/spells/[slug]/page.tsx`:
   - Spell detail view using SpellDetail component
 
-- [ ] T044 [US4] Update `frontend/src/app/handbook/spells/page.tsx`:
+- [X] T044 [US4] Update `frontend/src/app/handbook/spells/page.tsx`:
   - Integrate FilterPanel
   - Use useFilters hook for state
 
@@ -317,11 +317,11 @@
 
 ### Frontend Components
 
-- [ ] T045 [P] [US5] Create `frontend/src/components/handbook/MonsterCard.tsx`:
+- [X] T045 [P] [US5] Create `frontend/src/components/handbook/MonsterCard.tsx`:
   - CR badge, size, type
   - AC, HP preview
 
-- [ ] T046 [P] [US5] Create `frontend/src/components/handbook/MonsterStatBlock.tsx`:
+- [X] T046 [P] [US5] Create `frontend/src/components/handbook/MonsterStatBlock.tsx`:
   - D&D-style stat block layout
   - Ability score grid
   - Actions, traits, legendary actions sections
@@ -329,10 +329,10 @@
 
 ### Frontend Pages
 
-- [ ] T047 [US5] Create `frontend/src/app/handbook/bestiary/[slug]/page.tsx`:
+- [X] T047 [US5] Create `frontend/src/app/handbook/bestiary/[slug]/page.tsx`:
   - Monster detail view using MonsterStatBlock
 
-- [ ] T048 [US5] Update `frontend/src/app/handbook/bestiary/page.tsx`:
+- [X] T048 [US5] Update `frontend/src/app/handbook/bestiary/page.tsx`:
   - Integrate FilterPanel for CR/size/type
   - MonsterCard for list items
 
@@ -348,11 +348,11 @@
 
 ### Frontend Components
 
-- [ ] T049 [P] [US6] Create `frontend/src/components/handbook/ItemCard.tsx`:
+- [X] T049 [P] [US6] Create `frontend/src/components/handbook/ItemCard.tsx`:
   - Type icon, rarity badge
   - Attunement indicator
 
-- [ ] T050 [US6] Create `frontend/src/components/handbook/ItemDetail.tsx`:
+- [X] T050 [US6] Create `frontend/src/components/handbook/ItemDetail.tsx`:
   - Full item display
   - Damage/AC for weapons/armor
   - Properties list
@@ -360,10 +360,10 @@
 
 ### Frontend Pages
 
-- [ ] T051 [US6] Create `frontend/src/app/handbook/equipment/[slug]/page.tsx`:
+- [X] T051 [US6] Create `frontend/src/app/handbook/equipment/[slug]/page.tsx`:
   - Item detail view using ItemDetail
 
-- [ ] T052 [US6] Update `frontend/src/app/handbook/equipment/page.tsx`:
+- [X] T052 [US6] Update `frontend/src/app/handbook/equipment/page.tsx`:
   - Integrate FilterPanel for type/rarity
   - ItemCard for list items
 
@@ -379,45 +379,45 @@
 
 ### Backend Implementation
 
-- [ ] T053 [US7] Create `backend/src/api/handbook/search.ts`:
+- [X] T053 [US7] Create `backend/src/api/handbook/search.ts`:
   - GET /api/handbook/search - unified search endpoint
   - Query param: q (search query)
   - Query param: type (optional filter)
   - Returns grouped results by content type
 
-- [ ] T054 [US7] Implement query intent classification in `backend/src/services/handbook/searchService.ts`:
+- [X] T054 [US7] Implement query intent classification in `backend/src/services/handbook/searchService.ts`:
   - Pattern matching for type indicators
   - Extract numeric filters (level, CR)
   - Keyword extraction for attributes
 
 ### Frontend Components
 
-- [ ] T055 [US7] Create `frontend/src/components/handbook/SearchBar.tsx`:
+- [X] T055 [US7] Create `frontend/src/components/handbook/SearchBar.tsx`:
   - Search input with debounce
   - Loading indicator
   - Clear button
 
-- [ ] T056 [US7] Create `frontend/src/components/handbook/SearchResults.tsx`:
+- [X] T056 [US7] Create `frontend/src/components/handbook/SearchResults.tsx`:
   - Grouped results by type
   - Type headers with counts
   - ContentCard for each result
 
 ### Frontend Hooks
 
-- [ ] T057 [US7] Create `frontend/src/hooks/handbook/useSearch.ts`:
+- [X] T057 [US7] Create `frontend/src/hooks/handbook/useSearch.ts`:
   - Search state management
   - Debounced API calls
   - Results caching
 
 ### Frontend Integration
 
-- [ ] T058 [US7] Integrate SearchBar into `frontend/src/app/handbook/layout.tsx`:
+- [X] T058 [US7] Integrate SearchBar into `frontend/src/app/handbook/layout.tsx`:
   - Add search bar above tabs
   - Show results overlay when searching
 
 ### API Client Functions
 
-- [ ] T059 [US7] Add search function to `frontend/src/lib/handbook/api.ts`:
+- [X] T059 [US7] Add search function to `frontend/src/lib/handbook/api.ts`:
   - searchHandbook(query, options): Promise<SearchResponse>
 
 **Checkpoint**: User Story 7 complete - smart search operational

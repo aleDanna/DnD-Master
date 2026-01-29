@@ -179,6 +179,21 @@ export async function getClass(slug: string): Promise<Class> {
   return fetchApi<Class>(`/api/handbook/classes/${slug}`);
 }
 
+// T037 - Helper functions for class details
+export async function getClassFeatures(
+  classSlug: string
+): Promise<{ id: string; name: string; level: number; description: string }[]> {
+  const cls = await getClass(classSlug);
+  return cls.features || [];
+}
+
+export async function getSubclasses(
+  classSlug: string
+): Promise<{ id: string; name: string; slug: string; subclassLevel: number; description: string }[]> {
+  const cls = await getClass(classSlug);
+  return cls.subclasses || [];
+}
+
 // ============================================================================
 // Races API
 // ============================================================================
@@ -192,6 +207,14 @@ export async function getRaces(
 
 export async function getRace(slug: string): Promise<Race> {
   return fetchApi<Race>(`/api/handbook/races/${slug}`);
+}
+
+// T037 - Helper function for race details
+export async function getSubraces(
+  raceSlug: string
+): Promise<{ id: string; name: string; slug: string; abilityScoreIncrease: unknown; traits: unknown }[]> {
+  const race = await getRace(raceSlug);
+  return race.subraces || [];
 }
 
 // ============================================================================
