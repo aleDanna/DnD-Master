@@ -1,0 +1,1125 @@
+openapi: 3.0.3
+info:
+  title: Rules & Handbook API
+  description: API for browsing, searching, and referencing D&D 5e content
+  version: 2.0.0
+
+servers:
+  - url: /api/handbook
+    description: Handbook API endpoints
+
+tags:
+  - name: Search
+    description: Unified search across all content
+  - name: Rules
+    description: Game rules browsing
+  - name: Characters
+    description: Classes, races, backgrounds, feats
+  - name: Spells
+    description: Spell browsing and filtering
+  - name: Bestiary
+    description: Monster browsing
+  - name: Equipment
+    description: Items and equipment
+  - name: Reference
+    description: Conditions, skills, abilities
+
+paths:
+  # ============== SEARCH ==============
+
+  /search:
+    get:
+      tags: [Search]
+      summary: Unified smart search
+      description: Search across all content types with AI-powered intent inference
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query (natural language supported)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Results per content type
+      responses:
+        '200':
+          description: Grouped search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+  /context:
+    get:
+      tags: [Search]
+      summary: Get context for AI DM
+      description: Returns relevant content for AI prompt injection
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Natural language query
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+            maximum: 10
+      responses:
+        '200':
+          description: Relevant context items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextResponse'
+
+  # ============== RULES ==============
+
+  /rules:
+    get:
+      tags: [Rules]
+      summary: List rule categories
+      description: Returns top-level rule categories
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleCategory'
+
+  /rules/categories/{slug}:
+    get:
+      tags: [Rules]
+      summary: Get category with children
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category details with children
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleCategoryDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules/{slug}:
+    get:
+      tags: [Rules]
+      summary: Get rule by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rule'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== CHARACTERS ==============
+
+  /classes:
+    get:
+      tags: [Characters]
+      summary: List all classes
+      parameters:
+        - name: primaryAbility
+          in: query
+          schema:
+            type: string
+          description: Filter by primary ability (e.g., "Strength")
+      responses:
+        '200':
+          description: List of classes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  classes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassSummary'
+
+  /classes/{slug}:
+    get:
+      tags: [Characters]
+      summary: Get class details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Class with features and subclasses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /races:
+    get:
+      tags: [Characters]
+      summary: List all races
+      responses:
+        '200':
+          description: List of races
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  races:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RaceSummary'
+
+  /races/{slug}:
+    get:
+      tags: [Characters]
+      summary: Get race details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Race with traits and subraces
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaceDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /backgrounds:
+    get:
+      tags: [Characters]
+      summary: List all backgrounds
+      responses:
+        '200':
+          description: List of backgrounds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backgrounds:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BackgroundSummary'
+
+  /backgrounds/{slug}:
+    get:
+      tags: [Characters]
+      summary: Get background details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Background details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Background'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /feats:
+    get:
+      tags: [Characters]
+      summary: List all feats
+      responses:
+        '200':
+          description: List of feats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeatSummary'
+
+  /feats/{slug}:
+    get:
+      tags: [Characters]
+      summary: Get feat details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feat details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feat'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== SPELLS ==============
+
+  /spells:
+    get:
+      tags: [Spells]
+      summary: List spells with filters
+      parameters:
+        - name: level
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9
+          description: Filter by spell level (0 = cantrip)
+        - name: school
+          in: query
+          schema:
+            type: string
+          description: Filter by school (e.g., "Evocation")
+        - name: classId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by class that can cast
+        - name: concentration
+          in: query
+          schema:
+            type: boolean
+          description: Filter by concentration requirement
+        - name: ritual
+          in: query
+          schema:
+            type: boolean
+          description: Filter by ritual tag
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of spells
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  spells:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpellSummary'
+
+  /spells/{slug}:
+    get:
+      tags: [Spells]
+      summary: Get spell details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Full spell details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spell'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== BESTIARY ==============
+
+  /monsters:
+    get:
+      tags: [Bestiary]
+      summary: List monsters with filters
+      parameters:
+        - name: crMin
+          in: query
+          schema:
+            type: string
+          description: Minimum challenge rating (e.g., "1/4", "5")
+        - name: crMax
+          in: query
+          schema:
+            type: string
+          description: Maximum challenge rating
+        - name: size
+          in: query
+          schema:
+            type: string
+            enum: [Tiny, Small, Medium, Large, Huge, Gargantuan]
+          description: Filter by size
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Filter by monster type (e.g., "Dragon", "Undead")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of monsters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  monsters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MonsterSummary'
+
+  /monsters/{slug}:
+    get:
+      tags: [Bestiary]
+      summary: Get monster stat block
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Full monster stat block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monster'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== EQUIPMENT ==============
+
+  /items:
+    get:
+      tags: [Equipment]
+      summary: List items with filters
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [weapon, armor, adventuring_gear, tool, mount, vehicle, trade_good, magic_item]
+          description: Filter by item type
+        - name: rarity
+          in: query
+          schema:
+            type: string
+            enum: [common, uncommon, rare, very_rare, legendary, artifact]
+          description: Filter by rarity
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemSummary'
+
+  /items/{slug}:
+    get:
+      tags: [Equipment]
+      summary: Get item details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Full item details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== REFERENCE ==============
+
+  /conditions:
+    get:
+      tags: [Reference]
+      summary: List all conditions
+      responses:
+        '200':
+          description: List of conditions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conditions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Condition'
+
+  /conditions/{slug}:
+    get:
+      tags: [Reference]
+      summary: Get condition details
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Condition details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Condition'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /skills:
+    get:
+      tags: [Reference]
+      summary: List all skills
+      responses:
+        '200':
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+
+  /abilities:
+    get:
+      tags: [Reference]
+      summary: List all abilities
+      responses:
+        '200':
+          description: List of abilities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  abilities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ability'
+
+components:
+  schemas:
+    # ===== SEARCH =====
+    SearchResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        total:
+          type: integer
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              count:
+                type: integer
+              results:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+
+    SearchResult:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        score:
+          type: number
+        excerpt:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+
+    ContextResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+
+    Citation:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        excerpt:
+          type: string
+
+    # ===== RULES =====
+    RuleCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        hasChildren:
+          type: boolean
+
+    RuleCategoryDetail:
+      allOf:
+        - $ref: '#/components/schemas/RuleCategory'
+        - type: object
+          properties:
+            children:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleCategory'
+            rules:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleSummary'
+
+    RuleSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+
+    Rule:
+      allOf:
+        - $ref: '#/components/schemas/RuleSummary'
+        - type: object
+          properties:
+            content:
+              type: string
+            categoryPath:
+              type: array
+              items:
+                type: string
+            references:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleSummary'
+
+    # ===== CHARACTERS =====
+    ClassSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        hitDie:
+          type: string
+        primaryAbility:
+          type: string
+
+    ClassDetail:
+      allOf:
+        - $ref: '#/components/schemas/ClassSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            savingThrows:
+              type: array
+              items:
+                type: string
+            proficiencies:
+              type: object
+              properties:
+                armor:
+                  type: array
+                  items:
+                    type: string
+                weapons:
+                  type: array
+                  items:
+                    type: string
+                tools:
+                  type: array
+                  items:
+                    type: string
+            features:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClassFeature'
+            subclasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubclassSummary'
+
+    ClassFeature:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        level:
+          type: integer
+        description:
+          type: string
+
+    SubclassSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        subclassLevel:
+          type: integer
+
+    RaceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        size:
+          type: string
+        speed:
+          type: integer
+
+    RaceDetail:
+      allOf:
+        - $ref: '#/components/schemas/RaceSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            abilityScoreIncrease:
+              type: object
+              additionalProperties:
+                type: integer
+            traits:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+            subraces:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubraceSummary'
+
+    SubraceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    BackgroundSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        skillProficiencies:
+          type: array
+          items:
+            type: string
+
+    Background:
+      allOf:
+        - $ref: '#/components/schemas/BackgroundSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            toolProficiencies:
+              type: array
+              items:
+                type: string
+            featureName:
+              type: string
+            featureDescription:
+              type: string
+
+    FeatSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        prerequisites:
+          type: string
+
+    Feat:
+      allOf:
+        - $ref: '#/components/schemas/FeatSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            benefits:
+              type: array
+              items:
+                type: string
+
+    # ===== SPELLS =====
+    SpellSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        level:
+          type: integer
+        school:
+          type: string
+        castingTime:
+          type: string
+        concentration:
+          type: boolean
+
+    Spell:
+      allOf:
+        - $ref: '#/components/schemas/SpellSummary'
+        - type: object
+          properties:
+            range:
+              type: string
+            components:
+              type: string
+            materials:
+              type: string
+            duration:
+              type: string
+            ritual:
+              type: boolean
+            description:
+              type: string
+            atHigherLevels:
+              type: string
+            classes:
+              type: array
+              items:
+                type: string
+
+    # ===== MONSTERS =====
+    MonsterSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        size:
+          type: string
+        monsterType:
+          type: string
+        challengeRating:
+          type: string
+        armorClass:
+          type: integer
+        hitPoints:
+          type: integer
+
+    Monster:
+      allOf:
+        - $ref: '#/components/schemas/MonsterSummary'
+        - type: object
+          properties:
+            alignment:
+              type: string
+            armorType:
+              type: string
+            hitDice:
+              type: string
+            speed:
+              type: object
+              additionalProperties:
+                type: integer
+            abilityScores:
+              type: object
+              properties:
+                str:
+                  type: integer
+                dex:
+                  type: integer
+                con:
+                  type: integer
+                int:
+                  type: integer
+                wis:
+                  type: integer
+                cha:
+                  type: integer
+            skills:
+              type: object
+              additionalProperties:
+                type: integer
+            senses:
+              type: object
+              additionalProperties:
+                type: string
+            languages:
+              type: array
+              items:
+                type: string
+            traits:
+              type: array
+              items:
+                $ref: '#/components/schemas/MonsterAction'
+            actions:
+              type: array
+              items:
+                $ref: '#/components/schemas/MonsterAction'
+            legendaryActions:
+              type: array
+              items:
+                $ref: '#/components/schemas/MonsterAction'
+            description:
+              type: string
+
+    MonsterAction:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    # ===== ITEMS =====
+    ItemSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        itemType:
+          type: string
+        rarity:
+          type: string
+        attunementRequired:
+          type: boolean
+
+    Item:
+      allOf:
+        - $ref: '#/components/schemas/ItemSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            cost:
+              type: string
+            weight:
+              type: string
+            damage:
+              type: string
+            damageType:
+              type: string
+            weaponProperties:
+              type: array
+              items:
+                type: string
+            armorClass:
+              type: string
+            attunementRequirements:
+              type: string
+
+    # ===== REFERENCE =====
+    Condition:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        ability:
+          type: string
+        description:
+          type: string
+
+    Ability:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        abbreviation:
+          type: string
+        description:
+          type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string

@@ -1,286 +1,293 @@
-# Quickstart: Rules Explorer
+# Quickstart: Rules & Handbook
 
-**Feature**: 002-rules-explorer | **Date**: 2026-01-29
+**Feature**: 002-rules-explorer | **Date**: 2026-01-29 (Updated)
 
 ## Prerequisites
 
-Before implementing the Rules Explorer feature, ensure:
+Before implementing the Rules & Handbook feature, ensure:
 
-1. **PostgreSQL database** is configured with:
+1. **PostgreSQL database** with content populated:
    - PostgreSQL 14+ with pgvector extension enabled
-   - Database created and accessible
+   - Migration `/migrations/001-dnd-content.sql` has been run
+   - Content data is present in tables
 
 2. **Environment variables** set:
    ```bash
    # Backend (.env)
    DATABASE_URL=postgresql://user:password@localhost:5432/dnd_master
    JWT_SECRET=your-jwt-secret-key
-   OPENAI_API_KEY=your-openai-key  # For embeddings
+   OPENAI_API_KEY=your-openai-key  # For query embedding generation
 
    # Frontend (.env.local)
    NEXT_PUBLIC_API_URL=http://localhost:3001
    ```
 
-3. **Dependencies** installed:
-   ```bash
-   cd backend && npm install pdf-parse pg
-   ```
+3. **Existing infrastructure**:
+   - Backend server running (`backend/`)
+   - Frontend dev server running (`frontend/`)
+   - Database connection configured
 
 ---
 
 ## Implementation Order
 
-### Phase 1: Database Setup
+### Phase 1: Backend API (2 days)
 
-1. **Enable pgvector extension** in PostgreSQL:
-   ```sql
-   CREATE EXTENSION IF NOT EXISTS vector;
-   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+#### 1.1 Service Layer
+
+Create `backend/src/services/handbook/`:
+
+1. **`contentService.ts`** - Content retrieval
+   ```typescript
+   // Key methods:
+   getSpells(filters): Promise<SpellSummary[]>
+   getSpellBySlug(slug): Promise<Spell>
+   getMonsters(filters): Promise<MonsterSummary[]>
+   getMonsterBySlug(slug): Promise<Monster>
+   // ... similar for all entity types
    ```
 
-2. **Run initialization script** from `backend/sql/init.sql`:
-   - Create all tables (users, campaigns, source_documents, rule_chapters, etc.)
-   - Create indexes
-   - Create search functions
-
-3. **Create admin user**:
-   ```sql
-   -- Register via API or insert directly
-   INSERT INTO users (email, password_hash, display_name, is_admin)
-   VALUES ('admin@example.com', '<bcrypt_hash>', 'Admin', true);
+2. **`searchService.ts`** - Search orchestration
+   ```typescript
+   // Key methods:
+   search(query, options): Promise<SearchResponse>
+   getContext(query): Promise<Citation[]>  // For AI DM
    ```
 
-### Phase 2: Backend Services
+3. **`filterService.ts`** - Filter logic
+   ```typescript
+   // Key methods:
+   buildSpellFilters(params): WhereClause
+   buildMonsterFilters(params): WhereClause
+   buildItemFilters(params): WhereClause
+   ```
 
-**Implementation order** (each builds on previous):
+#### 1.2 API Routes
 
-1. **`backend/src/services/rules/embeddings.ts`**
-   - OpenAI embedding generation
-   - Batch processing with rate limiting
+Create `backend/src/api/handbook/`:
 
-2. **`backend/src/services/rules/ingestion.ts`**
-   - PDF/TXT text extraction
-   - Chapter/section detection
-   - Database population
-   - Embedding generation trigger
+1. **`index.ts`** - Route registration
+2. **`search.ts`** - `/api/handbook/search`, `/api/handbook/context`
+3. **`spells.ts`** - `/api/handbook/spells`, `/api/handbook/spells/:slug`
+4. **`bestiary.ts`** - `/api/handbook/monsters`, `/api/handbook/monsters/:slug`
+5. **`equipment.ts`** - `/api/handbook/items`, `/api/handbook/items/:slug`
+6. **`characters.ts`** - Classes, races, backgrounds, feats endpoints
+7. **`rules.ts`** - Rule categories and rules endpoints
+8. **`reference.ts`** - Conditions, skills, abilities
 
-3. **`backend/src/services/rules/search.ts`**
-   - Full-text search implementation
-   - Semantic search implementation
-   - Hybrid RRF fusion
+#### 1.3 Test Coverage
 
-4. **Extend `backend/src/services/rules/service.ts`**
-   - Add database-backed methods
-   - Maintain interface compatibility
+Create tests in `backend/tests/`:
 
-### Phase 3: API Routes
-
-Create `backend/src/api/routes/rules.ts`:
-
-1. **Browsing endpoints** (GET):
-   - `/rules/documents`
-   - `/rules/documents/:id/chapters`
-   - `/rules/chapters/:id/sections`
-   - `/rules/sections/:id/entries`
-   - `/rules/entries/:id`
-
-2. **Search endpoint** (GET):
-   - `/rules/search?q=&mode=&limit=&offset=`
-
-3. **Admin endpoints** (POST/DELETE):
-   - `/admin/rules/ingest` (multipart upload)
-   - `/admin/rules/ingest/:id/status`
-   - `/admin/rules/ingest/:id` (DELETE)
-
-### Phase 4: Frontend Components
-
-**Order of implementation**:
-
-1. **Hooks first**:
-   - `useRulesSearch.ts` - Search state and API calls
-
-2. **Display components**:
-   - `RuleCard.tsx` - Single rule display
-   - `RuleDetail.tsx` - Full rule content
-   - `CitationPopover.tsx` - Inline citation
-
-3. **Navigation components**:
-   - `RulesBrowser.tsx` - Hierarchical sidebar
-   - `RulesSearch.tsx` - Search bar with mode toggle
-
-4. **Pages**:
-   - `/rules/page.tsx` - Main explorer page
-   - `/rules/[id]/page.tsx` - Rule detail page
-
-### Phase 5: Integration
-
-1. **Update navigation** to include Rules Explorer link
-2. **Update session view** to render AI DM citations with `CitationPopover`
-3. **Update `DMService`** to use new database-backed `RulesService`
+- `unit/handbook/searchService.test.ts`
+- `unit/handbook/filterService.test.ts`
+- `integration/handbook/spells.test.ts`
+- `integration/handbook/search.test.ts`
 
 ---
 
-## Testing Strategy
+### Phase 2: Frontend Foundation (2 days)
 
-### Unit Tests
+#### 2.1 Types and API Client
 
-```typescript
-// backend/tests/unit/rules/search.test.ts
-describe('RulesSearchService', () => {
-  it('returns full-text matches with relevance scores');
-  it('returns semantic matches ranked by similarity');
-  it('combines results using RRF for hybrid mode');
-  it('filters by document when specified');
-});
+Create `frontend/src/lib/handbook/`:
 
-// backend/tests/unit/rules/ingestion.test.ts
-describe('RulesIngestionService', () => {
-  it('extracts text from PDF files');
-  it('detects chapter boundaries');
-  it('detects section boundaries');
-  it('generates embeddings in batches');
-  it('detects duplicate documents by hash');
-});
-```
-
-### Integration Tests
+1. **`types.ts`** - TypeScript interfaces matching API schemas
+2. **`api.ts`** - API client functions
 
 ```typescript
-// backend/tests/integration/rules/api.test.ts
-describe('Rules API', () => {
-  it('lists all documents');
-  it('returns chapters for a document');
-  it('searches with full-text mode');
-  it('searches with semantic mode');
-  it('requires admin for ingestion');
-});
+// api.ts
+export async function searchHandbook(query: string): Promise<SearchResponse>;
+export async function getSpells(filters?: SpellFilters): Promise<SpellSummary[]>;
+export async function getSpell(slug: string): Promise<Spell>;
+// ... similar for all endpoints
 ```
 
-### Frontend Tests
+#### 2.2 Hooks
 
-```typescript
-// frontend/tests/components/rules/RulesBrowser.test.tsx
-describe('RulesBrowser', () => {
-  it('expands chapters on click');
-  it('displays sections when chapter expanded');
-  it('selects entry and shows in main area');
-});
+Create `frontend/src/hooks/handbook/`:
 
-// frontend/tests/components/rules/RulesSearch.test.tsx
-describe('RulesSearch', () => {
-  it('toggles between search modes');
-  it('displays results with highlights');
-  it('shows loading state during search');
-});
-```
+1. **`useSearch.ts`** - Search state management
+   ```typescript
+   export function useSearch() {
+     const [query, setQuery] = useState('');
+     const [results, setResults] = useState<SearchResponse | null>(null);
+     const [isSearching, setIsSearching] = useState(false);
+     // ...
+   }
+   ```
+
+2. **`useFilters.ts`** - Filter state (synced with URL params)
+   ```typescript
+   export function useFilters<T>(defaults: T) {
+     // Parse from URL, update URL on change
+   }
+   ```
+
+3. **`useContent.ts`** - Content fetching with caching
+   ```typescript
+   export function useContent<T>(fetchFn: () => Promise<T>) {
+     // SWR or React Query pattern
+   }
+   ```
 
 ---
 
-## Key Code Patterns
+### Phase 3: Frontend Pages (3 days)
 
-### Embedding Generation
+#### 3.1 Layout and Navigation
 
-```typescript
-// backend/src/services/rules/embeddings.ts
-import OpenAI from 'openai';
+Create `frontend/src/app/handbook/`:
 
-const openai = new OpenAI();
-const BATCH_SIZE = 100;
+1. **`layout.tsx`** - Handbook layout with tabs
+   ```tsx
+   export default function HandbookLayout({ children }) {
+     return (
+       <div>
+         <SearchBar />
+         <TabNavigation />
+         <main>{children}</main>
+       </div>
+     );
+   }
+   ```
 
-export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  const results: number[][] = [];
+2. **`page.tsx`** - Root redirect to default tab
 
-  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-    const batch = texts.slice(i, i + BATCH_SIZE);
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: batch,
-    });
-    results.push(...response.data.map(d => d.embedding));
+#### 3.2 Category Pages
 
-    // Rate limiting
-    if (i + BATCH_SIZE < texts.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-  }
+Create dynamic routes:
 
-  return results;
-}
 ```
-
-### Hybrid Search Query
-
-```typescript
-// backend/src/services/rules/search.ts
-export async function hybridSearch(query: string, limit = 20) {
-  // Run both searches in parallel
-  const [fulltextResults, semanticResults] = await Promise.all([
-    fulltextSearch(query, 50),
-    semanticSearch(query, 50),
-  ]);
-
-  // Build rank maps
-  const rrfScores = new Map<string, number>();
-  const K = 60;
-
-  fulltextResults.forEach((r, idx) => {
-    const score = 1 / (K + idx + 1);
-    rrfScores.set(r.id, (rrfScores.get(r.id) || 0) + score);
-  });
-
-  semanticResults.forEach((r, idx) => {
-    const score = 1 / (K + idx + 1);
-    rrfScores.set(r.id, (rrfScores.get(r.id) || 0) + score);
-  });
-
-  // Sort by RRF score
-  const sortedIds = [...rrfScores.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([id]) => id);
-
-  return fetchEntriesByIds(sortedIds);
-}
-```
-
-### Semantic Search SQL
-
-```sql
--- Get top N similar entries
-SELECT
-  id, title, content, page_reference,
-  1 - (content_embedding <=> $1::vector) as similarity
-FROM rule_entries
-WHERE content_embedding IS NOT NULL
-ORDER BY content_embedding <=> $1::vector
-LIMIT $2;
+handbook/
+├── page.tsx              # Redirect to /handbook/rules
+├── layout.tsx            # Tabs + search
+├── rules/
+│   ├── page.tsx          # Rule categories list
+│   └── [slug]/
+│       └── page.tsx      # Rule detail
+├── characters/
+│   ├── page.tsx          # Classes, Races, Backgrounds, Feats
+│   └── [type]/[slug]/
+│       └── page.tsx      # Character option detail
+├── spells/
+│   ├── page.tsx          # Spell list with filters
+│   └── [slug]/
+│       └── page.tsx      # Spell detail
+├── bestiary/
+│   ├── page.tsx          # Monster list with filters
+│   └── [slug]/
+│       └── page.tsx      # Monster stat block
+└── equipment/
+    ├── page.tsx          # Item list with filters
+    └── [slug]/
+        └── page.tsx      # Item detail
 ```
 
 ---
 
-## Common Issues & Solutions
+### Phase 4: Components (2 days)
 
-| Issue | Solution |
-|-------|----------|
-| pgvector not found | Run `CREATE EXTENSION vector;` in PostgreSQL |
-| Embedding API rate limit | Increase delay between batches, implement exponential backoff |
-| PDF parsing fails | Check file encoding, try alternative extraction method |
-| Search too slow | Ensure indexes exist, reduce embedding dimension if needed |
-| Admin check fails | Verify `is_admin` column exists and user is flagged |
-| Connection refused | Check DATABASE_URL and ensure PostgreSQL is running |
+#### 4.1 Core Components
+
+Create `frontend/src/components/handbook/`:
+
+1. **`TabNavigation.tsx`** - Horizontal tab bar
+2. **`SearchBar.tsx`** - Search input with debounce
+3. **`FilterPanel.tsx`** - Dynamic filters by category
+4. **`ContentCard.tsx`** - Generic summary card
+5. **`DetailView.tsx`** - Generic detail wrapper
+
+#### 4.2 Entity-Specific Components
+
+1. **`SpellCard.tsx`** - Spell summary card
+2. **`SpellDetail.tsx`** - Full spell display
+3. **`MonsterStatBlock.tsx`** - D&D stat block format
+4. **`MonsterCard.tsx`** - Monster summary card
+5. **`ItemCard.tsx`** - Item summary card
+6. **`ClassDetail.tsx`** - Class with features
+7. **`RaceDetail.tsx`** - Race with traits
+8. **`RuleHierarchy.tsx`** - Collapsible rule tree
 
 ---
 
-## Verification Checklist
+### Phase 5: Integration (1 day)
 
-After implementation, verify:
+#### 5.1 AI DM Citation Integration
 
-- [ ] Documents can be ingested (admin only)
-- [ ] Chapters/sections/entries display in hierarchy
-- [ ] Full-text search returns highlighted results
-- [ ] Semantic search finds conceptually related rules
-- [ ] Hybrid search combines both result sets
-- [ ] Citations appear in AI DM responses
-- [ ] Citation links open rule detail view
-- [ ] Non-admins cannot access ingestion endpoints
-- [ ] Performance meets targets (<500ms full-text, <1s semantic)
+Modify AI DM service to:
+
+1. Call `/api/handbook/context` during prompt construction
+2. Include citations in response format
+3. Render citation links in chat UI
+
+#### 5.2 Citation Popover
+
+Create `frontend/src/components/CitationPopover.tsx`:
+- Fetch content on hover/click
+- Display summary in popover
+- "Open in Handbook" link
+
+---
+
+## Quick Verification Steps
+
+After each phase, verify:
+
+### Phase 1 Verification
+```bash
+# Test search endpoint
+curl "http://localhost:3001/api/handbook/search?q=fireball"
+
+# Test content endpoints
+curl "http://localhost:3001/api/handbook/spells/fireball"
+curl "http://localhost:3001/api/handbook/monsters/goblin"
+```
+
+### Phase 2-4 Verification
+1. Navigate to `/handbook` - tabs visible
+2. Click each tab - content loads
+3. Enter search query - results appear
+4. Click result - detail view opens
+5. Apply filters - list updates
+
+### Phase 5 Verification
+1. Ask AI DM a rules question
+2. Verify citation links in response
+3. Click citation - popover shows content
+
+---
+
+## File Checklist
+
+### Backend Files
+- [ ] `backend/src/services/handbook/contentService.ts`
+- [ ] `backend/src/services/handbook/searchService.ts`
+- [ ] `backend/src/services/handbook/filterService.ts`
+- [ ] `backend/src/api/handbook/index.ts`
+- [ ] `backend/src/api/handbook/search.ts`
+- [ ] `backend/src/api/handbook/spells.ts`
+- [ ] `backend/src/api/handbook/bestiary.ts`
+- [ ] `backend/src/api/handbook/equipment.ts`
+- [ ] `backend/src/api/handbook/characters.ts`
+- [ ] `backend/src/api/handbook/rules.ts`
+- [ ] `backend/src/api/handbook/reference.ts`
+
+### Frontend Files
+- [ ] `frontend/src/lib/handbook/types.ts`
+- [ ] `frontend/src/lib/handbook/api.ts`
+- [ ] `frontend/src/hooks/handbook/useSearch.ts`
+- [ ] `frontend/src/hooks/handbook/useFilters.ts`
+- [ ] `frontend/src/hooks/handbook/useContent.ts`
+- [ ] `frontend/src/app/handbook/layout.tsx`
+- [ ] `frontend/src/app/handbook/page.tsx`
+- [ ] `frontend/src/app/handbook/[category]/page.tsx`
+- [ ] `frontend/src/app/handbook/[category]/[slug]/page.tsx`
+- [ ] `frontend/src/components/handbook/TabNavigation.tsx`
+- [ ] `frontend/src/components/handbook/SearchBar.tsx`
+- [ ] `frontend/src/components/handbook/FilterPanel.tsx`
+- [ ] `frontend/src/components/handbook/ContentCard.tsx`
+- [ ] `frontend/src/components/handbook/SpellCard.tsx`
+- [ ] `frontend/src/components/handbook/MonsterStatBlock.tsx`
+- [ ] `frontend/src/components/handbook/ItemCard.tsx`
+- [ ] `frontend/src/components/CitationPopover.tsx`

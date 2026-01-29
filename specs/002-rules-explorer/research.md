@@ -1,219 +1,250 @@
-# Research: Rules Explorer
+# Research: Rules & Handbook
 
-**Feature**: 002-rules-explorer | **Date**: 2026-01-29
+**Feature**: 002-rules-explorer | **Date**: 2026-01-29 (Updated)
 
 ## Executive Summary
 
-Research completed for implementing the Rules Explorer feature. All technical decisions have been made based on the existing codebase patterns and requirements from the specification.
+Research completed for implementing the Rules & Handbook feature. The database schema already exists (`/migrations/001-dnd-content.sql`) with 14+ content tables and pgvector support. This research focuses on the frontend browsing experience, search implementation, and AI DM integration.
 
 ---
 
 ## Research Topics
 
-### 1. PDF Parsing Library Selection
+### 1. Smart Search Intent Inference
 
-**Question**: Which library should be used for PDF text extraction?
+**Question**: How should the system infer user intent from natural language search queries?
 
-**Decision**: `pdf-parse` (npm package)
-
-**Rationale**:
-- Lightweight and purpose-built for text extraction
-- Good support for structured content extraction
-- Already commonly used in Node.js ecosystem
-- Simpler than `pdfjs-dist` for server-side use
-
-**Alternatives Considered**:
-| Library | Pros | Cons | Rejected Because |
-|---------|------|------|------------------|
-| pdfjs-dist | Mozilla-backed, full-featured | Heavier, browser-focused | Overkill for server-side text extraction |
-| pdf2json | JSON output | Limited text positioning | Less reliable for structured extraction |
-| Apache PDFBox (via Java) | Very powerful | Requires Java runtime | Additional runtime dependency |
-
----
-
-### 2. Vector Embedding Strategy
-
-**Question**: How should vector embeddings be generated and stored?
-
-**Decision**: OpenAI text-embedding-3-small with pgvector extension
+**Decision**: Hybrid approach combining semantic search with query classification
 
 **Rationale**:
-- OpenAI already integrated in the codebase for AI DM
-- text-embedding-3-small offers good quality at lower cost (1536 dimensions)
-- pgvector is native to Supabase PostgreSQL
-- Enables cosine similarity search directly in SQL
-
-**Implementation Details**:
-- Chunk size: 512-1024 tokens per rule entry
-- Embedding dimension: 1536 (OpenAI text-embedding-3-small)
-- Index type: IVFFlat for balance of speed and accuracy
-- Batch processing: Generate embeddings in batches of 100 during ingestion
-
-**Alternatives Considered**:
-| Option | Pros | Cons | Rejected Because |
-|--------|------|------|------------------|
-| Voyage AI | High quality | New API to integrate | Additional vendor dependency |
-| Cohere | Good multilingual | Different API patterns | Not already integrated |
-| Local model (Ollama) | No API costs | Slower, needs GPU | Deployment complexity |
-
----
-
-### 3. Chapter/Section Detection Strategy
-
-**Question**: How should chapter and section boundaries be identified in source documents?
-
-**Decision**: Heading detection via formatting heuristics + keyword patterns
-
-**Rationale**:
-- PDF text includes formatting cues (font size, bold, caps)
-- D&D rulebooks follow consistent heading patterns (Chapter X:, Part X, etc.)
-- Fallback to line-based splitting for plain text files
+- Vector embeddings capture semantic meaning for natural language queries
+- Query classification can route specific patterns to targeted searches
+- Combining both provides best coverage for diverse query types
 
 **Implementation Approach**:
-1. Extract text with position/style metadata where available
-2. Identify headings by: ALL CAPS, font size > body, Chapter/Part/Section keywords
-3. Build hierarchy tree: Document → Chapters → Sections → Entries
-4. Preserve page numbers for citations
+1. **Query Analysis Phase**:
+   - Check for explicit type indicators (e.g., "spell", "monster", "class")
+   - Extract numeric values (spell levels, CR ranges, etc.)
+   - Identify attribute keywords (school, rarity, size, etc.)
 
-**Patterns to Detect**:
-```
-Level 1 (Chapter): "CHAPTER X:", "Part X:", all-caps lines > 20 chars
-Level 2 (Section): "## ", bold text, sentence case with colon
-Level 3 (Subsection): "### ", italic headers, indented headers
+2. **Search Execution Phase**:
+   - If type is identified: search that table with semantic similarity
+   - If no type: search all tables in parallel, rank by relevance
+   - Combine results using Reciprocal Rank Fusion (RRF)
+
+3. **Result Grouping**:
+   - Group results by content type
+   - Order groups by relevance to query intent
+   - Show most relevant group first
+
+**Query Classification Patterns**:
+```typescript
+const typeIndicators = {
+  spells: ['spell', 'cantrip', 'cast', 'magic'],
+  monsters: ['monster', 'creature', 'beast', 'enemy', 'CR', 'challenge rating'],
+  classes: ['class', 'fighter', 'wizard', 'rogue', ...],
+  items: ['weapon', 'armor', 'item', 'equipment', 'magic item'],
+  rules: ['rule', 'how do', 'what happens', 'can I'],
+};
 ```
 
 ---
 
-### 4. Full-Text Search Implementation
+### 2. Vector Embedding Search Strategy
 
-**Question**: How should full-text search be implemented?
+**Question**: How should semantic search queries against pgvector be structured?
 
-**Decision**: PostgreSQL full-text search with tsvector/tsquery
+**Decision**: Cosine similarity with IVFFlat index, separate queries per table
 
 **Rationale**:
-- Native to Supabase PostgreSQL
-- No additional service required
-- Supports relevance ranking
-- Can be combined with semantic search for hybrid results
+- Each table has its own embedding column
+- Cosine similarity matches well with OpenAI embeddings
+- IVFFlat provides good speed/accuracy tradeoff
+- Parallel queries allow independent optimization per content type
 
 **Implementation Details**:
-- Create `search_vector` column (tsvector) on rule_entries table
-- Use `english` text search configuration
-- Index with GIN for fast lookups
-- Weight title matches higher than content matches
+- Use existing `VECTOR(1536)` columns in all content tables
+- Query pattern: `ORDER BY embedding <=> $1 LIMIT 20`
+- Indexes already created: `CREATE INDEX ... USING ivfflat (embedding vector_cosine_ops)`
 
-**SQL Pattern**:
+**Query Pattern**:
 ```sql
-ALTER TABLE rule_entries ADD COLUMN search_vector tsvector
-  GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(content, '')), 'B')
-  ) STORED;
-
-CREATE INDEX rule_entries_search_idx ON rule_entries USING GIN(search_vector);
+-- Semantic search for spells
+SELECT id, name, slug, level, school, description,
+       1 - (embedding <=> $1) as similarity
+FROM spells
+WHERE embedding IS NOT NULL
+ORDER BY embedding <=> $1
+LIMIT 20;
 ```
 
 ---
 
-### 5. Hybrid Search Strategy
+### 3. Full-Text Search Implementation
 
-**Question**: How should full-text and semantic search be combined?
+**Question**: How should full-text search complement semantic search?
 
-**Decision**: Reciprocal Rank Fusion (RRF) for result merging
+**Decision**: PostgreSQL tsvector with GIN indexes (already configured)
 
 **Rationale**:
-- Simple to implement
-- Proven effective for combining different ranking signals
-- No tuning parameters required (uses k=60 constant)
+- Indexes already exist in the schema for all content tables
+- Provides exact keyword matching when semantics fail
+- Can be combined with semantic results via RRF
 
-**Implementation Details**:
-1. Run full-text search, get top 50 results with ranks
-2. Run semantic search, get top 50 results with ranks
-3. Compute RRF score: `score = sum(1 / (k + rank))` for each result
-4. Sort by RRF score, return top N
-
-**Formula**:
+**Existing Indexes** (from schema):
+```sql
+CREATE INDEX idx_spells_description_fts ON spells USING GIN (to_tsvector('english', description));
+CREATE INDEX idx_spells_name_fts ON spells USING GIN (to_tsvector('english', name));
+CREATE INDEX idx_monsters_description_fts ON monsters USING GIN (...);
+-- ... similar for all content tables
 ```
-RRF(d) = Σ 1/(k + r(d)) for each ranking r where d appears
-k = 60 (standard constant)
+
+**Query Pattern**:
+```sql
+-- Full-text search for spells
+SELECT id, name, slug, level, school,
+       ts_rank(to_tsvector('english', name || ' ' || description), query) as rank
+FROM spells, plainto_tsquery('english', $1) query
+WHERE to_tsvector('english', name || ' ' || description) @@ query
+ORDER BY rank DESC
+LIMIT 20;
 ```
 
 ---
 
-### 6. Existing RulesService Integration
+### 4. Hybrid Search Result Merging
 
-**Question**: How should the new database-backed system integrate with existing RulesService?
+**Question**: How should full-text and semantic search results be combined?
 
-**Decision**: Extend existing service with database adapter pattern
-
-**Rationale**:
-- Existing `RulesService` has well-defined interface
-- DMService already consumes RulesService
-- Gradual migration path: file-based → database-backed
-- Maintains backward compatibility
-
-**Migration Path**:
-1. Create `RulesRepository` interface abstracting storage
-2. Implement `FileBasedRulesRepository` (current behavior)
-3. Implement `SupabaseRulesRepository` (new database-backed)
-4. Configure via environment variable: `RULES_STORAGE=supabase|file`
-5. Eventually deprecate file-based storage
-
----
-
-### 7. Admin Authorization
-
-**Question**: How should document ingestion be protected?
-
-**Decision**: Role-based access using Supabase auth claims
+**Decision**: Reciprocal Rank Fusion (RRF) with k=60
 
 **Rationale**:
-- Supabase auth already integrated
-- RLS policies can enforce admin-only access
-- No separate admin system needed
+- Simple, proven effective for combining rankings
+- No tuning parameters needed
+- Works across different content types
 
 **Implementation**:
-- Add `is_admin` boolean to profiles table
-- RLS policy: `source_documents` INSERT/UPDATE/DELETE requires `is_admin = true`
-- API middleware checks admin status before ingestion endpoints
+```typescript
+function fusionScore(ranks: number[]): number {
+  const k = 60;
+  return ranks.reduce((sum, rank) => sum + 1 / (k + rank), 0);
+}
+
+// For each result appearing in any ranking:
+// 1. Collect its rank from each search method
+// 2. Compute RRF score
+// 3. Sort by RRF score descending
+```
 
 ---
 
-### 8. Citation Integration Pattern
+### 5. Tab Navigation State Management
 
-**Question**: How should citations appear in AI DM responses?
+**Question**: How should tab state be managed across navigation?
 
-**Decision**: Structured citation objects with frontend rendering
+**Decision**: URL-based state with Next.js App Router
 
 **Rationale**:
-- Existing `AIResponse` type includes `ruleCitations` array
-- Frontend can render clickable links
-- Consistent with existing DMService patterns
+- Enables shareable links to specific tabs
+- Browser back/forward works naturally
+- Server-side rendering possible for SEO
 
-**Citation Format**:
+**Implementation**:
+- Route structure: `/handbook/[category]` (rules, characters, spells, bestiary, equipment)
+- Default redirect: `/handbook` → `/handbook/rules`
+- Tab state derived from URL segment
+- Filters as query parameters: `/handbook/spells?level=3&school=evocation`
+
+---
+
+### 6. Content Card Summary Attributes
+
+**Question**: Which attributes should be shown on summary cards for each entity type?
+
+**Decision**: Type-specific attribute selection (3-5 key attributes)
+
+**Summary Card Attributes by Type**:
+
+| Entity Type | Attributes | Rationale |
+|-------------|------------|-----------|
+| **Spells** | Level, School, Casting Time, Concentration | Most common filtering/identification criteria |
+| **Monsters** | CR, Size, Type, AC, HP | Essential for encounter building |
+| **Items** | Type, Rarity, Attunement | Key shopping/loot decisions |
+| **Classes** | Hit Die, Primary Ability, Saving Throws | Core class identity |
+| **Races** | Size, Speed, Ability Bonuses | Character creation essentials |
+| **Rules** | Category, Summary (truncated) | Quick identification |
+| **Feats** | Prerequisites | Availability check |
+| **Backgrounds** | Skills, Tools | Proficiency overview |
+
+---
+
+### 7. Filter Implementation Patterns
+
+**Question**: How should category-specific filters be implemented?
+
+**Decision**: Filter state in URL query params, server-side filtering
+
+**Rationale**:
+- URL state enables sharing filtered views
+- Server-side filtering reduces data transfer
+- Database indexes support efficient filtering
+
+**Filter Definitions by Tab**:
+
+| Tab | Filters | Database Column |
+|-----|---------|-----------------|
+| Spells | Level (0-9), School, Class, Concentration, Ritual | level, school, class_spells.class_id, concentration, ritual |
+| Bestiary | CR range, Size, Type | challenge_rating, size, monster_type |
+| Equipment | Type, Rarity | item_type, rarity |
+| Characters | (Classes) Primary Ability | primary_ability |
+
+---
+
+### 8. AI DM Citation Integration
+
+**Question**: How should the handbook integrate with AI DM responses?
+
+**Decision**: Citation API endpoint for AI context retrieval + citation links in responses
+
+**Rationale**:
+- AI DM needs to query content during response generation
+- Citations provide transparency and learning
+- Popover display keeps user in session context
+
+**Integration Points**:
+1. **AI Context API**: `GET /api/handbook/context?query={query}`
+   - Returns relevant content for AI prompt injection
+   - Limited to top 3-5 most relevant items
+   - Includes structured data for citation
+
+2. **Citation Format in Responses**:
 ```typescript
-interface RuleCitation {
-  ruleId: string;
-  title: string;
-  excerpt: string;        // Brief quote (50-100 chars)
-  source: {
-    document: string;     // "Player's Handbook"
-    chapter: string;      // "Chapter 9: Combat"
-    page: number;         // 189
-  };
-  relevance: number;      // 0-1 confidence score
+interface Citation {
+  type: 'rule' | 'spell' | 'monster' | 'item' | 'class' | 'race' | 'feat';
+  id: string;
+  slug: string;
+  name: string;
+  excerpt: string;  // Brief relevant quote
 }
 ```
+
+3. **Frontend Citation Rendering**:
+   - Inline links: `[Fireball](/handbook/spells/fireball)`
+   - Popover on hover/click showing full details
+   - "Open in Handbook" action to navigate
 
 ---
 
 ## Dependencies Identified
 
-| Dependency | Version | Purpose | Installation |
-|------------|---------|---------|--------------|
-| pdf-parse | ^3.0.1 | PDF text extraction | `npm install pdf-parse` |
-| pgvector (SQL) | 0.5+ | Vector similarity search | Enable in Supabase dashboard |
-| OpenAI SDK | (existing) | Embedding generation | Already installed |
+| Dependency | Status | Purpose |
+|------------|--------|---------|
+| PostgreSQL + pgvector | ✅ Exists | Vector similarity search |
+| OpenAI SDK | ✅ Exists | Embedding generation (for search queries) |
+| Next.js 14 | ✅ Exists | Frontend framework |
+| Tailwind CSS | ✅ Exists | Styling |
+
+**No new dependencies required** - all functionality can be built with existing stack.
 
 ---
 
@@ -221,19 +252,20 @@ interface RuleCitation {
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| PDF parsing fails for complex layouts | Medium | Medium | Fallback to raw text extraction, manual correction UI |
-| Embedding API rate limits | Low | Medium | Batch processing with rate limiting, retry logic |
-| pgvector performance at scale | Low | Low | IVFFlat index, query result limits |
-| Heading detection accuracy | Medium | Low | Manual section boundary editing in admin UI |
+| Empty embeddings in DB | Medium | High | Graceful degradation to full-text only; admin notification |
+| Search performance at scale | Low | Medium | Database connection pooling; result caching |
+| Intent inference errors | Medium | Low | Show all result types; let user switch tabs |
+| Complex monster stat blocks | Medium | Low | Responsive design; collapsible sections |
 
 ---
 
 ## Conclusions
 
-All research questions resolved. Ready to proceed to Phase 1 (Design & Contracts) with:
+All research questions resolved. Ready to proceed with:
 
-1. **PDF Parsing**: `pdf-parse` library
-2. **Embeddings**: OpenAI text-embedding-3-small with pgvector storage
-3. **Search**: PostgreSQL full-text search + pgvector semantic search with RRF fusion
-4. **Integration**: Repository pattern extending existing RulesService
-5. **Security**: Supabase RLS with admin role check
+1. **Search**: Hybrid semantic + full-text with RRF fusion
+2. **Intent Inference**: Query classification + parallel search + grouped results
+3. **Navigation**: URL-based tab state with Next.js App Router
+4. **Cards**: Type-specific summary attributes (3-5 per entity)
+5. **Filters**: URL query params, server-side filtering
+6. **AI Integration**: Context API + inline citations with popovers

@@ -1,460 +1,297 @@
-# Data Model: Rules Explorer
+# Data Model: Rules & Handbook
 
-**Feature**: 002-rules-explorer | **Date**: 2026-01-29
+**Feature**: 002-rules-explorer | **Date**: 2026-01-29 (Updated)
 
-## Entity Relationship Diagram
+> **Note**: The complete database schema exists at `/migrations/001-dnd-content.sql`. This document provides an overview and documents the relationships relevant to the handbook feature.
+
+## Entity Relationship Overview
 
 ```
-┌─────────────────────┐
-│   source_documents  │
-├─────────────────────┤
-│ id (uuid) PK        │
-│ name                │
-│ file_type           │
-│ file_hash           │
-│ total_pages         │
-│ ingested_at         │
-│ ingested_by         │───────────────┐
-│ status              │               │
-└─────────┬───────────┘               │
-          │ 1                         │
-          │                           │
-          │ *                         │
-┌─────────┴───────────┐               │
-│   rule_chapters     │               │
-├─────────────────────┤               │
-│ id (uuid) PK        │               │
-│ document_id FK      │               │
-│ title               │               │
-│ order_index         │               │
-│ page_start          │               │
-│ page_end            │               │
-└─────────┬───────────┘               │
-          │ 1                         │
-          │                           │
-          │ *                         │
-┌─────────┴───────────┐               │
-│   rule_sections     │               │
-├─────────────────────┤               │
-│ id (uuid) PK        │               │
-│ chapter_id FK       │               │
-│ title               │               │
-│ order_index         │               │
-│ page_start          │               │
-│ page_end            │               │
-└─────────┬───────────┘               │
-          │ 1                         │
-          │                           │
-          │ *                         │
-┌─────────┴───────────┐               │
-│   rule_entries      │               │
-├─────────────────────┤               │
-│ id (uuid) PK        │               │
-│ section_id FK       │               │
-│ title               │               │
-│ content             │               │
-│ content_embedding   │ (vector 1536) │
-│ search_vector       │ (tsvector)    │
-│ page_reference      │               │
-│ order_index         │               │
-└─────────┬───────────┘               │
-          │ *                         │
-          │                           │
-          │                           │
-┌─────────┴───────────┐               │
-│ rule_entry_categories│              │
-├─────────────────────┤               │
-│ entry_id FK         │               │
-│ category_id FK      │               │
-└─────────┬───────────┘               │
-          │ *                         │
-          │                           │
-          │ 1                         │
-┌─────────┴───────────┐               │
-│   rule_categories   │               │
-├─────────────────────┤               │
-│ id (uuid) PK        │               │
-│ name                │               │
-│ description         │               │
-│ created_by FK       │───────────────┘
-└─────────────────────┘
+                                    ┌─────────────┐
+                                    │  abilities  │ (6 core stats)
+                                    └──────┬──────┘
+                                           │
+                                    ┌──────┴──────┐
+                                    │   skills    │
+                                    └─────────────┘
 
-                    ┌─────────────────────┐
-                    │      profiles       │
-                    │    (existing)       │
-                    └─────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              RULES HIERARCHY                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌───────────────┐     ┌────────────────────┐     ┌────────────┐               │
+│  │   documents   │────>│     chapters       │────>│  sections  │               │
+│  └───────────────┘     └────────────────────┘     └────────────┘               │
+│                                                                                  │
+│  ┌────────────────────┐     ┌────────────┐                                      │
+│  │  rule_categories   │────>│   rules    │                                      │
+│  │  (self-ref parent) │     └─────┬──────┘                                      │
+│  └────────────────────┘           │                                              │
+│                            ┌──────┴─────────┐                                    │
+│                            │ rule_references│ (cross-refs)                       │
+│                            └────────────────┘                                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           CHARACTER OPTIONS                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌───────────┐     ┌─────────────┐     ┌────────────────┐                       │
+│  │  classes  │────>│  subclasses │     │ class_features │<────┘                 │
+│  └─────┬─────┘     └─────────────┘     └────────────────┘                       │
+│        │                                                                         │
+│        │           ┌─────────────┐                                               │
+│        └──────────>│ class_spells│<────┐                                         │
+│                    └─────────────┘     │                                         │
+│                                        │                                         │
+│  ┌───────────┐     ┌─────────────┐     │                                         │
+│  │   races   │────>│  subraces   │     │                                         │
+│  └───────────┘     └─────────────┘     │                                         │
+│                                        │                                         │
+│  ┌─────────────┐   ┌───────────┐       │                                         │
+│  │ backgrounds │   │   feats   │       │                                         │
+│  └─────────────┘   └───────────┘       │                                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            SPELLS & MONSTERS                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌───────────┐                    ┌────────────┐                                 │
+│  │  spells   │                    │  monsters  │                                 │
+│  └───────────┘                    └────────────┘                                 │
+│                                                                                  │
+│  ┌───────────┐     ┌──────────────┐                                              │
+│  │   items   │     │  conditions  │                                              │
+│  └───────────┘     └──────────────┘                                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Table Definitions
+## Tables by Category
 
-### source_documents
+### Reference Tables
 
-Represents an ingested rulebook document.
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **abilities** | 6 core ability scores (STR, DEX, CON, INT, WIS, CHA) | name, abbreviation, description |
+| **skills** | 18 skills mapped to abilities | name, ability_id, description |
+| **conditions** | Status effects (blinded, grappled, etc.) | name, description, embedding |
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | uuid | PK, DEFAULT gen_random_uuid() | Unique identifier |
-| name | varchar(255) | NOT NULL | Display name (e.g., "Player's Handbook") |
-| file_type | varchar(10) | NOT NULL, CHECK (file_type IN ('pdf', 'txt')) | Source file format |
-| file_hash | varchar(64) | NOT NULL, UNIQUE | SHA-256 hash for duplicate detection |
-| total_pages | integer | NULL | Page count (NULL for TXT files) |
-| ingested_at | timestamptz | NOT NULL, DEFAULT now() | When document was processed |
-| ingested_by | uuid | FK → profiles.id | Admin who uploaded |
-| status | varchar(20) | NOT NULL, DEFAULT 'processing' | 'processing', 'completed', 'failed' |
-| error_log | text | NULL | Error details if status='failed' |
-| created_at | timestamptz | NOT NULL, DEFAULT now() | Record creation |
-| updated_at | timestamptz | NOT NULL, DEFAULT now() | Last modification |
+### Document Structure
 
-**Indexes**:
-- `source_documents_file_hash_idx` UNIQUE on (file_hash)
-- `source_documents_status_idx` on (status)
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **documents** | Source document metadata | filename, doc_type, title |
+| **chapters** | Document chapters | document_id, chapter_number, title |
+| **sections** | Chapter subsections | chapter_id, title, content, embedding |
 
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only users where profiles.is_admin = true
+### Rules
 
----
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **rule_categories** | Hierarchical categories | name, slug, parent_id, sort_order |
+| **rules** | Individual game rules | category_id, title, slug, content, summary, embedding |
+| **rule_references** | Cross-references | source_rule_id, target_rule_id, reference_type |
 
-### rule_chapters
+### Character Options
 
-Top-level organizational unit within a document.
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **classes** | Player classes | name, slug, hit_die, primary_ability, proficiencies |
+| **subclasses** | Class specializations | class_id, name, subclass_level, features |
+| **class_features** | Class/subclass abilities | class_id, subclass_id, name, level, description |
+| **races** | Player races | name, ability_score_increase, traits, speed |
+| **subraces** | Race variants | race_id, name, ability_score_increase, traits |
+| **backgrounds** | Character backgrounds | name, skill_proficiencies, feature_description |
+| **feats** | Optional abilities | name, prerequisites, description, benefits |
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | uuid | PK, DEFAULT gen_random_uuid() | Unique identifier |
-| document_id | uuid | FK → source_documents.id, ON DELETE CASCADE | Parent document |
-| title | varchar(255) | NOT NULL | Chapter title |
-| order_index | integer | NOT NULL | Display order within document |
-| page_start | integer | NULL | Starting page number |
-| page_end | integer | NULL | Ending page number |
-| created_at | timestamptz | NOT NULL, DEFAULT now() | Record creation |
+### Spells
 
-**Indexes**:
-- `rule_chapters_document_order_idx` on (document_id, order_index)
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **spells** | Magic spells | name, level, school, casting_time, range, components, duration, concentration, ritual, description |
+| **class_spells** | Which classes can cast which spells | class_id, subclass_id, spell_id |
 
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only admins (via source_documents cascade)
+### Monsters
 
----
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **monsters** | Creatures/enemies | name, size, monster_type, armor_class, hit_points, speed, ability_scores, challenge_rating, actions, traits |
 
-### rule_sections
+### Items
 
-Sub-section within a chapter.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | uuid | PK, DEFAULT gen_random_uuid() | Unique identifier |
-| chapter_id | uuid | FK → rule_chapters.id, ON DELETE CASCADE | Parent chapter |
-| title | varchar(255) | NOT NULL | Section title |
-| order_index | integer | NOT NULL | Display order within chapter |
-| page_start | integer | NULL | Starting page number |
-| page_end | integer | NULL | Ending page number |
-| created_at | timestamptz | NOT NULL, DEFAULT now() | Record creation |
-
-**Indexes**:
-- `rule_sections_chapter_order_idx` on (chapter_id, order_index)
-
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only admins (via cascade)
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **items** | Equipment & magic items | name, item_type, rarity, damage, armor_class, weapon_properties, attunement_required |
 
 ---
 
-### rule_entries
+## Key Relationships
 
-Individual rule content chunk with searchable text and embeddings.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | uuid | PK, DEFAULT gen_random_uuid() | Unique identifier |
-| section_id | uuid | FK → rule_sections.id, ON DELETE CASCADE | Parent section |
-| title | varchar(255) | NULL | Entry title (if applicable) |
-| content | text | NOT NULL | Full rule text content |
-| content_embedding | vector(1536) | NULL | OpenAI embedding for semantic search |
-| search_vector | tsvector | GENERATED | PostgreSQL full-text search vector |
-| page_reference | varchar(50) | NULL | Page citation (e.g., "p. 189" or "pp. 189-190") |
-| order_index | integer | NOT NULL | Display order within section |
-| created_at | timestamptz | NOT NULL, DEFAULT now() | Record creation |
-
-**Generated Column**:
-```sql
-search_vector tsvector GENERATED ALWAYS AS (
-  setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-  setweight(to_tsvector('english', coalesce(content, '')), 'B')
-) STORED
-```
-
-**Indexes**:
-- `rule_entries_section_order_idx` on (section_id, order_index)
-- `rule_entries_search_idx` GIN on (search_vector)
-- `rule_entries_embedding_idx` IVFFlat on (content_embedding) using vector_cosine_ops
-
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only admins (via cascade)
-
----
-
-### rule_categories
-
-Optional cross-cutting tags for rule organization.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | uuid | PK, DEFAULT gen_random_uuid() | Unique identifier |
-| name | varchar(100) | NOT NULL, UNIQUE | Category name (e.g., "Combat", "Spellcasting") |
-| description | text | NULL | Category description |
-| created_by | uuid | FK → profiles.id | Admin who created |
-| created_at | timestamptz | NOT NULL, DEFAULT now() | Record creation |
-
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only admins
-
----
-
-### rule_entry_categories
-
-Many-to-many join table for rule entries and categories.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| entry_id | uuid | FK → rule_entries.id, ON DELETE CASCADE | Rule entry |
-| category_id | uuid | FK → rule_categories.id, ON DELETE CASCADE | Category |
-
-**Primary Key**: (entry_id, category_id)
-
-**RLS Policies**:
-- SELECT: All authenticated users
-- INSERT/UPDATE/DELETE: Only admins
-
----
-
-## Profile Table Extension
-
-Add admin flag to existing profiles table:
+### Class → Spells (Many-to-Many via class_spells)
 
 ```sql
-ALTER TABLE profiles ADD COLUMN is_admin boolean NOT NULL DEFAULT false;
+-- Get all spells for a class
+SELECT s.* FROM spells s
+JOIN class_spells cs ON cs.spell_id = s.id
+WHERE cs.class_id = :class_id
+ORDER BY s.level, s.name;
 ```
 
----
-
-## Migration SQL
+### Class → Features (One-to-Many)
 
 ```sql
--- Enable pgvector extension
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Get features for a class by level
+SELECT * FROM class_features
+WHERE class_id = :class_id
+ORDER BY level, name;
+```
 
--- Source Documents
-CREATE TABLE source_documents (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name varchar(255) NOT NULL,
-  file_type varchar(10) NOT NULL CHECK (file_type IN ('pdf', 'txt')),
-  file_hash varchar(64) NOT NULL UNIQUE,
-  total_pages integer,
-  ingested_at timestamptz NOT NULL DEFAULT now(),
-  ingested_by uuid REFERENCES profiles(id),
-  status varchar(20) NOT NULL DEFAULT 'processing'
-    CHECK (status IN ('processing', 'completed', 'failed')),
-  error_log text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+### Rule Categories (Self-referential hierarchy)
 
--- Rule Chapters
-CREATE TABLE rule_chapters (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  document_id uuid NOT NULL REFERENCES source_documents(id) ON DELETE CASCADE,
-  title varchar(255) NOT NULL,
-  order_index integer NOT NULL,
-  page_start integer,
-  page_end integer,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX rule_chapters_document_order_idx ON rule_chapters(document_id, order_index);
-
--- Rule Sections
-CREATE TABLE rule_sections (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  chapter_id uuid NOT NULL REFERENCES rule_chapters(id) ON DELETE CASCADE,
-  title varchar(255) NOT NULL,
-  order_index integer NOT NULL,
-  page_start integer,
-  page_end integer,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX rule_sections_chapter_order_idx ON rule_sections(chapter_id, order_index);
-
--- Rule Entries
-CREATE TABLE rule_entries (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  section_id uuid NOT NULL REFERENCES rule_sections(id) ON DELETE CASCADE,
-  title varchar(255),
-  content text NOT NULL,
-  content_embedding vector(1536),
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(content, '')), 'B')
-  ) STORED,
-  page_reference varchar(50),
-  order_index integer NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX rule_entries_section_order_idx ON rule_entries(section_id, order_index);
-CREATE INDEX rule_entries_search_idx ON rule_entries USING GIN(search_vector);
-CREATE INDEX rule_entries_embedding_idx ON rule_entries
-  USING ivfflat(content_embedding vector_cosine_ops) WITH (lists = 100);
-
--- Rule Categories
-CREATE TABLE rule_categories (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name varchar(100) NOT NULL UNIQUE,
-  description text,
-  created_by uuid REFERENCES profiles(id),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
--- Join Table
-CREATE TABLE rule_entry_categories (
-  entry_id uuid NOT NULL REFERENCES rule_entries(id) ON DELETE CASCADE,
-  category_id uuid NOT NULL REFERENCES rule_categories(id) ON DELETE CASCADE,
-  PRIMARY KEY (entry_id, category_id)
-);
-
--- Add admin flag to profiles
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_admin boolean NOT NULL DEFAULT false;
-
--- RLS Policies
-ALTER TABLE source_documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rule_chapters ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rule_sections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rule_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rule_categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rule_entry_categories ENABLE ROW LEVEL SECURITY;
-
--- Read access for authenticated users
-CREATE POLICY "Authenticated users can read documents" ON source_documents
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read chapters" ON rule_chapters
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read sections" ON rule_sections
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read entries" ON rule_entries
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read categories" ON rule_categories
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read entry categories" ON rule_entry_categories
-  FOR SELECT TO authenticated USING (true);
-
--- Write access for admins only (using service role key in backend)
--- Admin operations will use the service role key which bypasses RLS
+```sql
+-- Get category tree
+WITH RECURSIVE category_tree AS (
+  SELECT id, name, parent_id, 0 as depth
+  FROM rule_categories WHERE parent_id IS NULL
+  UNION ALL
+  SELECT c.id, c.name, c.parent_id, ct.depth + 1
+  FROM rule_categories c
+  JOIN category_tree ct ON c.parent_id = ct.id
+)
+SELECT * FROM category_tree ORDER BY depth, name;
 ```
 
 ---
 
-## TypeScript Types
+## Enum Types
+
+```sql
+-- Document type
+CREATE TYPE document_type AS ENUM ('rules', 'handbook', 'supplement', 'adventure');
+
+-- Monster size
+CREATE TYPE size_category AS ENUM ('Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan');
+
+-- Item type
+CREATE TYPE item_type AS ENUM ('weapon', 'armor', 'adventuring_gear', 'tool', 'mount', 'vehicle', 'trade_good', 'magic_item');
+
+-- Item rarity
+CREATE TYPE rarity AS ENUM ('common', 'uncommon', 'rare', 'very_rare', 'legendary', 'artifact');
+```
+
+---
+
+## Search Support
+
+### Vector Embeddings
+
+All searchable content tables have `embedding VECTOR(1536)` columns for semantic search:
+- rules, rule_categories, sections
+- spells, classes, subclasses, class_features
+- races, subraces, monsters, items
+- conditions, skills, backgrounds, feats
+
+### Full-Text Indexes
+
+GIN indexes exist on all text content fields for full-text search:
+
+```sql
+-- Examples from schema
+CREATE INDEX idx_rules_content_fts ON rules USING GIN (to_tsvector('english', content));
+CREATE INDEX idx_spells_description_fts ON spells USING GIN (to_tsvector('english', description));
+CREATE INDEX idx_monsters_name_fts ON monsters USING GIN (to_tsvector('english', name));
+```
+
+---
+
+## API Response Types
+
+### Summary Card Types (Frontend)
 
 ```typescript
-// Extend existing types in backend/src/models/rules.types.ts
-
-export interface SourceDocument {
+// Spell summary (Spells tab cards)
+interface SpellSummary {
   id: string;
   name: string;
-  fileType: 'pdf' | 'txt';
-  fileHash: string;
-  totalPages: number | null;
-  ingestedAt: Date;
-  ingestedBy: string;
-  status: 'processing' | 'completed' | 'failed';
-  errorLog: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  slug: string;
+  level: number;
+  school: string;
+  castingTime: string;
+  concentration: boolean;
 }
 
-export interface RuleChapter {
-  id: string;
-  documentId: string;
-  title: string;
-  orderIndex: number;
-  pageStart: number | null;
-  pageEnd: number | null;
-  createdAt: Date;
-  // Populated relations
-  document?: SourceDocument;
-  sections?: RuleSection[];
-}
-
-export interface RuleSection {
-  id: string;
-  chapterId: string;
-  title: string;
-  orderIndex: number;
-  pageStart: number | null;
-  pageEnd: number | null;
-  createdAt: Date;
-  // Populated relations
-  chapter?: RuleChapter;
-  entries?: RuleEntry[];
-}
-
-export interface RuleEntry {
-  id: string;
-  sectionId: string;
-  title: string | null;
-  content: string;
-  contentEmbedding: number[] | null;
-  pageReference: string | null;
-  orderIndex: number;
-  createdAt: Date;
-  // Populated relations
-  section?: RuleSection;
-  categories?: RuleCategory[];
-}
-
-export interface RuleCategory {
+// Monster summary (Bestiary tab cards)
+interface MonsterSummary {
   id: string;
   name: string;
-  description: string | null;
-  createdBy: string;
-  createdAt: Date;
+  slug: string;
+  size: string;
+  monsterType: string;
+  challengeRating: string;
+  armorClass: number;
+  hitPoints: number;
 }
 
-// Search result types
-export interface RuleSearchResult {
-  entry: RuleEntry;
-  relevance: number;
-  matchType: 'fulltext' | 'semantic' | 'hybrid';
-  highlights?: string[];
+// Item summary (Equipment tab cards)
+interface ItemSummary {
+  id: string;
+  name: string;
+  slug: string;
+  itemType: string;
+  rarity: string | null;
+  attunementRequired: boolean;
 }
 
-export interface RuleCitation {
-  ruleId: string;
+// Class summary (Characters tab cards)
+interface ClassSummary {
+  id: string;
+  name: string;
+  slug: string;
+  hitDie: string;
+  primaryAbility: string;
+}
+
+// Rule summary (Rules tab cards)
+interface RuleSummary {
+  id: string;
   title: string;
-  excerpt: string;
-  source: {
-    document: string;
-    chapter: string;
-    section: string;
-    page: string | null;
-  };
-  relevance: number;
+  slug: string;
+  categoryPath: string[];
+  summary: string;
+}
+```
+
+### Search Result Type
+
+```typescript
+interface SearchResult {
+  type: 'spell' | 'monster' | 'item' | 'class' | 'race' | 'rule' | 'feat' | 'background' | 'condition';
+  id: string;
+  name: string;
+  slug: string;
+  score: number;  // RRF fusion score
+  excerpt: string;  // Relevant snippet
+  attributes: Record<string, unknown>;  // Type-specific attributes
+}
+
+interface SearchResponse {
+  query: string;
+  total: number;
+  groups: {
+    type: string;
+    count: number;
+    results: SearchResult[];
+  }[];
 }
 ```
 
 ---
 
-## Validation Rules
+## Migration Reference
 
-| Entity | Field | Rule |
-|--------|-------|------|
-| SourceDocument | name | 1-255 characters, not empty |
-| SourceDocument | file_hash | 64 character hex string (SHA-256) |
-| RuleChapter | title | 1-255 characters, not empty |
-| RuleChapter | order_index | >= 0 |
-| RuleSection | title | 1-255 characters, not empty |
-| RuleEntry | content | Not empty, max 50,000 characters |
-| RuleCategory | name | 1-100 characters, unique, alphanumeric with spaces |
+**Source**: `/migrations/001-dnd-content.sql`
+
+This migration creates all tables, indexes, and initial reference data. The schema is idempotent and can be re-run safely.
