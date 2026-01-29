@@ -1,0 +1,617 @@
+openapi: 3.0.3
+info:
+  title: Rules Explorer API
+  description: API for browsing, searching, and managing D&D rules
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: Backend API server
+
+tags:
+  - name: Rules
+    description: Rule browsing and search
+  - name: Admin
+    description: Document ingestion (admin only)
+
+paths:
+  # ============== BROWSING ==============
+
+  /rules/documents:
+    get:
+      tags: [Rules]
+      summary: List all source documents
+      description: Returns all ingested rulebook documents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SourceDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /rules/documents/{documentId}/chapters:
+    get:
+      tags: [Rules]
+      summary: List chapters in a document
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of chapters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleChapter'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules/chapters/{chapterId}/sections:
+    get:
+      tags: [Rules]
+      summary: List sections in a chapter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sections:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleSection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules/sections/{sectionId}/entries:
+    get:
+      tags: [Rules]
+      summary: List entries in a section
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of rule entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleEntry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules/entries/{entryId}:
+    get:
+      tags: [Rules]
+      summary: Get a single rule entry with full context
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Rule entry with full hierarchy context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleEntryWithContext'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============== SEARCH ==============
+
+  /rules/search:
+    get:
+      tags: [Rules]
+      summary: Search rules
+      description: Search rules using full-text, semantic, or hybrid mode
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 500
+          description: Search query
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum: [fulltext, semantic, hybrid]
+            default: hybrid
+          description: Search mode
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Maximum results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Pagination offset
+        - name: documentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by document
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+                  total:
+                    type: integer
+                  query:
+                    type: string
+                  mode:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ============== CATEGORIES ==============
+
+  /rules/categories:
+    get:
+      tags: [Rules]
+      summary: List all rule categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleCategory'
+
+  /rules/categories/{categoryId}/entries:
+    get:
+      tags: [Rules]
+      summary: List entries in a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RuleEntry'
+                  total:
+                    type: integer
+
+  # ============== ADMIN: INGESTION ==============
+
+  /admin/rules/ingest:
+    post:
+      tags: [Admin]
+      summary: Ingest a new document
+      description: Upload and process a PDF or TXT rulebook document
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - name
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF or TXT file
+                name:
+                  type: string
+                  description: Display name for the document
+      responses:
+        '202':
+          description: Ingestion started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [processing]
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Duplicate document detected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  existingDocumentId:
+                    type: string
+                    format: uuid
+                  message:
+                    type: string
+
+  /admin/rules/ingest/{documentId}:
+    delete:
+      tags: [Admin]
+      summary: Delete an ingested document
+      description: Remove a document and all its rules
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/rules/ingest/{documentId}/status:
+    get:
+      tags: [Admin]
+      summary: Get ingestion status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ingestion status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [processing, completed, failed]
+                  progress:
+                    type: object
+                    properties:
+                      chaptersProcessed:
+                        type: integer
+                      sectionsProcessed:
+                        type: integer
+                      entriesProcessed:
+                        type: integer
+                      embeddingsGenerated:
+                        type: integer
+                  errorLog:
+                    type: string
+                    nullable: true
+
+  /admin/rules/categories:
+    post:
+      tags: [Admin]
+      summary: Create a new category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleCategory'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Category name already exists
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions (admin required)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    SourceDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        fileType:
+          type: string
+          enum: [pdf, txt]
+        totalPages:
+          type: integer
+          nullable: true
+        ingestedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [processing, completed, failed]
+        chapterCount:
+          type: integer
+          description: Number of chapters (populated on list)
+
+    RuleChapter:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        orderIndex:
+          type: integer
+        pageStart:
+          type: integer
+          nullable: true
+        pageEnd:
+          type: integer
+          nullable: true
+        sectionCount:
+          type: integer
+          description: Number of sections (populated on list)
+
+    RuleSection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        orderIndex:
+          type: integer
+        pageStart:
+          type: integer
+          nullable: true
+        pageEnd:
+          type: integer
+          nullable: true
+        entryCount:
+          type: integer
+          description: Number of entries (populated on list)
+
+    RuleEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sectionId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          nullable: true
+        content:
+          type: string
+        pageReference:
+          type: string
+          nullable: true
+        orderIndex:
+          type: integer
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleCategory'
+
+    RuleEntryWithContext:
+      allOf:
+        - $ref: '#/components/schemas/RuleEntry'
+        - type: object
+          properties:
+            section:
+              $ref: '#/components/schemas/RuleSection'
+            chapter:
+              $ref: '#/components/schemas/RuleChapter'
+            document:
+              $ref: '#/components/schemas/SourceDocument'
+
+    RuleCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    SearchResult:
+      type: object
+      properties:
+        entry:
+          $ref: '#/components/schemas/RuleEntryWithContext'
+        relevance:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        matchType:
+          type: string
+          enum: [fulltext, semantic, hybrid]
+        highlights:
+          type: array
+          items:
+            type: string
+          description: Highlighted text snippets

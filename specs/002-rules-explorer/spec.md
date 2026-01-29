@@ -1,6 +1,6 @@
 # Feature Specification: Rules Explorer
 
-**Feature Branch**: `001-rules-explorer`
+**Feature Branch**: `002-rules-explorer`
 **Created**: 2026-01-29
 **Status**: Draft
 **Input**: User description: "Add a Rules Explorer menu item to browse, search, and reference D&D rules extracted from PDF/TXT source documents. Store rules in Supabase with vector embeddings for semantic search. AI DM should cite rules during sessions."
