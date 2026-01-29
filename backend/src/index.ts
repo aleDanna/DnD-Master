@@ -13,6 +13,7 @@ import sessionsRouter from './api/routes/sessions.js';
 import gameRouter from './api/routes/game.js';
 import charactersRouter from './api/routes/characters.js';
 import rulesRouter from './api/routes/rules.js';
+import handbookRouter from './api/handbook/index.js';
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
@@ -41,6 +42,7 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/game', gameRouter);
 app.use('/api/characters', charactersRouter);
 app.use('/api/rules', rulesRouter);
+app.use('/api/handbook', handbookRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

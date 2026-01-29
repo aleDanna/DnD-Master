@@ -19,9 +19,9 @@
 
 **Purpose**: Create directory structure and configure project
 
-- [ ] T001 [P] Create backend handbook directories: `backend/src/api/handbook/`, `backend/src/services/handbook/`
-- [ ] T002 [P] Create frontend handbook directories: `frontend/src/app/handbook/`, `frontend/src/components/handbook/`, `frontend/src/hooks/handbook/`, `frontend/src/lib/handbook/`
-- [ ] T003 [P] Create test directories: `backend/tests/unit/handbook/`, `backend/tests/integration/handbook/`
+- [X] T001 [P] Create backend handbook directories: `backend/src/api/handbook/`, `backend/src/services/handbook/`
+- [X] T002 [P] Create frontend handbook directories: `frontend/src/app/handbook/`, `frontend/src/components/handbook/`, `frontend/src/hooks/handbook/`, `frontend/src/lib/handbook/`
+- [X] T003 [P] Create test directories: `backend/tests/unit/handbook/`, `backend/tests/integration/handbook/`
 
 ---
 
@@ -33,7 +33,7 @@
 
 ### TypeScript Types
 
-- [ ] T004 [P] Create shared handbook types in `frontend/src/lib/handbook/types.ts`:
+- [X] T004 [P] Create shared handbook types in `frontend/src/lib/handbook/types.ts`:
   - SpellSummary, Spell, MonsterSummary, Monster, ItemSummary, Item
   - ClassSummary, Class, RaceSummary, Race, FeatSummary, Feat
   - BackgroundSummary, Background, RuleSummary, Rule, RuleCategory
@@ -43,25 +43,25 @@
 
 ### API Client
 
-- [ ] T005 Create base API client in `frontend/src/lib/handbook/api.ts`:
+- [X] T005 Create base API client in `frontend/src/lib/handbook/api.ts`:
   - Base fetch wrapper with error handling
   - Type-safe request/response handling
   - Endpoint URL construction
 
 ### Backend Services
 
-- [ ] T006 [P] Create `backend/src/services/handbook/filterService.ts`:
+- [X] T006 [P] Create `backend/src/services/handbook/filterService.ts`:
   - buildSpellFilters(params): WhereClause
   - buildMonsterFilters(params): WhereClause
   - buildItemFilters(params): WhereClause
   - buildClassFilters(params): WhereClause
 
-- [ ] T007 [P] Create `backend/src/services/handbook/contentService.ts`:
+- [X] T007 [P] Create `backend/src/services/handbook/contentService.ts`:
   - Base content retrieval patterns
   - Pagination helpers
   - Slug-based lookup utilities
 
-- [ ] T008 Create `backend/src/services/handbook/searchService.ts` (depends on T006, T007):
+- [X] T008 Create `backend/src/services/handbook/searchService.ts` (depends on T006, T007):
   - generateQueryEmbedding(query): Promise<number[]>
   - semanticSearch(embedding, tables): Promise<SearchResult[]>
   - fullTextSearch(query, tables): Promise<SearchResult[]>
@@ -70,12 +70,12 @@
 
 ### API Route Infrastructure
 
-- [ ] T009 Create `backend/src/api/handbook/index.ts`:
+- [X] T009 Create `backend/src/api/handbook/index.ts`:
   - Router setup for all handbook routes
   - Middleware configuration
   - Export handbook router for main app integration
 
-- [ ] T010 Register handbook routes in main Express app (update `backend/src/index.ts` or router config)
+- [X] T010 Register handbook routes in main Express app (update `backend/src/index.ts` or router config)
 
 **Checkpoint**: Foundation ready - user story implementation can begin
 
@@ -89,24 +89,24 @@
 
 ### Backend Implementation
 
-- [ ] T011 [P] [US1] Create `backend/src/api/handbook/rules.ts`:
+- [X] T011 [P] [US1] Create `backend/src/api/handbook/rules.ts`:
   - GET /api/handbook/rules/categories - list rule categories
   - GET /api/handbook/rules - list rules with pagination
   - GET /api/handbook/rules/:slug - get rule by slug
 
-- [ ] T012 [P] [US1] Create `backend/src/api/handbook/spells.ts`:
+- [X] T012 [P] [US1] Create `backend/src/api/handbook/spells.ts`:
   - GET /api/handbook/spells - list spells with filters
   - GET /api/handbook/spells/:slug - get spell by slug
 
-- [ ] T013 [P] [US1] Create `backend/src/api/handbook/bestiary.ts`:
+- [X] T013 [P] [US1] Create `backend/src/api/handbook/bestiary.ts`:
   - GET /api/handbook/monsters - list monsters with filters
   - GET /api/handbook/monsters/:slug - get monster by slug
 
-- [ ] T014 [P] [US1] Create `backend/src/api/handbook/equipment.ts`:
+- [X] T014 [P] [US1] Create `backend/src/api/handbook/equipment.ts`:
   - GET /api/handbook/items - list items with filters
   - GET /api/handbook/items/:slug - get item by slug
 
-- [ ] T015 [P] [US1] Create `backend/src/api/handbook/characters.ts`:
+- [X] T015 [P] [US1] Create `backend/src/api/handbook/characters.ts`:
   - GET /api/handbook/classes - list classes
   - GET /api/handbook/classes/:slug - get class with features
   - GET /api/handbook/races - list races
@@ -114,55 +114,55 @@
 
 ### Frontend Hooks
 
-- [ ] T016 [P] [US1] Create `frontend/src/hooks/handbook/useContent.ts`:
+- [X] T016 [P] [US1] Create `frontend/src/hooks/handbook/useContent.ts`:
   - Generic content fetching with SWR/caching pattern
   - Loading and error states
 
 ### Frontend Components
 
-- [ ] T017 [P] [US1] Create `frontend/src/components/handbook/TabNavigation.tsx`:
+- [X] T017 [P] [US1] Create `frontend/src/components/handbook/TabNavigation.tsx`:
   - Horizontal tab bar for 5 categories
   - Active tab highlighting
   - URL-driven state
 
-- [ ] T018 [P] [US1] Create `frontend/src/components/handbook/ContentCard.tsx`:
+- [X] T018 [P] [US1] Create `frontend/src/components/handbook/ContentCard.tsx`:
   - Generic summary card component
   - Slots for type-specific attributes
   - Click handler for detail navigation
 
 ### Frontend Pages
 
-- [ ] T019 [US1] Create `frontend/src/app/handbook/layout.tsx` (depends on T017):
+- [X] T019 [US1] Create `frontend/src/app/handbook/layout.tsx` (depends on T017):
   - Handbook page wrapper
   - TabNavigation component
   - Content area for children
 
-- [ ] T020 [US1] Create `frontend/src/app/handbook/page.tsx`:
+- [X] T020 [US1] Create `frontend/src/app/handbook/page.tsx`:
   - Redirect to default tab (/handbook/rules)
 
-- [ ] T021 [P] [US1] Create `frontend/src/app/handbook/rules/page.tsx`:
+- [X] T021 [P] [US1] Create `frontend/src/app/handbook/rules/page.tsx`:
   - Display rule categories and rules list
   - Summary cards for rules
 
-- [ ] T022 [P] [US1] Create `frontend/src/app/handbook/spells/page.tsx`:
+- [X] T022 [P] [US1] Create `frontend/src/app/handbook/spells/page.tsx`:
   - Display spells list
   - Summary cards with level, school, casting time
 
-- [ ] T023 [P] [US1] Create `frontend/src/app/handbook/bestiary/page.tsx`:
+- [X] T023 [P] [US1] Create `frontend/src/app/handbook/bestiary/page.tsx`:
   - Display monsters list
   - Summary cards with CR, size, type
 
-- [ ] T024 [P] [US1] Create `frontend/src/app/handbook/equipment/page.tsx`:
+- [X] T024 [P] [US1] Create `frontend/src/app/handbook/equipment/page.tsx`:
   - Display items list
   - Summary cards with type, rarity
 
-- [ ] T025 [P] [US1] Create `frontend/src/app/handbook/characters/page.tsx`:
+- [X] T025 [P] [US1] Create `frontend/src/app/handbook/characters/page.tsx`:
   - Display character options (classes, races, etc.)
   - Sub-navigation for option types
 
 ### API Client Functions
 
-- [ ] T026 [US1] Add content fetch functions to `frontend/src/lib/handbook/api.ts` (depends on T005):
+- [X] T026 [US1] Add content fetch functions to `frontend/src/lib/handbook/api.ts` (depends on T005):
   - getRuleCategories(), getRules(), getRule(slug)
   - getSpells(filters), getSpell(slug)
   - getMonsters(filters), getMonster(slug)
