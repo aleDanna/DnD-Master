@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { supabaseAdmin } from '../../config/supabase.js';
+import { query } from '../../config/database.js';
 
 const router = Router();
 
@@ -34,12 +34,8 @@ router.get('/', async (_req: Request, res: Response) => {
 
   // Check database connection
   try {
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .limit(1);
-
-    health.services.database = error ? 'down' : 'up';
+    await query('SELECT 1');
+    health.services.database = 'up';
   } catch {
     health.services.database = 'down';
   }
@@ -60,24 +56,13 @@ router.get('/', async (_req: Request, res: Response) => {
 router.get('/ready', async (_req: Request, res: Response) => {
   try {
     // Check database
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .limit(1);
-
-    if (error) {
-      res.status(503).json({
-        ready: false,
-        reason: 'Database not ready',
-      });
-      return;
-    }
+    await query('SELECT 1');
 
     res.status(200).json({ ready: true });
   } catch {
     res.status(503).json({
       ready: false,
-      reason: 'Service initialization failed',
+      reason: 'Database not ready',
     });
   }
 });

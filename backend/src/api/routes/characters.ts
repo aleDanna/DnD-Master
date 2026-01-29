@@ -14,7 +14,6 @@ import {
 } from '../middleware/validation.js';
 import { createCharacterRepository } from '../../services/data/character-repo.js';
 import { createCampaignRepository } from '../../services/data/campaign-repo.js';
-import { createUserClient } from '../../config/supabase.js';
 import { z } from 'zod';
 
 const router = Router();
@@ -38,8 +37,7 @@ router.get(
   authMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const client = createUserClient(req.accessToken!);
-      const repo = createCharacterRepository(client);
+      const repo = createCharacterRepository();
 
       const characters = await repo.listByUser(req.user!.id);
 
@@ -71,9 +69,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { campaignId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const characterRepo = createCharacterRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const characterRepo = createCharacterRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check if user is a member of the campaign
       const isMember = await campaignRepo.isMember(campaignId, req.user!.id);
@@ -118,9 +115,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const characterRepo = createCharacterRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const characterRepo = createCharacterRepository();
+      const campaignRepo = createCampaignRepository();
 
       const character = await characterRepo.getById(id);
 
@@ -178,9 +174,8 @@ router.post(
   validate(createCharacterSchema),
   async (req: Request, res: Response) => {
     try {
-      const client = createUserClient(req.accessToken!);
-      const characterRepo = createCharacterRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const characterRepo = createCharacterRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check if user is a member of the campaign
       const isMember = await campaignRepo.isMember(req.body.campaign_id, req.user!.id);
@@ -242,8 +237,7 @@ router.patch(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCharacterRepository(client);
+      const repo = createCharacterRepository();
 
       // Only owner can update
       const isOwner = await repo.isOwner(id, req.user!.id);
@@ -288,8 +282,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCharacterRepository(client);
+      const repo = createCharacterRepository();
 
       // Only owner can delete
       const isOwner = await repo.isOwner(id, req.user!.id);
@@ -344,9 +337,8 @@ router.patch(
         return;
       }
 
-      const client = createUserClient(req.accessToken!);
-      const characterRepo = createCharacterRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const characterRepo = createCharacterRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Get character to check campaign membership
       const character = await characterRepo.getById(id);

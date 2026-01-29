@@ -5,8 +5,6 @@
  * Task: T051, T052
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../../models/database.types.js';
 import { RulesSearchService, createSearchService } from './search.js';
 import { RulesService, createRulesService } from './service.js';
 import { RuleCitation } from '../../models/rules.types.js';
@@ -39,9 +37,9 @@ export class DMRulesService {
   private rulesService: RulesService;
   private initialized: boolean = false;
 
-  constructor(client: SupabaseClient<Database>) {
-    this.searchService = createSearchService(client);
-    this.rulesService = createRulesService(client);
+  constructor() {
+    this.searchService = createSearchService();
+    this.rulesService = createRulesService();
   }
 
   /**
@@ -224,10 +222,8 @@ export class DMRulesService {
 /**
  * Factory function to create DM rules service
  */
-export function createDMRulesService(
-  client: SupabaseClient<Database>
-): DMRulesService {
-  return new DMRulesService(client);
+export function createDMRulesService(): DMRulesService {
+  return new DMRulesService();
 }
 
 export default DMRulesService;

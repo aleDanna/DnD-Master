@@ -5,8 +5,7 @@
  * Tasks: T023, T024
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../../models/database.types.js';
+import { db, query } from '../../config/database.js';
 import {
   SourceDocument,
   RuleChapter,
@@ -22,39 +21,27 @@ import {
   toRuleCategory,
 } from '../../models/rules.types.js';
 
-// Type alias for looser Supabase client typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DbClient = SupabaseClient<any>;
-
 /**
  * RulesService provides database-backed methods for browsing and retrieving rules
  */
 export class RulesService {
-  private client: DbClient;
-
-  constructor(client: SupabaseClient<Database>) {
-    this.client = client as DbClient;
-  }
-
   // ============== Document Methods ==============
 
   /**
    * Get all source documents
    */
   async getDocuments(): Promise<SourceDocument[]> {
-    const { data, error } = await this.client
-      .from('source_documents')
-      .select('*, rule_chapters(count)')
-      .eq('status', 'completed')
-      .order('name');
+    const result = await query<any>(
+      `SELECT sd.*,
+              (SELECT COUNT(*) FROM rule_chapters rc WHERE rc.document_id = sd.id) as chapter_count
+       FROM source_documents sd
+       WHERE sd.status = 'completed'
+       ORDER BY sd.name`
+    );
 
-    if (error) {
-      throw new Error(`Failed to fetch documents: ${error.message}`);
-    }
-
-    return (data || []).map(row => ({
-      ...toSourceDocument(row as any),
-      chapterCount: (row as any).rule_chapters?.[0]?.count || 0,
+    return result.rows.map(row => ({
+      ...toSourceDocument(row),
+      chapterCount: parseInt(row.chapter_count || '0', 10),
     }));
   }
 
@@ -62,17 +49,9 @@ export class RulesService {
    * Get a single document by ID
    */
   async getDocument(documentId: string): Promise<SourceDocument | null> {
-    const { data, error } = await this.client
-      .from('source_documents')
-      .select('*')
-      .eq('id', documentId)
-      .single();
-
-    if (error || !data) {
-      return null;
-    }
-
-    return toSourceDocument(data as any);
+    const data = await db.findOne<any>('source_documents', { id: documentId });
+    if (!data) return null;
+    return toSourceDocument(data);
   }
 
   // ============== Chapter Methods ==============
@@ -81,19 +60,18 @@ export class RulesService {
    * Get chapters for a document
    */
   async getChapters(documentId: string): Promise<RuleChapter[]> {
-    const { data, error } = await this.client
-      .from('rule_chapters')
-      .select('*, rule_sections(count)')
-      .eq('document_id', documentId)
-      .order('order_index');
+    const result = await query<any>(
+      `SELECT rc.*,
+              (SELECT COUNT(*) FROM rule_sections rs WHERE rs.chapter_id = rc.id) as section_count
+       FROM rule_chapters rc
+       WHERE rc.document_id = $1
+       ORDER BY rc.order_index`,
+      [documentId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to fetch chapters: ${error.message}`);
-    }
-
-    return (data || []).map(row => ({
-      ...toRuleChapter(row as any),
-      sectionCount: (row as any).rule_sections?.[0]?.count || 0,
+    return result.rows.map(row => ({
+      ...toRuleChapter(row),
+      sectionCount: parseInt(row.section_count || '0', 10),
     }));
   }
 
@@ -101,17 +79,9 @@ export class RulesService {
    * Get a single chapter by ID
    */
   async getChapter(chapterId: string): Promise<RuleChapter | null> {
-    const { data, error } = await this.client
-      .from('rule_chapters')
-      .select('*')
-      .eq('id', chapterId)
-      .single();
-
-    if (error || !data) {
-      return null;
-    }
-
-    return toRuleChapter(data as any);
+    const data = await db.findOne<any>('rule_chapters', { id: chapterId });
+    if (!data) return null;
+    return toRuleChapter(data);
   }
 
   // ============== Section Methods ==============
@@ -120,19 +90,18 @@ export class RulesService {
    * Get sections for a chapter
    */
   async getSections(chapterId: string): Promise<RuleSection[]> {
-    const { data, error } = await this.client
-      .from('rule_sections')
-      .select('*, rule_entries(count)')
-      .eq('chapter_id', chapterId)
-      .order('order_index');
+    const result = await query<any>(
+      `SELECT rs.*,
+              (SELECT COUNT(*) FROM rule_entries re WHERE re.section_id = rs.id) as entry_count
+       FROM rule_sections rs
+       WHERE rs.chapter_id = $1
+       ORDER BY rs.order_index`,
+      [chapterId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to fetch sections: ${error.message}`);
-    }
-
-    return (data || []).map(row => ({
-      ...toRuleSection(row as any),
-      entryCount: (row as any).rule_entries?.[0]?.count || 0,
+    return result.rows.map(row => ({
+      ...toRuleSection(row),
+      entryCount: parseInt(row.entry_count || '0', 10),
     }));
   }
 
@@ -140,17 +109,9 @@ export class RulesService {
    * Get a single section by ID
    */
   async getSection(sectionId: string): Promise<RuleSection | null> {
-    const { data, error } = await this.client
-      .from('rule_sections')
-      .select('*')
-      .eq('id', sectionId)
-      .single();
-
-    if (error || !data) {
-      return null;
-    }
-
-    return toRuleSection(data as any);
+    const data = await db.findOne<any>('rule_sections', { id: sectionId });
+    if (!data) return null;
+    return toRuleSection(data);
   }
 
   // ============== Entry Methods ==============
@@ -159,28 +120,21 @@ export class RulesService {
    * Get entries for a section
    */
   async getEntries(sectionId: string): Promise<RuleEntry[]> {
-    const { data, error } = await this.client
-      .from('rule_entries')
-      .select(
-        `
-        id, section_id, title, content, page_reference, order_index, created_at,
-        rule_entry_categories (
-          rule_categories (id, name, description, created_by, created_at)
-        )
-      `
-      )
-      .eq('section_id', sectionId)
-      .order('order_index');
+    const result = await query<any>(
+      `SELECT re.id, re.section_id, re.title, re.content, re.page_reference, re.order_index, re.created_at
+       FROM rule_entries re
+       WHERE re.section_id = $1
+       ORDER BY re.order_index`,
+      [sectionId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to fetch entries: ${error.message}`);
-    }
+    // Get categories for all entries
+    const entryIds = result.rows.map((r: any) => r.id);
+    const categories = await this.getCategoriesForEntries(entryIds);
 
-    return (data || []).map(row => ({
-      ...toRuleEntry(row as any),
-      categories: (row as any).rule_entry_categories?.map(
-        (rec: any) => toRuleCategory(rec.rule_categories)
-      ) || [],
+    return result.rows.map(row => ({
+      ...toRuleEntry(row),
+      categories: categories.get(row.id) || [],
     }));
   }
 
@@ -188,36 +142,29 @@ export class RulesService {
    * Get a single entry by ID with full context
    */
   async getEntry(entryId: string): Promise<RuleEntryWithContext | null> {
-    const { data, error } = await this.client
-      .from('rule_entries')
-      .select(
-        `
-        id, section_id, title, content, page_reference, order_index, created_at,
-        rule_sections!inner (
-          id, chapter_id, title, order_index, page_start, page_end, created_at,
-          rule_chapters!inner (
-            id, document_id, title, order_index, page_start, page_end, created_at,
-            source_documents!inner (
-              id, name, file_type, file_hash, total_pages, ingested_at, ingested_by, status, error_log, created_at, updated_at
-            )
-          )
-        ),
-        rule_entry_categories (
-          rule_categories (id, name, description, created_by, created_at)
-        )
-      `
-      )
-      .eq('id', entryId)
-      .single();
+    const result = await query<any>(
+      `SELECT
+        re.id, re.section_id, re.title, re.content, re.page_reference, re.order_index, re.created_at,
+        rs.id as section_id_ref, rs.chapter_id, rs.title as section_title, rs.order_index as section_order,
+        rs.page_start as section_page_start, rs.page_end as section_page_end, rs.created_at as section_created_at,
+        rc.id as chapter_id_ref, rc.document_id, rc.title as chapter_title, rc.order_index as chapter_order,
+        rc.page_start as chapter_page_start, rc.page_end as chapter_page_end, rc.created_at as chapter_created_at,
+        sd.id as doc_id, sd.name as doc_name, sd.file_type, sd.file_hash, sd.total_pages,
+        sd.ingested_at, sd.ingested_by, sd.status, sd.error_log, sd.created_at as doc_created_at, sd.updated_at as doc_updated_at
+       FROM rule_entries re
+       JOIN rule_sections rs ON re.section_id = rs.id
+       JOIN rule_chapters rc ON rs.chapter_id = rc.id
+       JOIN source_documents sd ON rc.document_id = sd.id
+       WHERE re.id = $1`,
+      [entryId]
+    );
 
-    if (error || !data) {
-      return null;
-    }
+    if (result.rows.length === 0) return null;
 
-    const row = data as any;
-    const section = row.rule_sections;
-    const chapter = section.rule_chapters;
-    const document = chapter.source_documents;
+    const row = result.rows[0];
+
+    // Get categories for this entry
+    const categories = await this.getCategoriesForEntries([entryId]);
 
     return {
       id: row.id,
@@ -228,13 +175,63 @@ export class RulesService {
       pageReference: row.page_reference,
       orderIndex: row.order_index,
       createdAt: new Date(row.created_at),
-      categories: row.rule_entry_categories?.map(
-        (rec: any) => toRuleCategory(rec.rule_categories)
-      ) || [],
-      section: toRuleSection(section),
-      chapter: toRuleChapter(chapter),
-      document: toSourceDocument(document),
+      categories: categories.get(entryId) || [],
+      section: {
+        id: row.section_id_ref,
+        chapterId: row.chapter_id,
+        title: row.section_title,
+        orderIndex: row.section_order,
+        pageStart: row.section_page_start,
+        pageEnd: row.section_page_end,
+        createdAt: new Date(row.section_created_at),
+      },
+      chapter: {
+        id: row.chapter_id_ref,
+        documentId: row.document_id,
+        title: row.chapter_title,
+        orderIndex: row.chapter_order,
+        pageStart: row.chapter_page_start,
+        pageEnd: row.chapter_page_end,
+        createdAt: new Date(row.chapter_created_at),
+      },
+      document: {
+        id: row.doc_id,
+        name: row.doc_name,
+        fileType: row.file_type,
+        fileHash: row.file_hash,
+        totalPages: row.total_pages,
+        ingestedAt: new Date(row.ingested_at),
+        ingestedBy: row.ingested_by,
+        status: row.status,
+        errorLog: row.error_log,
+        createdAt: new Date(row.doc_created_at),
+        updatedAt: new Date(row.doc_updated_at),
+      },
     };
+  }
+
+  /**
+   * Helper to get categories for multiple entries
+   */
+  private async getCategoriesForEntries(entryIds: string[]): Promise<Map<string, RuleCategory[]>> {
+    if (entryIds.length === 0) return new Map();
+
+    const placeholders = entryIds.map((_, i) => `$${i + 1}`).join(', ');
+    const result = await query<any>(
+      `SELECT rec.entry_id, rc.id, rc.name, rc.description, rc.created_by, rc.created_at
+       FROM rule_entry_categories rec
+       JOIN rule_categories rc ON rec.category_id = rc.id
+       WHERE rec.entry_id IN (${placeholders})`,
+      entryIds
+    );
+
+    const map = new Map<string, RuleCategory[]>();
+    for (const row of result.rows) {
+      const categories = map.get(row.entry_id) || [];
+      categories.push(toRuleCategory(row));
+      map.set(row.entry_id, categories);
+    }
+    return map;
   }
 
   // ============== Category Methods ==============
@@ -243,16 +240,8 @@ export class RulesService {
    * Get all categories
    */
   async getCategories(): Promise<RuleCategory[]> {
-    const { data, error } = await this.client
-      .from('rule_categories')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      throw new Error(`Failed to fetch categories: ${error.message}`);
-    }
-
-    return (data || []).map(row => toRuleCategory(row as any));
+    const result = await query<any>('SELECT * FROM rule_categories ORDER BY name');
+    return result.rows.map(toRuleCategory);
   }
 
   /**
@@ -266,36 +255,27 @@ export class RulesService {
     const offset = options.offset || 0;
 
     // Get total count
-    const { count } = await this.client
-      .from('rule_entry_categories')
-      .select('*', { count: 'exact', head: true })
-      .eq('category_id', categoryId);
+    const countResult = await query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM rule_entry_categories WHERE category_id = $1',
+      [categoryId]
+    );
+    const total = parseInt(countResult.rows[0]?.count || '0', 10);
 
     // Get entries
-    const { data, error } = await this.client
-      .from('rule_entry_categories')
-      .select(
-        `
-        rule_entries (
-          id, section_id, title, content, page_reference, order_index, created_at
-        )
-      `
-      )
-      .eq('category_id', categoryId)
-      .range(offset, offset + limit - 1);
+    const result = await query<any>(
+      `SELECT re.id, re.section_id, re.title, re.content, re.page_reference, re.order_index, re.created_at
+       FROM rule_entry_categories rec
+       JOIN rule_entries re ON rec.entry_id = re.id
+       WHERE rec.category_id = $1
+       LIMIT $2 OFFSET $3`,
+      [categoryId, limit, offset]
+    );
 
-    if (error) {
-      throw new Error(`Failed to fetch entries by category: ${error.message}`);
-    }
-
-    const entries = (data || [])
-      .map(row => (row as any).rule_entries)
-      .filter(Boolean)
-      .map(entry => toRuleEntry(entry));
+    const entries = result.rows.map(toRuleEntry);
 
     return {
       entries,
-      total: count || 0,
+      total,
     };
   }
 
@@ -307,38 +287,41 @@ export class RulesService {
     description: string | null,
     createdBy: string
   ): Promise<RuleCategory> {
-    const { data, error } = await this.client
-      .from('rule_categories')
-      .insert({
+    try {
+      const data = await db.insert<any>('rule_categories', {
         name,
         description,
         created_by: createdBy,
-      })
-      .select()
-      .single();
+        created_at: new Date(),
+      });
 
-    if (error) {
+      if (!data) {
+        throw new Error('Failed to create category');
+      }
+
+      return toRuleCategory(data);
+    } catch (error: any) {
       if (error.code === '23505') {
-        // Unique violation
         throw new Error('Category name already exists');
       }
-      throw new Error(`Failed to create category: ${error.message}`);
+      throw error;
     }
-
-    return toRuleCategory(data as any);
   }
 
   /**
    * Add an entry to a category
    */
   async addEntryToCategory(entryId: string, categoryId: string): Promise<void> {
-    const { error } = await this.client
-      .from('rule_entry_categories')
-      .insert({ entry_id: entryId, category_id: categoryId });
-
-    if (error && error.code !== '23505') {
+    try {
+      await db.insert('rule_entry_categories', {
+        entry_id: entryId,
+        category_id: categoryId,
+      });
+    } catch (error: any) {
       // Ignore duplicate key errors
-      throw new Error(`Failed to add entry to category: ${error.message}`);
+      if (error.code !== '23505') {
+        throw new Error(`Failed to add entry to category: ${error.message}`);
+      }
     }
   }
 
@@ -349,15 +332,10 @@ export class RulesService {
     entryId: string,
     categoryId: string
   ): Promise<void> {
-    const { error } = await this.client
-      .from('rule_entry_categories')
-      .delete()
-      .eq('entry_id', entryId)
-      .eq('category_id', categoryId);
-
-    if (error) {
-      throw new Error(`Failed to remove entry from category: ${error.message}`);
-    }
+    await query(
+      'DELETE FROM rule_entry_categories WHERE entry_id = $1 AND category_id = $2',
+      [entryId, categoryId]
+    );
   }
 
   // ============== Citation Methods ==============
@@ -409,10 +387,8 @@ export class RulesService {
 /**
  * Factory function to create rules service
  */
-export function createRulesService(
-  client: SupabaseClient<Database>
-): RulesService {
-  return new RulesService(client);
+export function createRulesService(): RulesService {
+  return new RulesService();
 }
 
 export default RulesService;

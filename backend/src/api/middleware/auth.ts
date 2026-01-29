@@ -1,14 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import { verifyToken, getUserById, JwtPayload } from '../../config/auth.js';
 import { isMockMode } from '../../config/mockSupabase.js';
-
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 
 export interface AuthenticatedUser {
   id: string;
   email: string;
   display_name?: string;
+  is_admin?: boolean;
 }
 
 declare global {
@@ -83,31 +81,10 @@ export async function authMiddleware(
       }
     }
 
-    // Real Supabase authentication
-    if (!supabaseUrl || !supabaseAnonKey) {
-      res.status(500).json({
-        success: false,
-        error: {
-          code: 'CONFIG_ERROR',
-          message: 'Supabase not configured',
-        },
-      });
-      return;
-    }
+    // Verify JWT token
+    const payload = verifyToken(token);
 
-    // Create a Supabase client with the user's token
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    });
-
-    // Verify the token by getting the user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
+    if (!payload) {
       res.status(401).json({
         success: false,
         error: {
@@ -118,11 +95,12 @@ export async function authMiddleware(
       return;
     }
 
-    // Attach user info to request
+    // Attach user info from JWT payload to request
     req.user = {
-      id: user.id,
-      email: user.email || '',
-      display_name: user.user_metadata?.name,
+      id: payload.userId,
+      email: payload.email,
+      display_name: payload.displayName || undefined,
+      is_admin: payload.isAdmin,
     };
     req.accessToken = token;
 
@@ -168,27 +146,15 @@ export async function optionalAuthMiddleware(
       return;
     }
 
-    // Real Supabase authentication
-    if (!supabaseUrl || !supabaseAnonKey) {
-      next();
-      return;
-    }
+    // Verify JWT token
+    const payload = verifyToken(token);
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser(token);
-
-    if (user) {
+    if (payload) {
       req.user = {
-        id: user.id,
-        email: user.email || '',
-        display_name: user.user_metadata?.name,
+        id: payload.userId,
+        email: payload.email,
+        display_name: payload.displayName || undefined,
+        is_admin: payload.isAdmin,
       };
       req.accessToken = token;
     }

@@ -6,7 +6,6 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { createAdminClient } from '../../config/supabase.js';
 import { isMockMode } from '../../config/mockSupabase.js';
 
 /**
@@ -49,28 +48,8 @@ export async function adminMiddleware(
       return;
     }
 
-    // Check admin status in profiles table
-    const client = createAdminClient(); // Use admin client to bypass RLS
-    const { data, error } = await client
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', req.user.id)
-      .single();
-
-    if (error) {
-      console.error('Error checking admin status:', error);
-      res.status(500).json({
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Failed to verify admin status',
-        },
-      });
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!data || !(data as any).is_admin) {
+    // Check admin status from JWT payload (set by auth middleware)
+    if (!req.user.is_admin) {
       res.status(403).json({
         success: false,
         error: {
@@ -119,15 +98,8 @@ export async function checkAdminStatus(
       return;
     }
 
-    const client = createAdminClient();
-    const { data } = await client
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', req.user.id)
-      .single();
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    req.isAdmin = (data as any)?.is_admin || false;
+    // Check admin status from JWT payload
+    req.isAdmin = req.user.is_admin || false;
     next();
   } catch {
     req.isAdmin = false;

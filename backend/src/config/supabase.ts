@@ -1,65 +1,27 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../models/database.types.js';
-import { createMockSupabaseClient, isMockMode } from './mockSupabase.js';
+/**
+ * @deprecated Supabase has been replaced with direct PostgreSQL.
+ *
+ * This file is kept as a stub to prevent import errors.
+ * All database operations should use the new database.ts and auth.ts modules.
+ *
+ * Migration notes:
+ * - Use `import { db, query } from './database.js'` for database operations
+ * - Use `import { verifyToken, registerUser, loginUser } from './auth.js'` for authentication
+ * - Repositories no longer need a client parameter
+ */
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+// Stub exports to prevent import errors
+export const supabaseAdmin = null;
+export const supabaseUrl = null;
+export const supabaseAnonKey = null;
+export const isMockMode = false;
 
-// Check if we're in mock mode
-const mockMode = isMockMode();
-
-if (mockMode) {
-  console.warn('[Supabase] Running in MOCK MODE - no Supabase credentials found');
-  console.warn('[Supabase] Data will be stored in memory and lost on restart');
-  console.warn('[Supabase] Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_ANON_KEY for real Supabase');
+export function createUserClient(_accessToken: string): null {
+  console.warn('DEPRECATED: createUserClient is no longer available. Use direct PostgreSQL instead.');
+  return null;
 }
 
-/**
- * Supabase client with service role key for backend operations.
- * This bypasses RLS and should only be used for server-side operations.
- */
-export const supabaseAdmin: SupabaseClient<Database> = mockMode
-  ? (createMockSupabaseClient() as SupabaseClient<Database>)
-  : createClient<Database>(
-      supabaseUrl!,
-      supabaseServiceKey!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-/**
- * Creates a Supabase client for a specific user's JWT token.
- * This respects RLS policies and should be used for user-initiated operations.
- */
-export function createUserClient(accessToken: string): SupabaseClient<Database> {
-  if (mockMode) {
-    return createMockSupabaseClient() as SupabaseClient<Database>;
-  }
-
-  return createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    },
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+export function createAdminClient(): null {
+  console.warn('DEPRECATED: createAdminClient is no longer available. Use direct PostgreSQL instead.');
+  return null;
 }
-
-/**
- * Returns the admin Supabase client for server-side operations.
- * This bypasses RLS and should be used for admin operations like document ingestion.
- */
-export function createAdminClient(): SupabaseClient<Database> {
-  return supabaseAdmin;
-}
-
-export { supabaseUrl, supabaseAnonKey, mockMode as isMockMode };

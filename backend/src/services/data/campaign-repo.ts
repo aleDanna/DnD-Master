@@ -3,8 +3,7 @@
  * Handles all database operations for campaigns and campaign players
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
+import { db, query } from '../../config/database.js';
 import type {
   Campaign,
   CampaignPlayer,
@@ -12,29 +11,23 @@ import type {
   UpdateCampaignInput,
 } from '../../models/campaign.js';
 
-type DbClient = SupabaseClient<Database>;
-
 export class CampaignRepository {
-  constructor(private client: DbClient) {}
-
   /**
    * Create a new campaign
    */
   async create(input: CreateCampaignInput, ownerId: string): Promise<Campaign> {
-    const { data, error } = await this.client
-      .from('campaigns')
-      .insert({
-        name: input.name,
-        description: input.description,
-        owner_id: ownerId,
-        dice_mode: input.dice_mode || 'rng',
-        map_mode: input.map_mode || 'narrative_only',
-      })
-      .select()
-      .single();
+    const data = await db.insert<any>('campaigns', {
+      name: input.name,
+      description: input.description || null,
+      owner_id: ownerId,
+      dice_mode: input.dice_mode || 'rng',
+      map_mode: input.map_mode || 'narrative_only',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
 
-    if (error) {
-      throw new Error(`Failed to create campaign: ${error.message}`);
+    if (!data) {
+      throw new Error('Failed to create campaign');
     }
 
     // Also add owner as a player
@@ -47,17 +40,8 @@ export class CampaignRepository {
    * Get a campaign by ID
    */
   async getById(id: string): Promise<Campaign | null> {
-    const { data, error } = await this.client
-      .from('campaigns')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get campaign: ${error.message}`);
-    }
-
+    const data = await db.findOne<any>('campaigns', { id });
+    if (!data) return null;
     return this.mapToCampaign(data);
   }
 
@@ -68,32 +52,29 @@ export class CampaignRepository {
     const offset = (page - 1) * limit;
 
     // Get campaign IDs where user is a player
-    const { data: playerData } = await this.client
-      .from('campaign_players')
-      .select('campaign_id')
-      .eq('user_id', userId);
-
-    const campaignIds = playerData?.map(p => p.campaign_id) || [];
+    const playerData = await db.findMany<any>('campaign_players', { user_id: userId });
+    const campaignIds = playerData.map(p => p.campaign_id);
 
     if (campaignIds.length === 0) {
       return { campaigns: [], total: 0 };
     }
 
-    // Get campaigns
-    const { data, error, count } = await this.client
-      .from('campaigns')
-      .select('*', { count: 'exact' })
-      .in('id', campaignIds)
-      .order('updated_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    // Get campaigns with count
+    const placeholders = campaignIds.map((_, i) => `$${i + 1}`).join(', ');
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM campaigns WHERE id IN (${placeholders})`,
+      campaignIds
+    );
+    const total = parseInt(countResult.rows[0]?.count || '0', 10);
 
-    if (error) {
-      throw new Error(`Failed to list campaigns: ${error.message}`);
-    }
+    const result = await query<any>(
+      `SELECT * FROM campaigns WHERE id IN (${placeholders}) ORDER BY updated_at DESC LIMIT $${campaignIds.length + 1} OFFSET $${campaignIds.length + 2}`,
+      [...campaignIds, limit, offset]
+    );
 
     return {
-      campaigns: (data || []).map(this.mapToCampaign),
-      total: count || 0,
+      campaigns: result.rows.map(this.mapToCampaign),
+      total,
     };
   }
 
@@ -101,21 +82,19 @@ export class CampaignRepository {
    * Update a campaign
    */
   async update(id: string, input: UpdateCampaignInput): Promise<Campaign> {
-    const { data, error } = await this.client
-      .from('campaigns')
-      .update({
-        name: input.name,
-        description: input.description,
-        dice_mode: input.dice_mode,
-        map_mode: input.map_mode,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    const updateData: Record<string, any> = {
+      updated_at: new Date(),
+    };
 
-    if (error) {
-      throw new Error(`Failed to update campaign: ${error.message}`);
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+    if (input.dice_mode !== undefined) updateData.dice_mode = input.dice_mode;
+    if (input.map_mode !== undefined) updateData.map_mode = input.map_mode;
+
+    const data = await db.update<any>('campaigns', updateData, { id });
+
+    if (!data) {
+      throw new Error('Failed to update campaign');
     }
 
     return this.mapToCampaign(data);
@@ -125,29 +104,22 @@ export class CampaignRepository {
    * Delete a campaign
    */
   async delete(id: string): Promise<void> {
-    const { error } = await this.client.from('campaigns').delete().eq('id', id);
-
-    if (error) {
-      throw new Error(`Failed to delete campaign: ${error.message}`);
-    }
+    await db.delete('campaigns', { id });
   }
 
   /**
    * Add a player to a campaign
    */
   async addPlayer(campaignId: string, userId: string, role: 'player' | 'dm' = 'player'): Promise<CampaignPlayer> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .insert({
-        campaign_id: campaignId,
-        user_id: userId,
-        role,
-      })
-      .select()
-      .single();
+    const data = await db.insert<any>('campaign_players', {
+      campaign_id: campaignId,
+      user_id: userId,
+      role,
+      joined_at: new Date(),
+    });
 
-    if (error) {
-      throw new Error(`Failed to add player: ${error.message}`);
+    if (!data) {
+      throw new Error('Failed to add player');
     }
 
     return {
@@ -163,31 +135,19 @@ export class CampaignRepository {
    * Remove a player from a campaign
    */
   async removePlayer(campaignId: string, userId: string): Promise<void> {
-    const { error } = await this.client
-      .from('campaign_players')
-      .delete()
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId);
-
-    if (error) {
-      throw new Error(`Failed to remove player: ${error.message}`);
-    }
+    await query(
+      'DELETE FROM campaign_players WHERE campaign_id = $1 AND user_id = $2',
+      [campaignId, userId]
+    );
   }
 
   /**
    * Get players in a campaign
    */
   async getPlayers(campaignId: string): Promise<CampaignPlayer[]> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .select('*')
-      .eq('campaign_id', campaignId);
+    const data = await db.findMany<any>('campaign_players', { campaign_id: campaignId });
 
-    if (error) {
-      throw new Error(`Failed to get players: ${error.message}`);
-    }
-
-    return (data || []).map(p => ({
+    return data.map(p => ({
       id: p.id,
       campaign_id: p.campaign_id,
       user_id: p.user_id,
@@ -200,14 +160,11 @@ export class CampaignRepository {
    * Check if a user is a member of a campaign
    */
   async isMember(campaignId: string, userId: string): Promise<boolean> {
-    const { data } = await this.client
-      .from('campaign_players')
-      .select('id')
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId)
-      .single();
-
-    return data !== null;
+    const result = await query<any>(
+      'SELECT id FROM campaign_players WHERE campaign_id = $1 AND user_id = $2 LIMIT 1',
+      [campaignId, userId]
+    );
+    return result.rows.length > 0;
   }
 
   /**
@@ -221,7 +178,7 @@ export class CampaignRepository {
   /**
    * Map database row to Campaign type
    */
-  private mapToCampaign(data: Database['public']['Tables']['campaigns']['Row']): Campaign {
+  private mapToCampaign(data: any): Campaign {
     return {
       id: data.id,
       name: data.name,
@@ -229,8 +186,8 @@ export class CampaignRepository {
       owner_id: data.owner_id,
       dice_mode: data.dice_mode as 'rng' | 'player_entered',
       map_mode: data.map_mode as 'grid_2d' | 'narrative_only',
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      created_at: data.created_at instanceof Date ? data.created_at.toISOString() : data.created_at,
+      updated_at: data.updated_at instanceof Date ? data.updated_at.toISOString() : data.updated_at,
     };
   }
 }
@@ -238,6 +195,6 @@ export class CampaignRepository {
 /**
  * Factory function to create a campaign repository
  */
-export function createCampaignRepository(client: DbClient): CampaignRepository {
-  return new CampaignRepository(client);
+export function createCampaignRepository(): CampaignRepository {
+  return new CampaignRepository();
 }

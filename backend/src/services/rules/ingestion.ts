@@ -6,8 +6,7 @@
  */
 
 import crypto from 'crypto';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../../models/database.types.js';
+import { db, query } from '../../config/database.js';
 import {
   DocumentStatus,
   FileType,
@@ -48,20 +47,10 @@ const SECTION_PATTERNS = [
 // Track ingestion progress in memory (could be moved to Redis for production)
 const ingestionProgress = new Map<string, IngestionProgress>();
 
-// Type alias for Supabase client with looser typing for operations
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DbClient = SupabaseClient<any>;
-
 /**
  * RulesIngestionService handles document ingestion pipeline
  */
 export class RulesIngestionService {
-  private client: DbClient;
-
-  constructor(client: SupabaseClient<Database>) {
-    this.client = client as DbClient;
-  }
-
   /**
    * Calculate SHA-256 hash of file content for duplicate detection
    */
@@ -308,12 +297,7 @@ export class RulesIngestionService {
    * Check if a document with this hash already exists
    */
   async checkDuplicate(fileHash: string): Promise<string | null> {
-    const { data } = await this.client
-      .from('source_documents')
-      .select('id')
-      .eq('file_hash', fileHash)
-      .single();
-
+    const data = await db.findOne<any>('source_documents', { file_hash: fileHash }, 'id');
     return data?.id ?? null;
   }
 
@@ -353,20 +337,18 @@ export class RulesIngestionService {
     }
 
     // Create document record
-    const { data: docData, error: docError } = await this.client
-      .from('source_documents')
-      .insert({
-        name,
-        file_type: fileType,
-        file_hash: fileHash,
-        ingested_by: userId,
-        status: 'processing',
-      })
-      .select()
-      .single();
+    const docData = await db.insert<any>('source_documents', {
+      name,
+      file_type: fileType,
+      file_hash: fileHash,
+      ingested_by: userId || null,
+      status: 'processing',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
 
-    if (docError || !docData) {
-      throw new Error(`Failed to create document record: ${docError?.message}`);
+    if (!docData) {
+      throw new Error('Failed to create document record');
     }
 
     const documentId = docData.id;
@@ -388,10 +370,7 @@ export class RulesIngestionService {
 
       // Update page count if available
       if (extracted.pages) {
-        await this.client
-          .from('source_documents')
-          .update({ total_pages: extracted.pages })
-          .eq('id', documentId);
+        await db.update('source_documents', { total_pages: extracted.pages }, { id: documentId });
       }
 
       // Detect chapters
@@ -401,20 +380,17 @@ export class RulesIngestionService {
       // Process each chapter
       for (const chapter of chapters) {
         // Insert chapter
-        const { data: chapterData, error: chapterError } = await this.client
-          .from('rule_chapters')
-          .insert({
-            document_id: documentId,
-            title: chapter.title,
-            order_index: chapter.orderIndex,
-            page_start: chapter.pageStart,
-            page_end: chapter.pageEnd,
-          })
-          .select()
-          .single();
+        const chapterData = await db.insert<any>('rule_chapters', {
+          document_id: documentId,
+          title: chapter.title,
+          order_index: chapter.orderIndex,
+          page_start: chapter.pageStart || null,
+          page_end: chapter.pageEnd || null,
+          created_at: new Date(),
+        });
 
-        if (chapterError || !chapterData) {
-          throw new Error(`Failed to insert chapter: ${chapterError?.message}`);
+        if (!chapterData) {
+          throw new Error('Failed to insert chapter');
         }
 
         this.updateProgress(documentId, {
@@ -426,20 +402,17 @@ export class RulesIngestionService {
 
         for (const section of sections) {
           // Insert section
-          const { data: sectionData, error: sectionError } = await this.client
-            .from('rule_sections')
-            .insert({
-              chapter_id: chapterData.id,
-              title: section.title,
-              order_index: section.orderIndex,
-              page_start: section.pageStart,
-              page_end: section.pageEnd,
-            })
-            .select()
-            .single();
+          const sectionData = await db.insert<any>('rule_sections', {
+            chapter_id: chapterData.id,
+            title: section.title,
+            order_index: section.orderIndex,
+            page_start: section.pageStart || null,
+            page_end: section.pageEnd || null,
+            created_at: new Date(),
+          });
 
-          if (sectionError || !sectionData) {
-            throw new Error(`Failed to insert section: ${sectionError?.message}`);
+          if (!sectionData) {
+            throw new Error('Failed to insert section');
           }
 
           this.updateProgress(documentId, {
@@ -451,20 +424,17 @@ export class RulesIngestionService {
 
           for (const entry of entries) {
             // Insert entry (without embedding for now)
-            const { data: entryData, error: entryError } = await this.client
-              .from('rule_entries')
-              .insert({
-                section_id: sectionData.id,
-                title: entry.title,
-                content: entry.content,
-                page_reference: entry.pageReference,
-                order_index: entry.orderIndex,
-              })
-              .select()
-              .single();
+            const entryData = await db.insert<any>('rule_entries', {
+              section_id: sectionData.id,
+              title: entry.title || null,
+              content: entry.content,
+              page_reference: entry.pageReference || null,
+              order_index: entry.orderIndex,
+              created_at: new Date(),
+            });
 
-            if (entryError || !entryData) {
-              throw new Error(`Failed to insert entry: ${entryError?.message}`);
+            if (!entryData) {
+              throw new Error('Failed to insert entry');
             }
 
             allEntries.push({ entry, sectionId: sectionData.id });
@@ -482,22 +452,16 @@ export class RulesIngestionService {
       }
 
       // Mark as completed
-      await this.client
-        .from('source_documents')
-        .update({ status: 'completed' })
-        .eq('id', documentId);
+      await db.update('source_documents', { status: 'completed' }, { id: documentId });
 
       return documentId;
     } catch (error) {
       // Mark as failed
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.client
-        .from('source_documents')
-        .update({
-          status: 'failed',
-          error_log: errorMessage,
-        })
-        .eq('id', documentId);
+      await db.update('source_documents', {
+        status: 'failed',
+        error_log: errorMessage,
+      }, { id: documentId });
 
       throw error;
     }
@@ -510,15 +474,15 @@ export class RulesIngestionService {
     documentId: string,
     entries: { entry: DetectedEntry; sectionId: string }[]
   ): Promise<void> {
-    // Get all entry IDs and contents
-    const { data: dbEntries } = await this.client
-      .from('rule_entries')
-      .select('id, content, title')
-      .in(
-        'section_id',
-        entries.map(e => e.sectionId)
-      );
+    // Get all entry IDs and contents for the sections
+    const sectionIds = [...new Set(entries.map(e => e.sectionId))];
+    const placeholders = sectionIds.map((_, i) => `$${i + 1}`).join(', ');
+    const result = await query<any>(
+      `SELECT id, content, title FROM rule_entries WHERE section_id IN (${placeholders})`,
+      sectionIds
+    );
 
+    const dbEntries = result.rows;
     if (!dbEntries || dbEntries.length === 0) return;
 
     // Prepare texts for embedding (combine title and content)
@@ -534,15 +498,12 @@ export class RulesIngestionService {
       });
     });
 
-    // Update entries with embeddings
+    // Update entries with embeddings using the PostgreSQL function
     for (let i = 0; i < dbEntries.length; i++) {
       const embedding = formatEmbeddingForPgvector(embeddings[i]);
 
-      // Use raw SQL for pgvector update
-      await this.client.rpc('update_entry_embedding', {
-        entry_id: dbEntries[i].id,
-        embedding_vector: embedding,
-      });
+      // Use the PostgreSQL function to update embedding
+      await query('SELECT update_entry_embedding($1, $2)', [dbEntries[i].id, embedding]);
     }
   }
 
@@ -550,11 +511,7 @@ export class RulesIngestionService {
    * Get ingestion status for a document
    */
   async getIngestionStatus(documentId: string): Promise<IngestionStatus | null> {
-    const { data } = await this.client
-      .from('source_documents')
-      .select('id, status, error_log')
-      .eq('id', documentId)
-      .single();
+    const data = await db.findOne<any>('source_documents', { id: documentId }, 'id, status, error_log');
 
     if (!data) return null;
 
@@ -577,14 +534,7 @@ export class RulesIngestionService {
    * Delete a document and all related data (cascades automatically)
    */
   async deleteDocument(documentId: string): Promise<void> {
-    const { error } = await this.client
-      .from('source_documents')
-      .delete()
-      .eq('id', documentId);
-
-    if (error) {
-      throw new Error(`Failed to delete document: ${error.message}`);
-    }
+    await db.delete('source_documents', { id: documentId });
 
     // Clean up progress tracking
     ingestionProgress.delete(documentId);
@@ -594,10 +544,8 @@ export class RulesIngestionService {
 /**
  * Factory function to create ingestion service
  */
-export function createIngestionService(
-  client: SupabaseClient<Database>
-): RulesIngestionService {
-  return new RulesIngestionService(client);
+export function createIngestionService(): RulesIngestionService {
+  return new RulesIngestionService();
 }
 
 export default RulesIngestionService;

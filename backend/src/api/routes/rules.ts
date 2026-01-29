@@ -11,7 +11,6 @@ import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
 import { adminMiddleware } from '../middleware/adminAuth.js';
 import { validateParams, validateQuery } from '../middleware/validation.js';
-import { createUserClient, createAdminClient } from '../../config/supabase.js';
 import { createRulesService } from '../../services/rules/service.js';
 import { createSearchService } from '../../services/rules/search.js';
 import { createIngestionService } from '../../services/rules/ingestion.js';
@@ -88,10 +87,9 @@ const createCategorySchema = z.object({
 router.get(
   '/documents',
   authMiddleware,
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     try {
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       const documents = await service.getDocuments();
 
@@ -125,8 +123,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { documentId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       // Check if document exists
       const document = await service.getDocument(documentId);
@@ -173,8 +170,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { chapterId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       // Check if chapter exists
       const chapter = await service.getChapter(chapterId);
@@ -221,8 +217,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { sectionId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       // Check if section exists
       const section = await service.getSection(sectionId);
@@ -269,8 +264,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { entryId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       const entry = await service.getEntry(entryId);
 
@@ -311,8 +305,7 @@ router.get(
   authMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       const categories = await service.getCategories();
 
@@ -348,8 +341,7 @@ router.get(
     try {
       const { categoryId } = req.params;
       const { limit, offset } = req.query as unknown as { limit: number; offset: number };
-      const client = createUserClient(req.accessToken!);
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       const result = await service.getEntriesByCategory(categoryId, { limit, offset });
 
@@ -393,8 +385,7 @@ router.get(
         documentId?: string;
       };
 
-      const client = createUserClient(req.accessToken!);
-      const searchService = createSearchService(client);
+      const searchService = createSearchService();
 
       const result = await searchService.search({
         query: q,
@@ -460,8 +451,7 @@ router.post(
       // Determine file type
       const fileType: FileType = req.file.mimetype === 'application/pdf' ? 'pdf' : 'txt';
 
-      const client = createAdminClient(); // Use admin client for ingestion
-      const ingestionService = createIngestionService(client);
+      const ingestionService = createIngestionService();
 
       // Start ingestion (async operation)
       const documentId = await ingestionService.ingestDocument(
@@ -519,8 +509,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createAdminClient();
-      const ingestionService = createIngestionService(client);
+      const ingestionService = createIngestionService();
 
       const status = await ingestionService.getIngestionStatus(id);
 
@@ -564,8 +553,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createAdminClient();
-      const ingestionService = createIngestionService(client);
+      const ingestionService = createIngestionService();
 
       await ingestionService.deleteDocument(id);
 
@@ -611,8 +599,7 @@ router.post(
       }
 
       const { name, description } = validation.data;
-      const client = createAdminClient();
-      const service = createRulesService(client);
+      const service = createRulesService();
 
       const category = await service.createCategory(name, description || null, req.user!.id);
 

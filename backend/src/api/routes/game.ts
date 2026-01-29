@@ -21,7 +21,6 @@ import { createDiceService } from '../../services/game/dice-service.js';
 import { createStateService } from '../../services/game/state-service.js';
 import { createCombatService } from '../../services/game/combat-service.js';
 import { createDMService } from '../../services/ai/dm-service.js';
-import { createUserClient, supabaseAdmin } from '../../config/supabase.js';
 import type { StartCombatInput } from '../../models/combat.js';
 
 const router = Router();
@@ -47,11 +46,10 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { action, character_id } = req.body;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const stateService = createStateService(sessionRepo, eventRepo);
 
       // Check session exists and is active
@@ -149,11 +147,10 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { dice, reason, value } = req.body;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Get session and campaign
       const session = await sessionRepo.getWithCampaign(sessionId);
@@ -268,10 +265,9 @@ router.get(
         types?: string;
       };
 
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -339,7 +335,7 @@ router.get(
 
 /**
  * GET /api/sessions/:id/events/stream
- * Stream events using Server-Sent Events
+ * Stream events using Server-Sent Events (polling-based)
  */
 router.get(
   '/:id/events/stream',
@@ -348,10 +344,10 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
+      const eventRepo = createEventRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -388,32 +384,43 @@ router.get(
       // Send initial connection message
       res.write(`data: ${JSON.stringify({ type: 'connected', sessionId })}\n\n`);
 
-      // Set up Supabase realtime subscription
-      const channel = supabaseAdmin
-        .channel(`session-${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'events',
-            filter: `session_id=eq.${sessionId}`,
-          },
-          (payload) => {
-            res.write(`data: ${JSON.stringify({ type: 'event', data: payload.new })}\n\n`);
+      // Track the last sequence we've sent
+      let lastSequence = await eventRepo.getLatestSequence(sessionId);
+      let isConnected = true;
+
+      // Polling interval for new events (1 second)
+      const pollInterval = setInterval(async () => {
+        if (!isConnected) return;
+
+        try {
+          const events = await eventRepo.listBySession(sessionId, {
+            limit: 50,
+            afterSequence: lastSequence,
+          });
+
+          for (const event of events) {
+            res.write(`data: ${JSON.stringify({ type: 'event', data: event })}\n\n`);
+            if (event.sequence_num > lastSequence) {
+              lastSequence = event.sequence_num;
+            }
           }
-        )
-        .subscribe();
+        } catch (error) {
+          console.error('Error polling events:', error);
+        }
+      }, 1000);
 
       // Handle client disconnect
       req.on('close', () => {
-        channel.unsubscribe();
+        isConnected = false;
+        clearInterval(pollInterval);
         res.end();
       });
 
       // Keep connection alive with heartbeat
       const heartbeat = setInterval(() => {
-        res.write(': heartbeat\n\n');
+        if (isConnected) {
+          res.write(': heartbeat\n\n');
+        }
       }, 30000);
 
       req.on('close', () => {
@@ -443,11 +450,10 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -524,10 +530,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -588,11 +593,10 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { participants } = req.body as StartCombatInput;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -698,11 +702,10 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -810,11 +813,10 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { outcome, summary } = req.body;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -908,11 +910,10 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { action, character_id } = req.body;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const stateService = createStateService(sessionRepo, eventRepo);
 
       // Check session exists and is active

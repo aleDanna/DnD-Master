@@ -3,8 +3,7 @@
  * Handles all database operations for game sessions
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
+import { db, query } from '../../config/database.js';
 import type {
   Session,
   CreateSessionInput,
@@ -12,36 +11,28 @@ import type {
   SessionWithCampaign,
 } from '../../models/session.js';
 
-type DbClient = SupabaseClient<Database>;
-
 export class SessionRepository {
-  constructor(private client: DbClient) {}
-
   /**
    * Create a new session
    */
   async create(input: CreateSessionInput): Promise<Session> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .insert({
-        campaign_id: input.campaign_id,
-        name: input.name,
-        status: 'active',
-        version: 1,
-        narrative_summary: null,
-        current_location: null,
-        active_npcs: [],
-        combat_state: null,
-        map_state: null,
-        started_at: new Date().toISOString(),
-        ended_at: null,
-        last_activity: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const data = await db.insert<any>('sessions', {
+      campaign_id: input.campaign_id,
+      name: input.name,
+      status: 'active',
+      version: 1,
+      narrative_summary: null,
+      current_location: null,
+      active_npcs: JSON.stringify([]),
+      combat_state: null,
+      map_state: null,
+      started_at: new Date(),
+      ended_at: null,
+      last_activity: new Date(),
+    });
 
-    if (error) {
-      throw new Error(`Failed to create session: ${error.message}`);
+    if (!data) {
+      throw new Error('Failed to create session');
     }
 
     return this.mapToSession(data);
@@ -51,17 +42,8 @@ export class SessionRepository {
    * Get a session by ID
    */
   async getById(id: string): Promise<Session | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get session: ${error.message}`);
-    }
-
+    const data = await db.findOne<any>('sessions', { id });
+    if (!data) return null;
     return this.mapToSession(data);
   }
 
@@ -69,35 +51,28 @@ export class SessionRepository {
    * Get a session with campaign details
    */
   async getWithCampaign(id: string): Promise<SessionWithCampaign | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select(`
-        *,
-        campaign:campaigns(id, name, dice_mode, map_mode)
-      `)
-      .eq('id', id)
-      .single();
+    const result = await query<any>(
+      `SELECT s.*, c.id as campaign_id_ref, c.name as campaign_name, c.dice_mode, c.map_mode
+       FROM sessions s
+       JOIN campaigns c ON s.campaign_id = c.id
+       WHERE s.id = $1`,
+      [id]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get session: ${error.message}`);
+    if (result.rows.length === 0) {
+      return null;
     }
 
+    const data = result.rows[0];
     const session = this.mapToSession(data);
-    const campaign = data.campaign as {
-      id: string;
-      name: string;
-      dice_mode: string;
-      map_mode: string;
-    };
 
     return {
       ...session,
       campaign: {
-        id: campaign.id,
-        name: campaign.name,
-        dice_mode: campaign.dice_mode,
-        map_mode: campaign.map_mode,
+        id: data.campaign_id,
+        name: data.campaign_name,
+        dice_mode: data.dice_mode,
+        map_mode: data.map_mode,
       },
     };
   }
@@ -106,36 +81,24 @@ export class SessionRepository {
    * List sessions for a campaign
    */
   async listByCampaign(campaignId: string): Promise<Session[]> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('started_at', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to list sessions: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToSession);
+    const data = await db.findMany<any>(
+      'sessions',
+      { campaign_id: campaignId },
+      { orderBy: 'started_at DESC' }
+    );
+    return data.map(this.mapToSession);
   }
 
   /**
    * Get active session for a campaign (there should only be one)
    */
   async getActiveSession(campaignId: string): Promise<Session | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('status', 'active')
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get active session: ${error.message}`);
-    }
-
-    return this.mapToSession(data);
+    const result = await query<any>(
+      `SELECT * FROM sessions WHERE campaign_id = $1 AND status = 'active' LIMIT 1`,
+      [campaignId]
+    );
+    if (result.rows.length === 0) return null;
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -143,36 +106,53 @@ export class SessionRepository {
    * Uses optimistic locking with version number
    */
   async update(id: string, input: UpdateSessionInput, expectedVersion: number): Promise<Session> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .update({
-        name: input.name,
-        status: input.status,
-        narrative_summary: input.narrative_summary,
-        current_location: input.current_location,
-        active_npcs: input.active_npcs ? JSON.parse(JSON.stringify(input.active_npcs)) : undefined,
-        combat_state: input.combat_state !== undefined
-          ? (input.combat_state ? JSON.parse(JSON.stringify(input.combat_state)) : null)
-          : undefined,
-        map_state: input.map_state !== undefined
-          ? (input.map_state ? JSON.parse(JSON.stringify(input.map_state)) : null)
-          : undefined,
-        version: expectedVersion + 1,
-        last_activity: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('version', expectedVersion)
-      .select()
-      .single();
+    const updateFields: string[] = ['version = $1', 'last_activity = $2'];
+    const values: any[] = [expectedVersion + 1, new Date()];
+    let paramIndex = 3;
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new Error('Session was modified by another request. Please refresh and try again.');
-      }
-      throw new Error(`Failed to update session: ${error.message}`);
+    if (input.name !== undefined) {
+      updateFields.push(`name = $${paramIndex++}`);
+      values.push(input.name);
+    }
+    if (input.status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      values.push(input.status);
+    }
+    if (input.narrative_summary !== undefined) {
+      updateFields.push(`narrative_summary = $${paramIndex++}`);
+      values.push(input.narrative_summary);
+    }
+    if (input.current_location !== undefined) {
+      updateFields.push(`current_location = $${paramIndex++}`);
+      values.push(input.current_location);
+    }
+    if (input.active_npcs !== undefined) {
+      updateFields.push(`active_npcs = $${paramIndex++}`);
+      values.push(JSON.stringify(input.active_npcs));
+    }
+    if (input.combat_state !== undefined) {
+      updateFields.push(`combat_state = $${paramIndex++}`);
+      values.push(input.combat_state ? JSON.stringify(input.combat_state) : null);
+    }
+    if (input.map_state !== undefined) {
+      updateFields.push(`map_state = $${paramIndex++}`);
+      values.push(input.map_state ? JSON.stringify(input.map_state) : null);
     }
 
-    return this.mapToSession(data);
+    values.push(id, expectedVersion);
+
+    const result = await query<any>(
+      `UPDATE sessions SET ${updateFields.join(', ')}
+       WHERE id = $${paramIndex++} AND version = $${paramIndex}
+       RETURNING *`,
+      values
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('Session was modified by another request. Please refresh and try again.');
+    }
+
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -184,14 +164,13 @@ export class SessionRepository {
       throw new Error('Session not found');
     }
 
-    return this.update(
-      id,
-      { status: 'ended' },
-      session.version
-    ).then(s => ({
-      ...s,
-      ended_at: new Date().toISOString(),
-    }));
+    const result = await query<any>(
+      `UPDATE sessions SET status = 'ended', ended_at = $1, last_activity = $1, version = version + 1
+       WHERE id = $2 RETURNING *`,
+      [new Date(), id]
+    );
+
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -241,38 +220,24 @@ export class SessionRepository {
    * Get paused sessions that can be resumed
    */
   async getPausedSessions(campaignId: string): Promise<Session[]> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('status', 'paused')
-      .order('last_activity', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to get paused sessions: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToSession);
+    const result = await query<any>(
+      `SELECT * FROM sessions WHERE campaign_id = $1 AND status = 'paused' ORDER BY last_activity DESC`,
+      [campaignId]
+    );
+    return result.rows.map(this.mapToSession);
   }
 
   /**
    * Update last activity timestamp
    */
   async touchSession(id: string): Promise<void> {
-    const { error } = await this.client
-      .from('sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Failed to update session activity:', error);
-    }
+    await query('UPDATE sessions SET last_activity = $1 WHERE id = $2', [new Date(), id]);
   }
 
   /**
    * Map database row to Session type
    */
-  private mapToSession(data: Database['public']['Tables']['sessions']['Row']): Session {
+  private mapToSession(data: any): Session {
     return {
       id: data.id,
       campaign_id: data.campaign_id,
@@ -281,12 +246,12 @@ export class SessionRepository {
       version: data.version,
       narrative_summary: data.narrative_summary,
       current_location: data.current_location,
-      active_npcs: (data.active_npcs as Session['active_npcs']) || [],
-      combat_state: data.combat_state as Session['combat_state'],
-      map_state: data.map_state as Session['map_state'],
-      started_at: data.started_at,
-      ended_at: data.ended_at,
-      last_activity: data.last_activity,
+      active_npcs: (typeof data.active_npcs === 'string' ? JSON.parse(data.active_npcs) : data.active_npcs) || [],
+      combat_state: typeof data.combat_state === 'string' ? JSON.parse(data.combat_state) : data.combat_state,
+      map_state: typeof data.map_state === 'string' ? JSON.parse(data.map_state) : data.map_state,
+      started_at: data.started_at instanceof Date ? data.started_at.toISOString() : data.started_at,
+      ended_at: data.ended_at instanceof Date ? data.ended_at.toISOString() : data.ended_at,
+      last_activity: data.last_activity instanceof Date ? data.last_activity.toISOString() : data.last_activity,
     };
   }
 }
@@ -294,6 +259,6 @@ export class SessionRepository {
 /**
  * Factory function to create a session repository
  */
-export function createSessionRepository(client: DbClient): SessionRepository {
-  return new SessionRepository(client);
+export function createSessionRepository(): SessionRepository {
+  return new SessionRepository();
 }

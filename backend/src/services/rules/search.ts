@@ -5,8 +5,7 @@
  * Tasks: T018-T022
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../../models/database.types.js';
+import { query } from '../../config/database.js';
 import {
   RuleSearchResult,
   RuleEntryWithContext,
@@ -24,20 +23,10 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const SEARCH_POOL_SIZE = 50; // Number of results to fetch from each search method
 
-// Type alias for looser Supabase client typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DbClient = SupabaseClient<any>;
-
 /**
  * RulesSearchService handles all search operations
  */
 export class RulesSearchService {
-  private client: DbClient;
-
-  constructor(client: SupabaseClient<Database>) {
-    this.client = client as DbClient;
-  }
-
   /**
    * Main search method - routes to appropriate search type
    */
@@ -82,48 +71,49 @@ export class RulesSearchService {
   }
 
   /**
-   * Full-text search using PostgreSQL tsvector via RPC
+   * Full-text search using PostgreSQL tsvector
    */
   async fulltextSearch(
-    query: string,
+    searchQuery: string,
     options: { limit?: number; documentId?: string } = {}
   ): Promise<RuleSearchResult[]> {
     const limit = options.limit || SEARCH_POOL_SIZE;
 
     try {
-      // Use RPC for full-text search
-      const { data, error } = await this.client.rpc('search_rules_fulltext', {
-        search_query: query,
-        match_count: limit,
-        filter_document_id: options.documentId || null,
-      });
+      // Call the PostgreSQL function for full-text search
+      const params: any[] = [searchQuery, limit];
+      let sql = 'SELECT * FROM search_rules_fulltext($1, $2';
 
-      if (error) {
-        console.error('Full-text search error:', error);
-        return [];
+      if (options.documentId) {
+        sql += ', $3)';
+        params.push(options.documentId);
+      } else {
+        sql += ', NULL)';
       }
 
-      if (!data || data.length === 0) {
+      const result = await query<{ id: string; rank: number }>(sql, params);
+
+      if (result.rows.length === 0) {
         return [];
       }
 
       // Fetch full entry data with context
-      const entryIds = data.map((r: any) => r.id);
+      const entryIds = result.rows.map(r => r.id);
       const fullEntries = await this.fetchEntriesWithContext(entryIds);
 
       // Map ranks to entries
       const rankMap = new Map<string, number>(
-        data.map((r: any) => [r.id, r.rank as number])
+        result.rows.map(r => [r.id, r.rank])
       );
 
       // Normalize ranks
-      const maxRank = Math.max(...data.map((r: any) => r.rank as number));
+      const maxRank = Math.max(...result.rows.map(r => r.rank));
 
       return fullEntries.map(entry => ({
         entry,
         relevance: maxRank > 0 ? (rankMap.get(entry.id) || 0) / maxRank : 0,
         matchType: 'fulltext' as MatchType,
-        highlights: this.highlightMatches(entry.content, query),
+        highlights: this.highlightMatches(entry.content, searchQuery),
       }));
     } catch (error) {
       console.error('Full-text search error:', error);
@@ -135,7 +125,7 @@ export class RulesSearchService {
    * Semantic search using pgvector similarity
    */
   async semanticSearch(
-    query: string,
+    searchQuery: string,
     options: { limit?: number; documentId?: string } = {}
   ): Promise<RuleSearchResult[]> {
     // Check if embeddings are available
@@ -148,39 +138,40 @@ export class RulesSearchService {
 
     try {
       // Generate query embedding
-      const queryEmbedding = await generateEmbedding(query);
+      const queryEmbedding = await generateEmbedding(searchQuery);
       const embeddingString = formatEmbeddingForPgvector(queryEmbedding);
 
-      // Use RPC for vector similarity search
-      const { data, error } = await this.client.rpc('search_rules_semantic', {
-        query_embedding: embeddingString,
-        match_count: limit,
-        filter_document_id: options.documentId || null,
-      });
+      // Call the PostgreSQL function for semantic search
+      const params: any[] = [embeddingString, limit];
+      let sql = 'SELECT * FROM search_rules_semantic($1, $2';
 
-      if (error) {
-        console.error('Semantic search error:', error);
-        return [];
+      if (options.documentId) {
+        sql += ', $3)';
+        params.push(options.documentId);
+      } else {
+        sql += ', NULL)';
       }
 
-      if (!data || data.length === 0) {
+      const result = await query<{ id: string; similarity: number }>(sql, params);
+
+      if (result.rows.length === 0) {
         return [];
       }
 
       // Fetch full entry data with context
-      const entryIds = data.map((r: any) => r.id);
+      const entryIds = result.rows.map(r => r.id);
       const fullEntries = await this.fetchEntriesWithContext(entryIds);
 
       // Map similarity scores to entries
       const similarityMap = new Map<string, number>(
-        data.map((r: any) => [r.id, r.similarity as number])
+        result.rows.map(r => [r.id, r.similarity])
       );
 
       return fullEntries.map(entry => ({
         entry,
         relevance: similarityMap.get(entry.id) || 0,
         matchType: 'semantic' as MatchType,
-        highlights: this.highlightMatches(entry.content, query),
+        highlights: this.highlightMatches(entry.content, searchQuery),
       }));
     } catch (error) {
       console.error('Semantic search error:', error);
@@ -193,15 +184,15 @@ export class RulesSearchService {
    * Falls back to fulltext-only if embeddings are unavailable
    */
   async hybridSearch(
-    query: string,
+    searchQuery: string,
     options: { limit?: number; documentId?: string } = {}
   ): Promise<RuleSearchResult[]> {
     const limit = options.limit || SEARCH_POOL_SIZE;
 
     // Run both searches in parallel (semantic will return empty if unavailable)
     const [fulltextResults, semanticResults] = await Promise.all([
-      this.fulltextSearch(query, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
-      this.semanticSearch(query, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
+      this.fulltextSearch(searchQuery, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
+      this.semanticSearch(searchQuery, { limit: SEARCH_POOL_SIZE, documentId: options.documentId }),
     ]);
 
     // If semantic search returned nothing, just return fulltext results
@@ -264,7 +255,7 @@ export class RulesSearchService {
         entry,
         relevance: (rrfScores.get(id) || 0) / maxScore, // Normalize to 0-1
         matchType,
-        highlights: this.highlightMatches(entry.content, query),
+        highlights: this.highlightMatches(entry.content, searchQuery),
       };
     });
   }
@@ -272,9 +263,9 @@ export class RulesSearchService {
   /**
    * Generate highlighted snippets for search results
    */
-  highlightMatches(content: string, query: string): string[] {
+  highlightMatches(content: string, searchQuery: string): string[] {
     const highlights: string[] = [];
-    const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const words = searchQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
     if (words.length === 0) return [];
 
@@ -325,16 +316,6 @@ export class RulesSearchService {
   }
 
   /**
-   * Convert user query to PostgreSQL tsquery format
-   */
-  private toTsQuery(query: string): string {
-    // Use websearch format which handles natural language queries
-    return query
-      .replace(/[^\w\s]/g, ' ') // Remove special chars
-      .trim();
-  }
-
-  /**
    * Escape special regex characters
    */
   private escapeRegExp(string: string): string {
@@ -349,31 +330,27 @@ export class RulesSearchService {
   ): Promise<RuleEntryWithContext[]> {
     if (entryIds.length === 0) return [];
 
-    const { data, error } = await this.client
-      .from('rule_entries')
-      .select(
-        `
-        id, section_id, title, content, page_reference, order_index, created_at,
-        rule_sections!inner (
-          id, chapter_id, title, order_index, page_start, page_end, created_at,
-          rule_chapters!inner (
-            id, document_id, title, order_index, page_start, page_end, created_at,
-            source_documents!inner (
-              id, name, file_type, file_hash, total_pages, ingested_at, ingested_by, status, error_log, created_at, updated_at
-            )
-          )
-        )
-      `
-      )
-      .in('id', entryIds);
-
-    if (error || !data) {
-      return [];
-    }
+    const placeholders = entryIds.map((_, i) => `$${i + 1}`).join(', ');
+    const result = await query<any>(
+      `SELECT
+        re.id, re.section_id, re.title, re.content, re.page_reference, re.order_index, re.created_at,
+        rs.id as section_id_ref, rs.chapter_id, rs.title as section_title, rs.order_index as section_order,
+        rs.page_start as section_page_start, rs.page_end as section_page_end, rs.created_at as section_created_at,
+        rc.id as chapter_id_ref, rc.document_id, rc.title as chapter_title, rc.order_index as chapter_order,
+        rc.page_start as chapter_page_start, rc.page_end as chapter_page_end, rc.created_at as chapter_created_at,
+        sd.id as doc_id, sd.name as doc_name, sd.file_type, sd.file_hash, sd.total_pages,
+        sd.ingested_at, sd.ingested_by, sd.status, sd.error_log, sd.created_at as doc_created_at, sd.updated_at as doc_updated_at
+       FROM rule_entries re
+       JOIN rule_sections rs ON re.section_id = rs.id
+       JOIN rule_chapters rc ON rs.chapter_id = rc.id
+       JOIN source_documents sd ON rc.document_id = sd.id
+       WHERE re.id IN (${placeholders})`,
+      entryIds
+    );
 
     // Preserve original order
     const entryMap = new Map(
-      data.map((row: any) => [row.id, this.transformToEntryWithContext(row)])
+      result.rows.map(row => [row.id, this.transformToEntryWithContext(row)])
     );
 
     return entryIds
@@ -385,10 +362,6 @@ export class RulesSearchService {
    * Transform database row to RuleEntryWithContext
    */
   private transformToEntryWithContext(row: any): RuleEntryWithContext {
-    const section = row.rule_sections;
-    const chapter = section.rule_chapters;
-    const document = chapter.source_documents;
-
     return {
       id: row.id,
       sectionId: row.section_id,
@@ -399,35 +372,35 @@ export class RulesSearchService {
       orderIndex: row.order_index,
       createdAt: new Date(row.created_at),
       section: {
-        id: section.id,
-        chapterId: section.chapter_id,
-        title: section.title,
-        orderIndex: section.order_index,
-        pageStart: section.page_start,
-        pageEnd: section.page_end,
-        createdAt: new Date(section.created_at),
+        id: row.section_id_ref,
+        chapterId: row.chapter_id,
+        title: row.section_title,
+        orderIndex: row.section_order,
+        pageStart: row.section_page_start,
+        pageEnd: row.section_page_end,
+        createdAt: new Date(row.section_created_at),
       },
       chapter: {
-        id: chapter.id,
-        documentId: chapter.document_id,
-        title: chapter.title,
-        orderIndex: chapter.order_index,
-        pageStart: chapter.page_start,
-        pageEnd: chapter.page_end,
-        createdAt: new Date(chapter.created_at),
+        id: row.chapter_id_ref,
+        documentId: row.document_id,
+        title: row.chapter_title,
+        orderIndex: row.chapter_order,
+        pageStart: row.chapter_page_start,
+        pageEnd: row.chapter_page_end,
+        createdAt: new Date(row.chapter_created_at),
       },
       document: {
-        id: document.id,
-        name: document.name,
-        fileType: document.file_type,
-        fileHash: document.file_hash,
-        totalPages: document.total_pages,
-        ingestedAt: new Date(document.ingested_at),
-        ingestedBy: document.ingested_by,
-        status: document.status,
-        errorLog: document.error_log,
-        createdAt: new Date(document.created_at),
-        updatedAt: new Date(document.updated_at),
+        id: row.doc_id,
+        name: row.doc_name,
+        fileType: row.file_type,
+        fileHash: row.file_hash,
+        totalPages: row.total_pages,
+        ingestedAt: new Date(row.ingested_at),
+        ingestedBy: row.ingested_by,
+        status: row.status,
+        errorLog: row.error_log,
+        createdAt: new Date(row.doc_created_at),
+        updatedAt: new Date(row.doc_updated_at),
       },
     };
   }
@@ -436,10 +409,8 @@ export class RulesSearchService {
 /**
  * Factory function to create search service
  */
-export function createSearchService(
-  client: SupabaseClient<Database>
-): RulesSearchService {
-  return new RulesSearchService(client);
+export function createSearchService(): RulesSearchService {
+  return new RulesSearchService();
 }
 
 export default RulesSearchService;

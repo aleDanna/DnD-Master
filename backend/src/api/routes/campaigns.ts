@@ -15,7 +15,6 @@ import {
 } from '../middleware/validation.js';
 import { createCampaignRepository } from '../../services/data/campaign-repo.js';
 import { createCampaignPlayerRepository } from '../../services/data/campaign-player-repo.js';
-import { createUserClient } from '../../config/supabase.js';
 import { z } from 'zod';
 
 const router = Router();
@@ -41,8 +40,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { page, limit } = req.query as { page: number; limit: number };
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       const result = await repo.listByUser(req.user!.id, page, limit);
 
@@ -82,8 +80,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       // Check membership
       const isMember = await repo.isMember(id, req.user!.id);
@@ -145,8 +142,7 @@ router.post(
   validate(createCampaignSchema),
   async (req: Request, res: Response) => {
     try {
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       const campaign = await repo.create(req.body, req.user!.id);
 
@@ -179,8 +175,7 @@ router.patch(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       // Only owner can update
       const isOwner = await repo.isOwner(id, req.user!.id);
@@ -225,8 +220,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       // Only owner can delete
       const isOwner = await repo.isOwner(id, req.user!.id);
@@ -268,8 +262,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       // Check if campaign exists
       const campaign = await repo.getById(id);
@@ -328,8 +321,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const repo = createCampaignRepository(client);
+      const repo = createCampaignRepository();
 
       // Owner cannot leave
       const isOwner = await repo.isOwner(id, req.user!.id);
@@ -386,9 +378,8 @@ router.post(
       }
 
       const { email, role } = validation.data;
-      const client = createUserClient(req.accessToken!);
-      const campaignRepo = createCampaignRepository(client);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const campaignRepo = createCampaignRepository();
+      const playerRepo = createCampaignPlayerRepository();
 
       // Only owner can invite
       const isOwner = await campaignRepo.isOwner(id, req.user!.id);
@@ -445,9 +436,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const campaignRepo = createCampaignRepository(client);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const campaignRepo = createCampaignRepository();
+      const playerRepo = createCampaignPlayerRepository();
 
       // Only owner can view invites
       const isOwner = await campaignRepo.isOwner(id, req.user!.id);
@@ -498,9 +488,8 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id, inviteId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const campaignRepo = createCampaignRepository(client);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const campaignRepo = createCampaignRepository();
+      const playerRepo = createCampaignPlayerRepository();
 
       // Only owner can revoke invites
       const isOwner = await campaignRepo.isOwner(id, req.user!.id);
@@ -541,8 +530,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const playerRepo = createCampaignPlayerRepository();
 
       // Accept invite
       const player = await playerRepo.acceptInvite(token, req.user!.id);
@@ -587,9 +575,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const campaignRepo = createCampaignRepository(client);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const campaignRepo = createCampaignRepository();
+      const playerRepo = createCampaignPlayerRepository();
 
       // Check membership
       const isMember = await campaignRepo.isMember(id, req.user!.id);
@@ -643,9 +630,8 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id, userId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const campaignRepo = createCampaignRepository(client);
-      const playerRepo = createCampaignPlayerRepository(client);
+      const campaignRepo = createCampaignRepository();
+      const playerRepo = createCampaignPlayerRepository();
 
       // Only owner can remove players
       const isOwner = await campaignRepo.isOwner(id, req.user!.id);

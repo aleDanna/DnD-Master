@@ -7,6 +7,7 @@ dotenv.config();
 
 import { errorHandler } from './api/middleware/error-handler.js';
 import healthRouter from './api/routes/health.js';
+import authRouter from './api/routes/auth.js';
 import campaignsRouter from './api/routes/campaigns.js';
 import sessionsRouter from './api/routes/sessions.js';
 import gameRouter from './api/routes/game.js';
@@ -34,6 +35,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Routes
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/game', gameRouter);

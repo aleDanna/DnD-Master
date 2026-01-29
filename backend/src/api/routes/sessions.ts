@@ -13,7 +13,6 @@ import {
 import { createSessionRepository } from '../../services/data/session-repo.js';
 import { createCampaignRepository } from '../../services/data/campaign-repo.js';
 import { createEventRepository } from '../../services/data/event-repo.js';
-import { createUserClient } from '../../config/supabase.js';
 
 const router = Router();
 
@@ -28,9 +27,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       const session = await sessionRepo.getWithCampaign(id);
 
@@ -86,9 +84,8 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { campaign_id, name } = req.body;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check campaign membership
       const isMember = await campaignRepo.isMember(campaign_id, req.user!.id);
@@ -146,9 +143,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { campaignId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check campaign membership
       const isMember = await campaignRepo.isMember(campaignId, req.user!.id);
@@ -192,9 +188,8 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { campaignId } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check campaign membership
       const isMember = await campaignRepo.isMember(campaignId, req.user!.id);
@@ -250,8 +245,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
+      const sessionRepo = createSessionRepository();
 
       const session = await sessionRepo.pauseSession(id);
 
@@ -283,10 +277,9 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Verify session exists
       const session = await sessionRepo.getWithCampaign(id);
@@ -360,10 +353,9 @@ router.post(
     try {
       const { id } = req.params;
       const { skipRecap } = req.body;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Verify session exists
       const sessionCheck = await sessionRepo.getById(id);
@@ -446,8 +438,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
+      const sessionRepo = createSessionRepository();
 
       const session = await sessionRepo.endSession(id);
 
