@@ -442,6 +442,97 @@ export class StateService {
       session.version
     );
   }
+
+  /**
+   * Try to apply state changes with conflict detection (for multiplayer)
+   * Returns { success: boolean, session: Session, conflictError?: string }
+   */
+  async tryApplyStateChanges(
+    sessionId: string,
+    changes: StateChangeContent[],
+    expectedVersion: number
+  ): Promise<{ success: boolean; session: Session; conflictError?: string }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Check for version conflict
+    if (session.version !== expectedVersion) {
+      return {
+        success: false,
+        session,
+        conflictError: `Version conflict: expected ${expectedVersion}, but session is at version ${session.version}. Another player may have made changes.`,
+      };
+    }
+
+    try {
+      const updatedSession = await this.applyStateChanges(sessionId, changes);
+      return { success: true, session: updatedSession };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('modified by another request')) {
+        return {
+          success: false,
+          session,
+          conflictError: 'Session was modified by another player. Please refresh and try again.',
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get current session version (for multiplayer conflict detection)
+   */
+  async getSessionVersion(sessionId: string): Promise<number | null> {
+    const session = await this.sessionRepo.getById(sessionId);
+    return session?.version ?? null;
+  }
+
+  /**
+   * Check if session has been modified since a given version
+   */
+  async hasBeenModified(sessionId: string, sinceVersion: number): Promise<boolean> {
+    const currentVersion = await this.getSessionVersion(sessionId);
+    return currentVersion !== null && currentVersion > sinceVersion;
+  }
+
+  /**
+   * Lock session for exclusive access during complex operations
+   * Uses advisory locking via version increment
+   */
+  async lockSession(sessionId: string): Promise<{ version: number; session: Session }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Touch the session to claim it
+    const updated = await this.sessionRepo.update(sessionId, {}, session.version);
+    return { version: updated.version, session: updated };
+  }
+
+  /**
+   * Get active player count in a session (for multiplayer awareness)
+   */
+  async getActivePlayerInfo(sessionId: string): Promise<{
+    sessionId: string;
+    version: number;
+    lastActivity: string;
+    isActive: boolean;
+  }> {
+    const session = await this.sessionRepo.getById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    return {
+      sessionId: session.id,
+      version: session.version,
+      lastActivity: session.last_activity,
+      isActive: session.status === 'active',
+    };
+  }
 }
 
 /**
@@ -449,7 +540,11 @@ export class StateService {
  */
 export function createStateService(
   sessionRepo: SessionRepository,
-  eventRepo: EventRepository
+  eventRepo?: EventRepository
 ): StateService {
-  return new StateService(sessionRepo, eventRepo);
+  // If eventRepo is not provided, create a minimal stub
+  const repo = eventRepo || ({
+    create: async () => ({ id: '', session_id: '', type: 'state_change', actor_id: null, actor_name: null, content: {}, rule_citations: [], sequence: 0, created_at: '' }),
+  } as unknown as EventRepository);
+  return new StateService(sessionRepo, repo);
 }

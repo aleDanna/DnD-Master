@@ -219,6 +219,43 @@ export class SessionRepository {
   }
 
   /**
+   * Save a session (pause and store summary)
+   */
+  async saveSession(id: string, summary: string): Promise<Session> {
+    const session = await this.getById(id);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    return this.update(
+      id,
+      {
+        status: 'paused',
+        narrative_summary: summary,
+      },
+      session.version
+    );
+  }
+
+  /**
+   * Get paused sessions that can be resumed
+   */
+  async getPausedSessions(campaignId: string): Promise<Session[]> {
+    const { data, error } = await this.client
+      .from('sessions')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .eq('status', 'paused')
+      .order('last_activity', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to get paused sessions: ${error.message}`);
+    }
+
+    return (data || []).map(this.mapToSession);
+  }
+
+  /**
    * Update last activity timestamp
    */
   async touchSession(id: string): Promise<void> {

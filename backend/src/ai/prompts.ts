@@ -454,3 +454,58 @@ Additional Details: ${details}
 
 Resolve this situation according to the D&D 5e rules. Include any required rolls and their outcomes.`;
 }
+
+/**
+ * Prompt for generating a session recap on resume
+ */
+export function buildSessionRecapPrompt(
+  narrativeSummary: string,
+  currentLocation: string | null,
+  activeNPCs: Array<{ name: string; description?: string; disposition?: string }>,
+  lastEvents: GameEvent[]
+): string {
+  const locationText = currentLocation ? `Current Location: ${currentLocation}` : '';
+  const npcList = activeNPCs.length > 0
+    ? `Active NPCs: ${activeNPCs.map(npc => `${npc.name} (${npc.disposition || 'neutral'})`).join(', ')}`
+    : '';
+
+  const recentActions = lastEvents
+    .filter(e => e.type === 'player_action' || e.type === 'ai_response')
+    .slice(-3)
+    .map(e => {
+      if (e.type === 'player_action') {
+        return `- Player: ${(e.content as { text: string }).text}`;
+      }
+      return `- DM: ${(e.content as { narrative: string }).narrative.slice(0, 150)}...`;
+    })
+    .join('\n');
+
+  return `You are resuming a D&D session. Create an engaging "Previously on..." style recap that:
+1. Reminds players where they left off
+2. Sets the mood and atmosphere
+3. Ends with a prompt for action
+
+Session Summary:
+${narrativeSummary}
+
+${locationText}
+${npcList}
+
+Recent Events:
+${recentActions || 'No recent events recorded.'}
+
+Write a dramatic 2-3 paragraph recap in second person ("You find yourselves...") that draws players back into the adventure. End with "What do you do?" or a similar prompt.`;
+}
+
+/**
+ * Prompt for generating welcome back message on session resume
+ */
+export function buildWelcomeBackPrompt(
+  campaignName: string,
+  playerName: string,
+  lastPlayed: string
+): string {
+  return `Welcome back to ${campaignName}, ${playerName}!
+
+It's been a while since your last adventure (${lastPlayed}). Let me remind you where we left off...`;
+}

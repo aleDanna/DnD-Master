@@ -13,6 +13,7 @@ import {
   buildDiceResolutionPrompt,
   buildSessionStartPrompt,
   buildSessionSummaryPrompt,
+  buildSessionRecapPrompt,
   buildCombatStartPrompt,
   buildCombatTurnPrompt,
   buildCombatActionPrompt,
@@ -315,6 +316,82 @@ export class DMService {
     await this.sessionRepo.endSession(sessionId);
 
     return summary;
+  }
+
+  /**
+   * Save a session (generates summary and pauses)
+   */
+  async saveSession(sessionId: string): Promise<{ session: Session; summary: string }> {
+    // Generate summary
+    const summary = await this.generateSessionSummary(sessionId);
+
+    // Save the session with summary
+    const session = await this.sessionRepo.saveSession(sessionId, summary);
+
+    // Log session save event
+    await this.eventRepo.createSessionSave(sessionId, summary);
+
+    return { session, summary };
+  }
+
+  /**
+   * Generate a recap for resuming a session
+   */
+  async generateRecap(sessionId: string): Promise<AIResponse> {
+    const ModelConfig = getModelConfig();
+
+    const session = await this.sessionRepo.getWithCampaign(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Get recent events for context
+    const recentEvents = await this.eventRepo.getRecentEvents(sessionId, 5);
+
+    // Build the recap prompt
+    const prompt = buildSessionRecapPrompt(
+      session.narrative_summary || 'The adventure continues...',
+      session.current_location,
+      session.active_npcs || [],
+      recentEvents
+    );
+
+    const messages: LLMMessage[] = [
+      { role: 'user', content: prompt },
+    ];
+
+    const completion = await createMessage(SYSTEM_PROMPT, messages, {
+      model: ModelConfig.DM_NARRATIVE,
+      maxTokens: ModelConfig.MAX_TOKENS.narrative,
+      temperature: ModelConfig.TEMPERATURE.narrative,
+    });
+
+    const response = parseAIResponse(completion.content);
+
+    // Log the recap as an AI response
+    await this.eventRepo.createAIResponse(
+      sessionId,
+      response.narrative,
+      'Session Recap'
+    );
+
+    return response;
+  }
+
+  /**
+   * Resume a session and generate recap
+   */
+  async resumeSession(sessionId: string): Promise<{ session: Session; recap: AIResponse }> {
+    // Resume the session
+    const session = await this.sessionRepo.resumeSession(sessionId);
+
+    // Generate a recap
+    const recap = await this.generateRecap(sessionId);
+
+    // Log session resume event
+    await this.eventRepo.createSessionResume(sessionId);
+
+    return { session, recap };
   }
 
   /**

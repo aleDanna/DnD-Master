@@ -209,7 +209,7 @@
 
 ---
 
-## Phase 5: User Story 3 - Session Save and Resume with Recap (Priority: P2)
+## Phase 5: User Story 3 - Session Save and Resume with Recap (Priority: P2) [COMPLETED]
 
 **Goal**: Player can save session, leave, return, and resume with AI-generated recap
 
@@ -217,37 +217,37 @@
 
 ### Backend - Session Persistence
 
-- [ ] T093 [US3] Implement session save logic in SessionRepository in `backend/src/services/data/session-repo.ts`
-- [ ] T094 [US3] Create recap generation in DMService in `backend/src/services/ai/dm-service.ts`
-- [ ] T095 [US3] Add recap prompt template in `backend/src/services/ai/prompts.ts`
+- [x] T093 [US3] Implement session save logic in SessionRepository in `backend/src/services/data/session-repo.ts`
+- [x] T094 [US3] Create recap generation in DMService in `backend/src/services/ai/dm-service.ts`
+- [x] T095 [US3] Add recap prompt template in `backend/src/ai/prompts.ts`
 
 ### Backend - Session API
 
-- [ ] T096 [US3] Create save session endpoint (POST /sessions/:id/save) in `backend/src/api/routes/sessions.ts`
-- [ ] T097 [US3] Create resume session endpoint (POST /sessions/:id/resume) in `backend/src/api/routes/sessions.ts`
-- [ ] T098 [US3] Create end session endpoint (POST /sessions/:id/end) in `backend/src/api/routes/sessions.ts`
+- [x] T096 [US3] Create save session endpoint (POST /sessions/:id/save) in `backend/src/api/routes/sessions.ts`
+- [x] T097 [US3] Create resume session endpoint (POST /sessions/:id/resume) in `backend/src/api/routes/sessions.ts`
+- [x] T098 [US3] Create end session endpoint (POST /sessions/:id/end) in `backend/src/api/routes/sessions.ts`
 
 ### Frontend - Recap Components
 
-- [ ] T099 [US3] Create RecapPanel component in `frontend/src/components/game/RecapPanel.tsx`
-- [ ] T100 [US3] Create SessionControls component (save, end buttons) in `frontend/src/components/game/SessionControls.tsx`
+- [x] T099 [US3] Create RecapPanel component in `frontend/src/components/game/RecapPanel.tsx`
+- [x] T100 [US3] Create SessionControls component (save, end buttons) in `frontend/src/components/game/SessionControls.tsx`
 
 ### Frontend - Session List
 
-- [ ] T101 [US3] Add session list to campaign detail page in `frontend/src/app/campaigns/[id]/page.tsx`
-- [ ] T102 [US3] Create SessionCard component (status, resume button) in `frontend/src/components/campaign/SessionCard.tsx`
+- [x] T101 [US3] Add session list to campaign detail page in `frontend/src/app/dashboard/campaigns/[id]/page.tsx`
+- [x] T102 [US3] Create SessionCard component (status, resume button) in `frontend/src/components/campaign/SessionCard.tsx`
 
 ### Frontend - Integration
 
-- [ ] T103 [US3] Add RecapPanel to session page (shows on resume) in `frontend/src/app/session/[id]/page.tsx`
-- [ ] T104 [US3] Implement save/resume flow with confirmation modal
-- [ ] T105 [US3] Add SessionControls to session page header
+- [x] T103 [US3] Add RecapPanel to session page (shows on resume) in `frontend/src/app/session/[id]/page.tsx`
+- [x] T104 [US3] Implement save/resume flow with confirmation modal
+- [x] T105 [US3] Add SessionControls to session page header
 
 **Checkpoint**: User Story 3 (Session Save/Resume) is fully functional and testable independently
 
 ---
 
-## Phase 6: User Story 4 - Multiplayer Campaign (Priority: P3)
+## Phase 6: User Story 4 - Multiplayer Campaign (Priority: P3) [COMPLETED]
 
 **Goal**: Campaign owner invites players, multiple players join and participate together
 
@@ -255,30 +255,30 @@
 
 ### Backend - Multiplayer
 
-- [ ] T106 [US4] Implement CampaignPlayerRepository in `backend/src/services/data/campaign-player-repo.ts`
-- [ ] T107 [US4] Add multiplayer support to StateService (versioned updates) in `backend/src/services/game/state-service.ts`
-- [ ] T108 [US4] Implement conflict detection for concurrent actions in `backend/src/services/game/state-service.ts`
+- [x] T106 [US4] Implement CampaignPlayerRepository in `backend/src/services/data/campaign-player-repo.ts`
+- [x] T107 [US4] Add multiplayer support to StateService (versioned updates) in `backend/src/services/game/state-service.ts`
+- [x] T108 [US4] Implement conflict detection for concurrent actions in `backend/src/services/game/state-service.ts`
 
 ### Backend - Invite API
 
-- [ ] T109 [US4] Create invite endpoint (POST /campaigns/:id/invite) in `backend/src/api/routes/campaigns.ts`
-- [ ] T110 [US4] Create join endpoint (POST /campaigns/:id/join) in `backend/src/api/routes/campaigns.ts`
-- [ ] T111 [US4] Create campaign players list endpoint in `backend/src/api/routes/campaigns.ts`
+- [x] T109 [US4] Create invite endpoint (POST /campaigns/:id/invite) in `backend/src/api/routes/campaigns.ts`
+- [x] T110 [US4] Create join endpoint (POST /campaigns/:id/join) in `backend/src/api/routes/campaigns.ts`
+- [x] T111 [US4] Create campaign players list endpoint in `backend/src/api/routes/campaigns.ts`
 
 ### Backend - Realtime
 
-- [ ] T112 [US4] Setup Supabase Realtime subscriptions for sessions in `backend/src/services/realtime/session-sync.ts`
+- [x] T112 [US4] Setup Supabase Realtime subscriptions for sessions in `backend/src/services/realtime/session-sync.ts`
 
 ### Frontend - Invite Components
 
-- [ ] T113 [US4] Create InviteDialog component in `frontend/src/components/campaign/InviteDialog.tsx`
-- [ ] T114 [US4] Create PlayerList component in `frontend/src/components/campaign/PlayerList.tsx`
+- [x] T113 [US4] Create InviteDialog component in `frontend/src/components/campaign/InviteDialog.tsx`
+- [x] T114 [US4] Create PlayerList component in `frontend/src/components/campaign/PlayerList.tsx`
 
 ### Frontend - Integration
 
-- [ ] T115 [US4] Add invite button and PlayerList to campaign detail page
-- [ ] T116 [US4] Create invitation acceptance page in `frontend/src/app/campaigns/join/[token]/page.tsx`
-- [ ] T117 [US4] Implement Supabase Realtime subscription in session page for live updates
+- [x] T115 [US4] Add invite button and PlayerList to campaign detail page
+- [x] T116 [US4] Create invitation acceptance page in `frontend/src/app/campaigns/join/[token]/page.tsx`
+- [x] T117 [US4] Implement Supabase Realtime subscription in session page for live updates
 
 **Checkpoint**: User Story 4 (Multiplayer) is fully functional and testable independently
 

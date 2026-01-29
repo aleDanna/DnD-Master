@@ -6,6 +6,8 @@
 export type EventType =
   | 'session_start'
   | 'session_end'
+  | 'session_save'
+  | 'session_resume'
   | 'player_action'
   | 'ai_response'
   | 'dice_roll'

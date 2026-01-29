@@ -132,6 +132,73 @@ export const campaignApi = {
       method: 'DELETE',
       token,
     }),
+
+  // Multiplayer API
+  invite: (token: string, campaignId: string, email: string, role: 'player' | 'dm' = 'player') =>
+    request<{
+      id: string;
+      email: string;
+      role: 'player' | 'dm';
+      expires_at: string;
+      invite_url: string;
+    }>(`/api/campaigns/${campaignId}/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ email, role }),
+      token,
+    }),
+
+  getInvites: (token: string, campaignId: string) =>
+    request<
+      Array<{
+        id: string;
+        email: string;
+        role: 'player' | 'dm';
+        created_at: string;
+        expires_at: string;
+      }>
+    >(`/api/campaigns/${campaignId}/invites`, { token }),
+
+  revokeInvite: (token: string, campaignId: string, inviteId: string) =>
+    request(`/api/campaigns/${campaignId}/invites/${inviteId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  joinWithToken: (token: string, inviteToken: string) =>
+    request<{
+      campaign_id: string;
+      role: 'player' | 'dm';
+      joined_at: string;
+    }>(`/api/campaigns/join/${inviteToken}`, {
+      method: 'POST',
+      token,
+    }),
+
+  getPlayers: (token: string, campaignId: string) =>
+    request<
+      Array<{
+        id: string;
+        user_id: string;
+        role: 'player' | 'dm';
+        joined_at: string;
+        user?: {
+          id: string;
+          name?: string;
+        };
+      }>
+    >(`/api/campaigns/${campaignId}/players`, { token }),
+
+  removePlayer: (token: string, campaignId: string, userId: string) =>
+    request(`/api/campaigns/${campaignId}/players/${userId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  leave: (token: string, campaignId: string) =>
+    request(`/api/campaigns/${campaignId}/leave`, {
+      method: 'POST',
+      token,
+    }),
 };
 
 /**
@@ -193,8 +260,32 @@ export const sessionApi = {
   pause: (token: string, id: string) =>
     request(`/api/sessions/${id}/pause`, { method: 'POST', token }),
 
-  resume: (token: string, id: string) =>
-    request(`/api/sessions/${id}/resume`, { method: 'POST', token }),
+  save: (token: string, id: string) =>
+    request<{
+      session: {
+        id: string;
+        status: 'paused';
+        narrative_summary: string;
+      };
+      summary: string;
+    }>(`/api/sessions/${id}/save`, { method: 'POST', token }),
+
+  resume: (token: string, id: string, skipRecap = false) =>
+    request<{
+      session: {
+        id: string;
+        status: 'active';
+        narrative_summary: string | null;
+      };
+      recap: {
+        narrative: string;
+        mechanics?: string;
+      } | null;
+    }>(`/api/sessions/${id}/resume`, {
+      method: 'POST',
+      body: JSON.stringify({ skipRecap }),
+      token,
+    }),
 
   end: (token: string, id: string) =>
     request(`/api/sessions/${id}/end`, { method: 'POST', token }),
