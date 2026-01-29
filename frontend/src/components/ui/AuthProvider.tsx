@@ -8,17 +8,23 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { User, Session, AuthError, AuthChangeEvent } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase';
+import {
+  User,
+  AuthError,
+  signIn as apiSignIn,
+  register as apiRegister,
+  signOut as apiSignOut,
+  getStoredUser,
+  getStoredToken,
+  getCurrentUser,
+} from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,92 +35,69 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = getSupabaseClient();
-
   useEffect(() => {
-    // Get initial session
+    // Get initial session from localStorage
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
+        const storedUser = getStoredUser();
+        const token = getStoredToken();
+
+        if (storedUser && token) {
+          setUser(storedUser);
+          // Verify token is still valid by fetching current user
+          const currentUser = await getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            setUser(null);
+          }
+        }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('Error initializing auth:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: AuthChangeEvent, newSession: Session | null) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase.auth]);
+  }, []);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      return { error };
+      const result = await apiSignIn(email, password);
+      if (result.user) {
+        setUser(result.user);
+      }
+      return { error: result.error };
     },
-    [supabase.auth]
+    []
   );
 
   const signUp = useCallback(
     async (email: string, password: string, displayName?: string) => {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: displayName,
-          },
-        },
-      });
-      return { error };
+      const result = await apiRegister(email, password, displayName || email.split('@')[0]);
+      if (result.user) {
+        setUser(result.user);
+      }
+      return { error: result.error };
     },
-    [supabase.auth]
+    []
   );
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await apiSignOut();
     setUser(null);
-    setSession(null);
-  }, [supabase.auth]);
-
-  const resetPassword = useCallback(
-    async (email: string) => {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
-      return { error };
-    },
-    [supabase.auth]
-  );
+  }, []);
 
   const value: AuthContextType = {
     user,
-    session,
     loading,
     signIn,
     signUp,
     signOut,
-    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

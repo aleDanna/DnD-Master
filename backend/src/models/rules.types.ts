@@ -225,7 +225,7 @@ export interface DetectedEntry {
   orderIndex: number;
 }
 
-// ============== Database Row Types (for Supabase) ==============
+// ============== Database Row Types (for PostgreSQL) ==============
 
 export interface SourceDocumentRow {
   id: string;

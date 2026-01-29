@@ -6,7 +6,13 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { isMockMode } from '../../config/mockSupabase.js';
+
+/**
+ * Check if running in development/test mode
+ */
+function isDevMode(): boolean {
+  return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+}
 
 /**
  * Extend Express Request to include admin status
@@ -42,7 +48,7 @@ export async function adminMiddleware(
     }
 
     // In mock mode, treat all users as admins for testing
-    if (isMockMode()) {
+    if (isDevMode()) {
       req.isAdmin = true;
       next();
       return;
@@ -92,7 +98,7 @@ export async function checkAdminStatus(
     }
 
     // In mock mode, treat all users as admins
-    if (isMockMode()) {
+    if (isDevMode()) {
       req.isAdmin = true;
       next();
       return;

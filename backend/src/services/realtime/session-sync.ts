@@ -2,8 +2,8 @@
  * Session Sync Service
  * Handles real-time synchronization for multiplayer sessions
  *
- * NOTE: This is a stub implementation. The original used Supabase Realtime.
- * For production, implement using WebSockets (Socket.io, ws) or similar.
+ * NOTE: This is a stub implementation for real-time features.
+ * For production, implement using WebSockets (Socket.io, ws) or PostgreSQL LISTEN/NOTIFY.
  */
 
 export interface SessionUpdate {

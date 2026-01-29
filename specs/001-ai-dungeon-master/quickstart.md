@@ -10,8 +10,8 @@ This guide helps developers get the AI Dungeon Master running locally for develo
 - Node.js 18+ (LTS recommended)
 - npm or yarn
 - Git
-- Supabase account (free tier works)
-- Anthropic API key (for Claude)
+- PostgreSQL 14+ with pgvector extension
+- OpenAI API key (for embeddings and AI)
 
 ## 1. Clone and Install
 
@@ -29,58 +29,63 @@ cd ../frontend
 npm install
 ```
 
-## 2. Supabase Setup
+## 2. PostgreSQL Setup
 
-### Create Project
-
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Note your project URL and anon key from Settings > API
-
-### Run Migrations
+### Install PostgreSQL and pgvector
 
 ```bash
-# Install Supabase CLI
-npm install -g supabase
+# Ubuntu/Debian
+sudo apt install postgresql postgresql-contrib
+sudo apt install postgresql-14-pgvector  # or your version
 
-# Login to Supabase
-supabase login
+# macOS with Homebrew
+brew install postgresql@14
+brew install pgvector
 
-# Link to your project
-supabase link --project-ref <your-project-ref>
-
-# Run migrations
-supabase db push
+# Start PostgreSQL
+sudo systemctl start postgresql  # Linux
+brew services start postgresql@14  # macOS
 ```
 
-### Enable Realtime
+### Create Database
 
-1. Go to Database > Replication in Supabase dashboard
-2. Enable replication for: `sessions`, `events`
+```bash
+# Connect to PostgreSQL
+sudo -u postgres psql
 
-### Configure Auth Providers
+# Create database and user
+CREATE DATABASE dnd_master;
+CREATE USER dnd_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE dnd_master TO dnd_user;
+\q
+```
 
-1. Go to Authentication > Providers
-2. Enable Email provider
-3. Enable Google provider (requires Google Cloud credentials)
+### Run Initialization Script
+
+```bash
+# Run the initialization SQL
+psql -U dnd_user -d dnd_master -f backend/sql/init.sql
+```
+
+This creates all tables, indexes, functions, and triggers needed for the application.
 
 ## 3. Environment Variables
 
 ### Backend (`backend/.env`)
 
 ```env
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your-service-role-key
-SUPABASE_ANON_KEY=your-anon-key
+# Database
+DATABASE_URL=postgresql://dnd_user:your_password@localhost:5432/dnd_master
 
-# LLM Provider (choose one: openai, gemini, or claude)
+# Authentication
+JWT_SECRET=your-secret-key-at-least-32-characters
+JWT_EXPIRES_IN=7d
+
+# LLM Provider (choose one: openai, claude)
 LLM_PROVIDER=openai
 
 # OpenAI (if LLM_PROVIDER=openai)
 OPENAI_API_KEY=sk-your-openai-key
-
-# Gemini (if LLM_PROVIDER=gemini)
-GEMINI_API_KEY=your-gemini-api-key
 
 # Claude (if LLM_PROVIDER=claude)
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
@@ -96,12 +101,8 @@ FRONTEND_URL=http://localhost:3000
 ### Frontend (`frontend/.env.local`)
 
 ```env
-# Supabase (public keys only)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
 # Backend API
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ## 4. Seed Rulebook Data
@@ -145,7 +146,7 @@ npm run dev
 
 ```bash
 curl http://localhost:3001/api/health
-# Should return: {"status":"ok","version":"1.0.0"}
+# Should return: {"status":"healthy","services":{"api":"up","database":"up"}}
 ```
 
 ### Auth Test
@@ -159,7 +160,7 @@ curl http://localhost:3001/api/health
 
 1. Click "New Campaign"
 2. Enter name: "Test Campaign"
-3. Leave default settings (RNG dice, 2D grid map)
+3. Leave default settings (RNG dice, narrative map)
 4. Click "Create"
 
 ### Start Session
@@ -186,15 +187,23 @@ npm run test:e2e
 
 ## Common Issues
 
-### "Supabase connection refused"
+### "Database connection refused"
 
-- Verify `SUPABASE_URL` is correct
-- Check Supabase project is not paused (free tier pauses after inactivity)
+- Verify PostgreSQL is running: `sudo systemctl status postgresql`
+- Check `DATABASE_URL` in backend .env is correct
+- Ensure database and user exist
+
+### "pgvector extension not found"
+
+```bash
+# Connect to database and enable extension
+psql -U dnd_user -d dnd_master
+CREATE EXTENSION IF NOT EXISTS vector;
+```
 
 ### "LLM API rate limit"
 
 - **OpenAI**: Check usage at platform.openai.com; use `gpt-3.5-turbo` for development
-- **Gemini**: Check usage at console.cloud.google.com; use `gemini-1.5-flash` for development
 - **Claude**: Check usage at console.anthropic.com; use `claude-3-haiku` for development
 - Switch providers by changing `LLM_PROVIDER` env variable
 
@@ -208,10 +217,11 @@ npm run test:e2e
 - Run `npm run seed:rules` in backend directory
 - Check `backend/src/rules/` directory has JSON files
 
-### "Auth redirect fails"
+### "JWT token invalid"
 
-- Verify Supabase site URL is set to `http://localhost:3000`
-- Check redirect URLs include `http://localhost:3000/**`
+- Verify `JWT_SECRET` is set in backend .env
+- Ensure token hasn't expired (default: 7 days)
+- Check that Authorization header is being sent correctly
 
 ## Development Workflow
 
@@ -242,7 +252,10 @@ DnD-Master/
 │   │   ├── api/routes/       # Express routes
 │   │   ├── services/         # Business logic
 │   │   ├── models/           # TypeScript types
+│   │   ├── config/           # Database and auth config
 │   │   └── rules/            # D&D rulebook JSON
+│   ├── sql/
+│   │   └── init.sql          # Database initialization
 │   └── tests/
 ├── frontend/
 │   ├── src/

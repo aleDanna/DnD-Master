@@ -6,26 +6,24 @@
 
 Before implementing the Rules Explorer feature, ensure:
 
-1. **Supabase project** is configured with:
-   - PostgreSQL database
-   - pgvector extension enabled
-   - Authentication configured
+1. **PostgreSQL database** is configured with:
+   - PostgreSQL 14+ with pgvector extension enabled
+   - Database created and accessible
 
 2. **Environment variables** set:
    ```bash
    # Backend (.env)
-   SUPABASE_URL=your-project-url
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   DATABASE_URL=postgresql://user:password@localhost:5432/dnd_master
+   JWT_SECRET=your-jwt-secret-key
    OPENAI_API_KEY=your-openai-key  # For embeddings
 
    # Frontend (.env.local)
-   NEXT_PUBLIC_SUPABASE_URL=your-project-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_API_URL=http://localhost:3001
    ```
 
 3. **Dependencies** installed:
    ```bash
-   cd backend && npm install pdf-parse
+   cd backend && npm install pdf-parse pg
    ```
 
 ---
@@ -34,19 +32,22 @@ Before implementing the Rules Explorer feature, ensure:
 
 ### Phase 1: Database Setup
 
-1. **Enable pgvector extension** in Supabase SQL Editor:
+1. **Enable pgvector extension** in PostgreSQL:
    ```sql
    CREATE EXTENSION IF NOT EXISTS vector;
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
    ```
 
-2. **Run migrations** from `data-model.md`:
-   - Create all tables (source_documents, rule_chapters, etc.)
+2. **Run initialization script** from `backend/sql/init.sql`:
+   - Create all tables (users, campaigns, source_documents, rule_chapters, etc.)
    - Create indexes
-   - Enable RLS policies
+   - Create search functions
 
-3. **Add admin flag** to existing profile:
+3. **Create admin user**:
    ```sql
-   UPDATE profiles SET is_admin = true WHERE id = 'your-user-id';
+   -- Register via API or insert directly
+   INSERT INTO users (email, password_hash, display_name, is_admin)
+   VALUES ('admin@example.com', '<bcrypt_hash>', 'Admin', true);
    ```
 
 ### Phase 2: Backend Services
@@ -261,11 +262,12 @@ LIMIT $2;
 
 | Issue | Solution |
 |-------|----------|
-| pgvector not found | Run `CREATE EXTENSION vector;` in SQL Editor |
+| pgvector not found | Run `CREATE EXTENSION vector;` in PostgreSQL |
 | Embedding API rate limit | Increase delay between batches, implement exponential backoff |
 | PDF parsing fails | Check file encoding, try alternative extraction method |
 | Search too slow | Ensure indexes exist, reduce embedding dimension if needed |
 | Admin check fails | Verify `is_admin` column exists and user is flagged |
+| Connection refused | Check DATABASE_URL and ensure PostgreSQL is running |
 
 ---
 

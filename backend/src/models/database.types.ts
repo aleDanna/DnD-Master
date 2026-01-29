@@ -1,6 +1,6 @@
 /**
- * Database type definitions for Supabase client
- * These types match the database schema defined in migrations
+ * Database type definitions for PostgreSQL
+ * These types match the database schema defined in sql/init.sql
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];

@@ -1,6 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, getUserById, JwtPayload } from '../../config/auth.js';
-import { isMockMode } from '../../config/mockSupabase.js';
+
+/**
+ * Check if running in development/test mode
+ */
+function isDevMode(): boolean {
+  return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+}
 
 export interface AuthenticatedUser {
   id: string;
@@ -71,7 +77,7 @@ export async function authMiddleware(
     const token = authHeader.substring(7);
 
     // In mock mode, accept any token and create a mock user
-    if (isMockMode()) {
+    if (isDevMode()) {
       const mockUser = parseMockToken(token);
       if (mockUser) {
         req.user = mockUser;
@@ -136,7 +142,7 @@ export async function optionalAuthMiddleware(
     const token = authHeader.substring(7);
 
     // In mock mode, accept any token
-    if (isMockMode()) {
+    if (isDevMode()) {
       const mockUser = parseMockToken(token);
       if (mockUser) {
         req.user = mockUser;
