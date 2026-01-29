@@ -67,6 +67,16 @@ export function validateEnv(): ValidationResult {
   const llmProvider = process.env.LLM_PROVIDER as EnvConfig['LLM_PROVIDER'];
   config.LLM_PROVIDER = llmProvider || 'mock';
 
+  // Rules Explorer: Check for OpenAI API key (required for embeddings)
+  if (process.env.OPENAI_API_KEY) {
+    config.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  } else {
+    warnings.push(
+      'OPENAI_API_KEY not set - Rules Explorer semantic search and ingestion will be disabled. ' +
+      'Only full-text search will be available.'
+    );
+  }
+
   // Validate LLM API keys based on provider
   if (llmProvider === 'openai') {
     if (!process.env.OPENAI_API_KEY) {

@@ -54,4 +54,12 @@ export function createUserClient(accessToken: string): SupabaseClient<Database> 
   });
 }
 
+/**
+ * Returns the admin Supabase client for server-side operations.
+ * This bypasses RLS and should be used for admin operations like document ingestion.
+ */
+export function createAdminClient(): SupabaseClient<Database> {
+  return supabaseAdmin;
+}
+
 export { supabaseUrl, supabaseAnonKey, mockMode as isMockMode };

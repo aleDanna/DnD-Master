@@ -13,6 +13,7 @@ export interface Database {
           id: string;
           display_name: string;
           avatar_url: string | null;
+          is_admin: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -20,6 +21,7 @@ export interface Database {
           id: string;
           display_name: string;
           avatar_url?: string | null;
+          is_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -27,6 +29,7 @@ export interface Database {
           id?: string;
           display_name?: string;
           avatar_url?: string | null;
+          is_admin?: boolean;
           updated_at?: string;
         };
       };
@@ -234,6 +237,155 @@ export interface Database {
           // Events are immutable
         };
       };
+      // Rules Explorer tables
+      source_documents: {
+        Row: {
+          id: string;
+          name: string;
+          file_type: 'pdf' | 'txt';
+          file_hash: string;
+          total_pages: number | null;
+          ingested_at: string;
+          ingested_by: string | null;
+          status: 'processing' | 'completed' | 'failed';
+          error_log: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          file_type: 'pdf' | 'txt';
+          file_hash: string;
+          total_pages?: number | null;
+          ingested_at?: string;
+          ingested_by?: string | null;
+          status?: 'processing' | 'completed' | 'failed';
+          error_log?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          status?: 'processing' | 'completed' | 'failed';
+          error_log?: string | null;
+          updated_at?: string;
+        };
+      };
+      rule_chapters: {
+        Row: {
+          id: string;
+          document_id: string;
+          title: string;
+          order_index: number;
+          page_start: number | null;
+          page_end: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          document_id: string;
+          title: string;
+          order_index: number;
+          page_start?: number | null;
+          page_end?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          order_index?: number;
+          page_start?: number | null;
+          page_end?: number | null;
+        };
+      };
+      rule_sections: {
+        Row: {
+          id: string;
+          chapter_id: string;
+          title: string;
+          order_index: number;
+          page_start: number | null;
+          page_end: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          chapter_id: string;
+          title: string;
+          order_index: number;
+          page_start?: number | null;
+          page_end?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          order_index?: number;
+          page_start?: number | null;
+          page_end?: number | null;
+        };
+      };
+      rule_entries: {
+        Row: {
+          id: string;
+          section_id: string;
+          title: string | null;
+          content: string;
+          content_embedding: number[] | null;
+          page_reference: string | null;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          section_id: string;
+          title?: string | null;
+          content: string;
+          content_embedding?: number[] | null;
+          page_reference?: string | null;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          title?: string | null;
+          content?: string;
+          content_embedding?: number[] | null;
+          page_reference?: string | null;
+          order_index?: number;
+        };
+      };
+      rule_categories: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+        };
+      };
+      rule_entry_categories: {
+        Row: {
+          entry_id: string;
+          category_id: string;
+        };
+        Insert: {
+          entry_id: string;
+          category_id: string;
+        };
+        Update: {
+          // Join table - no updates
+        };
+      };
     };
     Enums: {
       dice_mode: 'rng' | 'player_entered';
@@ -242,6 +394,9 @@ export interface Database {
       invite_status: 'pending' | 'accepted' | 'declined';
       session_status: 'active' | 'paused' | 'ended';
       event_type: 'session_start' | 'session_end' | 'player_action' | 'ai_response' | 'dice_roll' | 'state_change' | 'combat_start' | 'combat_end' | 'turn_start' | 'turn_end';
+      // Rules Explorer enums
+      document_status: 'processing' | 'completed' | 'failed';
+      file_type: 'pdf' | 'txt';
     };
   };
 }

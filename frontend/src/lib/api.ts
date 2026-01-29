@@ -545,6 +545,188 @@ export const characterApi = {
     }),
 };
 
+/**
+ * Rules types
+ */
+interface SourceDocument {
+  id: string;
+  name: string;
+  fileType: 'pdf' | 'txt';
+  fileHash: string;
+  totalPages: number | null;
+  ingestedAt: string;
+  ingestedBy: string | null;
+  status: 'processing' | 'completed' | 'failed';
+  errorLog: string | null;
+  createdAt: string;
+  updatedAt: string;
+  chapterCount?: number;
+}
+
+interface RuleChapter {
+  id: string;
+  documentId: string;
+  title: string;
+  orderIndex: number;
+  pageStart: number | null;
+  pageEnd: number | null;
+  createdAt: string;
+  sectionCount?: number;
+}
+
+interface RuleSection {
+  id: string;
+  chapterId: string;
+  title: string;
+  orderIndex: number;
+  pageStart: number | null;
+  pageEnd: number | null;
+  createdAt: string;
+  entryCount?: number;
+}
+
+interface RuleEntry {
+  id: string;
+  sectionId: string;
+  title: string | null;
+  content: string;
+  pageReference: string | null;
+  orderIndex: number;
+  createdAt: string;
+  categories?: RuleCategory[];
+}
+
+interface RuleCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+interface RuleEntryWithContext extends RuleEntry {
+  section: RuleSection;
+  chapter: RuleChapter;
+  document: SourceDocument;
+}
+
+interface RuleSearchResult {
+  entry: RuleEntryWithContext;
+  relevance: number;
+  matchType: 'fulltext' | 'semantic' | 'hybrid';
+  highlights?: string[];
+}
+
+interface SearchResponse {
+  results: RuleSearchResult[];
+  total: number;
+  query: string;
+  mode: 'fulltext' | 'semantic' | 'hybrid';
+}
+
+export type {
+  SourceDocument,
+  RuleChapter,
+  RuleSection,
+  RuleEntry,
+  RuleCategory,
+  RuleEntryWithContext,
+  RuleSearchResult,
+  SearchResponse,
+};
+
+/**
+ * Rules API
+ */
+export const rulesApi = {
+  // Browsing endpoints
+  getDocuments: (token: string) =>
+    request<{ documents: SourceDocument[] }>('/api/rules/documents', { token }),
+
+  getChapters: (token: string, documentId: string) =>
+    request<{ chapters: RuleChapter[] }>(`/api/rules/documents/${documentId}/chapters`, { token }),
+
+  getSections: (token: string, chapterId: string) =>
+    request<{ sections: RuleSection[] }>(`/api/rules/chapters/${chapterId}/sections`, { token }),
+
+  getEntries: (token: string, sectionId: string) =>
+    request<{ entries: RuleEntry[] }>(`/api/rules/sections/${sectionId}/entries`, { token }),
+
+  getEntry: (token: string, entryId: string) =>
+    request<{ entry: RuleEntryWithContext }>(`/api/rules/entries/${entryId}`, { token }),
+
+  // Categories
+  getCategories: (token: string) =>
+    request<{ categories: RuleCategory[] }>('/api/rules/categories', { token }),
+
+  getCategoryEntries: (token: string, categoryId: string, limit = 20, offset = 0) =>
+    request<{ entries: RuleEntry[]; total: number }>(
+      `/api/rules/categories/${categoryId}/entries?limit=${limit}&offset=${offset}`,
+      { token }
+    ),
+
+  // Search
+  search: (
+    token: string,
+    query: string,
+    options?: {
+      mode?: 'fulltext' | 'semantic' | 'hybrid';
+      limit?: number;
+      offset?: number;
+      documentId?: string;
+    }
+  ) => {
+    const params = new URLSearchParams({ q: query });
+    if (options?.mode) params.set('mode', options.mode);
+    if (options?.limit) params.set('limit', options.limit.toString());
+    if (options?.offset) params.set('offset', options.offset.toString());
+    if (options?.documentId) params.set('documentId', options.documentId);
+
+    return request<SearchResponse>(`/api/rules/search?${params.toString()}`, { token });
+  },
+
+  // Admin endpoints
+  ingestDocument: (token: string, file: File, name: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', name);
+
+    return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/rules/ingest`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }).then(res => res.json());
+  },
+
+  getIngestionStatus: (token: string, documentId: string) =>
+    request<{
+      documentId: string;
+      status: 'processing' | 'completed' | 'failed';
+      progress: {
+        chaptersProcessed: number;
+        sectionsProcessed: number;
+        entriesProcessed: number;
+        embeddingsGenerated: number;
+      };
+      errorLog: string | null;
+    }>(`/api/admin/rules/ingest/${documentId}/status`, { token }),
+
+  deleteDocument: (token: string, documentId: string) =>
+    request(`/api/admin/rules/ingest/${documentId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  createCategory: (token: string, name: string, description?: string) =>
+    request<RuleCategory>('/api/admin/rules/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+      token,
+    }),
+};
+
 export const combatApi = {
   getCombatState: (token: string, sessionId: string) =>
     request<{

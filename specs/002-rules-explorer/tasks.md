@@ -20,29 +20,29 @@
 
 ## Phase 1: Setup
 
-- [ ] [T001] [P1] [Setup] Enable pgvector extension in Supabase
+- [x] [T001] [P1] [Setup] Enable pgvector extension in Supabase
       └── File: `backend/src/migrations/002_rules_tables.sql`
       └── SQL: `CREATE EXTENSION IF NOT EXISTS vector;`
 
-- [ ] [T002] [P1] [Setup] Create database migration for rules tables
+- [x] [T002] [P1] [Setup] Create database migration for rules tables
       └── File: `backend/src/migrations/002_rules_tables.sql`
       └── Tables: source_documents, rule_chapters, rule_sections, rule_entries, rule_categories, rule_entry_categories
       └── Depends: T001
 
-- [ ] [T003] [P1] [Setup] Create RLS policies for rules tables
+- [x] [T003] [P1] [Setup] Create RLS policies for rules tables
       └── File: `backend/src/migrations/002_rules_tables.sql`
       └── Policies: Read access for authenticated users, write access for admins only
       └── Depends: T002
 
-- [ ] [T004] [P1] [Setup] Add is_admin column to profiles table
+- [x] [T004] [P1] [Setup] Add is_admin column to profiles table
       └── File: `backend/src/migrations/002_rules_tables.sql`
       └── SQL: `ALTER TABLE profiles ADD COLUMN is_admin boolean DEFAULT false;`
       └── Depends: T002
 
-- [ ] [T005] [P1] [Setup] Install pdf-parse dependency
+- [x] [T005] [P1] [Setup] Install pdf-parse dependency
       └── Command: `cd backend && npm install pdf-parse`
 
-- [ ] [T006] [P1] [Setup] Create TypeScript types for rules domain
+- [x] [T006] [P1] [Setup] Create TypeScript types for rules domain
       └── File: `backend/src/models/rules.types.ts`
       └── Types: SourceDocument, RuleChapter, RuleSection, RuleEntry, RuleCategory, SearchResult
       └── Depends: T002
@@ -53,100 +53,100 @@
 
 ### Embeddings Service
 
-- [ ] [T007] [P1] [US3] Create embeddings service module
+- [x] [T007] [P1] [US3] Create embeddings service module
       └── File: `backend/src/services/rules/embeddings.ts`
       └── Functions: generateEmbedding(text), generateEmbeddings(texts[])
       └── Depends: T006
 
-- [ ] [T008] [P1] [US3] Implement batch embedding generation with rate limiting
+- [x] [T008] [P1] [US3] Implement batch embedding generation with rate limiting
       └── File: `backend/src/services/rules/embeddings.ts`
       └── Batch size: 100, delay: 100ms between batches
       └── Depends: T007
 
 ### Ingestion Service
 
-- [ ] [T009] [P1] [US5] Create ingestion service module structure
+- [x] [T009] [P1] [US5] Create ingestion service module structure
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Class: RulesIngestionService
       └── Depends: T006
 
-- [ ] [T010] [P1] [US5] Implement PDF text extraction
+- [x] [T010] [P1] [US5] Implement PDF text extraction
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: extractTextFromPDF(buffer): Promise<ExtractedText>
       └── Depends: T005, T009
 
-- [ ] [T011] [P1] [US5] Implement TXT file processing
+- [x] [T011] [P1] [US5] Implement TXT file processing
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: extractTextFromTXT(buffer): Promise<ExtractedText>
       └── Depends: T009
 
-- [ ] [T012] [P1] [US5] Implement chapter detection heuristics
+- [x] [T012] [P1] [US5] Implement chapter detection heuristics
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: detectChapters(text): Chapter[]
       └── Patterns: ALL CAPS, "CHAPTER X:", "Part X:"
       └── Depends: T009
 
-- [ ] [T013] [P1] [US5] Implement section detection within chapters
+- [x] [T013] [P1] [US5] Implement section detection within chapters
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: detectSections(chapterText): Section[]
       └── Depends: T012
 
-- [ ] [T014] [P1] [US5] Implement rule entry extraction within sections
+- [x] [T014] [P1] [US5] Implement rule entry extraction within sections
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: extractEntries(sectionText): Entry[]
       └── Depends: T013
 
-- [ ] [T015] [P1] [US5] Implement document hash calculation for duplicate detection
+- [x] [T015] [P1] [US5] Implement document hash calculation for duplicate detection
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: calculateFileHash(buffer): string
       └── Depends: T009
 
-- [ ] [T016] [P1] [US5] Implement full ingestion pipeline
+- [x] [T016] [P1] [US5] Implement full ingestion pipeline
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: ingestDocument(file, name): Promise<DocumentId>
       └── Depends: T010, T011, T012, T013, T014, T015, T008
 
-- [ ] [T017] [P1] [US5] Implement ingestion progress tracking
+- [x] [T017] [P1] [US5] Implement ingestion progress tracking
       └── File: `backend/src/services/rules/ingestion.ts`
       └── Function: getIngestionStatus(documentId): IngestionStatus
       └── Depends: T016
 
 ### Search Service
 
-- [ ] [T018] [P1] [US2] Create search service module structure
+- [x] [T018] [P1] [US2] Create search service module structure
       └── File: `backend/src/services/rules/search.ts`
       └── Class: RulesSearchService
       └── Depends: T006
 
-- [ ] [T019] [P1] [US2] Implement full-text search using tsvector
+- [x] [T019] [P1] [US2] Implement full-text search using tsvector
       └── File: `backend/src/services/rules/search.ts`
       └── Function: fulltextSearch(query, options): Promise<SearchResult[]>
       └── Depends: T018, T003
 
-- [ ] [T020] [P2] [US3] Implement semantic search using pgvector
+- [x] [T020] [P2] [US3] Implement semantic search using pgvector
       └── File: `backend/src/services/rules/search.ts`
       └── Function: semanticSearch(query, options): Promise<SearchResult[]>
       └── Depends: T018, T007
 
-- [ ] [T021] [P2] [US3] Implement hybrid search with RRF fusion
+- [x] [T021] [P2] [US3] Implement hybrid search with RRF fusion
       └── File: `backend/src/services/rules/search.ts`
       └── Function: hybridSearch(query, options): Promise<SearchResult[]>
       └── K constant: 60
       └── Depends: T019, T020
 
-- [ ] [T022] [P1] [US2] Implement search result highlighting
+- [x] [T022] [P1] [US2] Implement search result highlighting
       └── File: `backend/src/services/rules/search.ts`
       └── Function: highlightMatches(content, query): string[]
       └── Depends: T019
 
 ### Extended Rules Service
 
-- [ ] [T023] [P1] [US1] Extend RulesService with database-backed methods
+- [x] [T023] [P1] [US1] Extend RulesService with database-backed methods
       └── File: `backend/src/services/rules/service.ts`
       └── Methods: getDocuments(), getChapters(docId), getSections(chapterId), getEntries(sectionId), getEntry(entryId)
       └── Depends: T006, T003
 
-- [ ] [T024] [P1] [US1] Implement rule categories management
+- [x] [T024] [P1] [US1] Implement rule categories management
       └── File: `backend/src/services/rules/service.ts`
       └── Methods: getCategories(), getEntriesByCategory(categoryId)
       └── Depends: T023
@@ -157,81 +157,81 @@
 
 ### Browsing Endpoints
 
-- [ ] [T025] [P1] [US1] Create rules routes file structure
+- [x] [T025] [P1] [US1] Create rules routes file structure
       └── File: `backend/src/api/routes/rules.ts`
       └── Depends: T023
 
-- [ ] [T026] [P1] [US1] Implement GET /rules/documents endpoint
+- [x] [T026] [P1] [US1] Implement GET /rules/documents endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: List of source documents with chapter counts
       └── Depends: T025
 
-- [ ] [T027] [P1] [US1] Implement GET /rules/documents/:id/chapters endpoint
+- [x] [T027] [P1] [US1] Implement GET /rules/documents/:id/chapters endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Chapters for a document with section counts
       └── Depends: T025
 
-- [ ] [T028] [P1] [US1] Implement GET /rules/chapters/:id/sections endpoint
+- [x] [T028] [P1] [US1] Implement GET /rules/chapters/:id/sections endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Sections for a chapter with entry counts
       └── Depends: T025
 
-- [ ] [T029] [P1] [US1] Implement GET /rules/sections/:id/entries endpoint
+- [x] [T029] [P1] [US1] Implement GET /rules/sections/:id/entries endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Entries for a section
       └── Depends: T025
 
-- [ ] [T030] [P1] [US1] Implement GET /rules/entries/:id endpoint
+- [x] [T030] [P1] [US1] Implement GET /rules/entries/:id endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Single entry with full context (section, chapter, document)
       └── Depends: T025
 
-- [ ] [T031] [P1] [US1] Implement GET /rules/categories endpoint
+- [x] [T031] [P1] [US1] Implement GET /rules/categories endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: All rule categories
       └── Depends: T025, T024
 
-- [ ] [T032] [P1] [US1] Implement GET /rules/categories/:id/entries endpoint
+- [x] [T032] [P1] [US1] Implement GET /rules/categories/:id/entries endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Paginated entries for a category
       └── Depends: T025, T024
 
 ### Search Endpoint
 
-- [ ] [T033] [P1] [US2] Implement GET /rules/search endpoint
+- [x] [T033] [P1] [US2] Implement GET /rules/search endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Query params: q, mode (fulltext|semantic|hybrid), limit, offset, documentId
       └── Depends: T025, T019, T020, T021
 
 ### Admin Endpoints
 
-- [ ] [T034] [P1] [US5] Create admin middleware for routes
+- [x] [T034] [P1] [US5] Create admin middleware for routes
       └── File: `backend/src/api/middleware/adminAuth.ts`
       └── Checks: is_admin flag in user profile
       └── Depends: T004
 
-- [ ] [T035] [P1] [US5] Implement POST /admin/rules/ingest endpoint
+- [x] [T035] [P1] [US5] Implement POST /admin/rules/ingest endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Accepts: multipart/form-data with file and name
       └── Returns: 202 with documentId and status
       └── Depends: T025, T034, T016
 
-- [ ] [T036] [P1] [US5] Implement GET /admin/rules/ingest/:id/status endpoint
+- [x] [T036] [P1] [US5] Implement GET /admin/rules/ingest/:id/status endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Returns: Ingestion progress (chapters, sections, entries, embeddings processed)
       └── Depends: T025, T034, T017
 
-- [ ] [T037] [P1] [US5] Implement DELETE /admin/rules/ingest/:id endpoint
+- [x] [T037] [P1] [US5] Implement DELETE /admin/rules/ingest/:id endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Cascades: Deletes document and all related rules
       └── Depends: T025, T034
 
-- [ ] [T038] [P2] [US5] Implement POST /admin/rules/categories endpoint
+- [x] [T038] [P2] [US5] Implement POST /admin/rules/categories endpoint
       └── File: `backend/src/api/routes/rules.ts`
       └── Creates: New rule category
       └── Depends: T025, T034, T024
 
-- [ ] [T039] [P1] [US1] Register rules routes in Express app
+- [x] [T039] [P1] [US1] Register rules routes in Express app
       └── File: `backend/src/api/index.ts` or `backend/src/app.ts`
       └── Depends: T026-T038
 
@@ -239,12 +239,12 @@
 
 ## Phase 4: Frontend - Hooks and State
 
-- [ ] [T040] [P1] [US1] Create useRulesDocuments hook
+- [x] [T040] [P1] [US1] Create useRulesDocuments hook
       └── File: `frontend/src/hooks/useRulesDocuments.ts`
       └── Functions: Fetch documents, chapters, sections, entries
       └── Depends: T026-T032
 
-- [ ] [T041] [P1] [US2] Create useRulesSearch hook
+- [x] [T041] [P1] [US2] Create useRulesSearch hook
       └── File: `frontend/src/hooks/useRulesSearch.ts`
       └── State: query, mode, results, loading, error
       └── Depends: T033
@@ -255,34 +255,34 @@
 
 ### Display Components
 
-- [ ] [T042] [P1] [US1] Create RuleCard component
+- [x] [T042] [P1] [US1] Create RuleCard component
       └── File: `frontend/src/components/rules/RuleCard.tsx`
       └── Props: entry, highlights (optional)
       └── Displays: Title, excerpt, source reference
 
-- [ ] [T043] [P1] [US1] Create RuleDetail component
+- [x] [T043] [P1] [US1] Create RuleDetail component
       └── File: `frontend/src/components/rules/RuleDetail.tsx`
       └── Props: entryId
       └── Displays: Full content, breadcrumb navigation, categories
 
-- [ ] [T044] [P2] [US4] Create CitationPopover component
+- [x] [T044] [P2] [US4] Create CitationPopover component
       └── File: `frontend/src/components/rules/CitationPopover.tsx`
       └── Props: citation object
       └── Displays: Rule excerpt, link to full rule
 
 ### Navigation Components
 
-- [ ] [T045] [P1] [US1] Create RulesBrowser component (hierarchical sidebar)
+- [x] [T045] [P1] [US1] Create RulesBrowser component (hierarchical sidebar)
       └── File: `frontend/src/components/rules/RulesBrowser.tsx`
       └── Features: Expandable tree (documents → chapters → sections → entries)
       └── Depends: T040
 
-- [ ] [T046] [P1] [US2] Create RulesSearch component
+- [x] [T046] [P1] [US2] Create RulesSearch component
       └── File: `frontend/src/components/rules/RulesSearch.tsx`
       └── Features: Search input, mode toggle (fulltext/semantic/hybrid)
       └── Depends: T041
 
-- [ ] [T047] [P1] [US2] Create SearchResults component
+- [x] [T047] [P1] [US2] Create SearchResults component
       └── File: `frontend/src/components/rules/SearchResults.tsx`
       └── Props: results, loading
       └── Features: Result list with highlighting, pagination
@@ -292,17 +292,17 @@
 
 ## Phase 6: Frontend - Pages
 
-- [ ] [T048] [P1] [US1] Create Rules Explorer main page
+- [x] [T048] [P1] [US1] Create Rules Explorer main page
       └── File: `frontend/src/app/rules/page.tsx`
       └── Layout: Sidebar (RulesBrowser), main area (search/results or entry detail)
       └── Depends: T045, T046, T047
 
-- [ ] [T049] [P1] [US1] Create Rule detail page
+- [x] [T049] [P1] [US1] Create Rule detail page
       └── File: `frontend/src/app/rules/[id]/page.tsx`
       └── Displays: Full rule with context, related rules
       └── Depends: T043
 
-- [ ] [T050] [P1] [US1] Add Rules Explorer link to main navigation
+- [x] [T050] [P1] [US1] Add Rules Explorer link to main navigation
       └── File: `frontend/src/components/Navigation.tsx` (or similar)
       └── Depends: T048
 
@@ -310,18 +310,18 @@
 
 ## Phase 7: AI DM Integration
 
-- [ ] [T051] [P2] [US4] Update DMService to use database-backed RulesService
-      └── File: `backend/src/services/dm/service.ts`
+- [x] [T051] [P2] [US4] Update DMService to use database-backed RulesService
+      └── File: `backend/src/services/rules/dm-integration.ts`
       └── Change: Switch from file-based to Supabase-backed rule lookup
       └── Depends: T023
 
-- [ ] [T052] [P2] [US4] Implement rule citation generation in DMService
-      └── File: `backend/src/services/dm/service.ts`
+- [x] [T052] [P2] [US4] Implement rule citation generation in DMService
+      └── File: `backend/src/services/rules/dm-integration.ts`
       └── Function: Add relevant rules to AI context, generate citations
       └── Depends: T051, T021
 
-- [ ] [T053] [P2] [US4] Update session view to render citations
-      └── File: `frontend/src/components/session/SessionMessage.tsx` (or similar)
+- [x] [T053] [P2] [US4] Update session view to render citations
+      └── File: `frontend/src/components/chat/MessageBubble.tsx`
       └── Features: Render CitationPopover for each citation in AI response
       └── Depends: T044
 
@@ -384,7 +384,7 @@
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] [T063] [P2] [Setup] Add environment variable validation for rules feature
+- [x] [T063] [P2] [Setup] Add environment variable validation for rules feature
       └── File: `backend/src/config/env.ts`
       └── Variables: OPENAI_API_KEY (required for embeddings)
 
@@ -398,8 +398,8 @@
       └── Features: Recent searches, popular queries
       └── Depends: T046
 
-- [ ] [T066] [P2] [US1] Add loading skeletons for rules content
-      └── File: `frontend/src/components/rules/RuleSkeleton.tsx`
+- [x] [T066] [P2] [US1] Add loading skeletons for rules content
+      └── File: `frontend/src/components/rules/RuleCard.tsx`, `RuleDetail.tsx`
       └── Depends: T042, T043
 
 - [ ] [T067] [P2] [US5] Add ingestion progress UI for admins

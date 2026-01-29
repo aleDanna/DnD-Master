@@ -1,11 +1,15 @@
 'use client';
 
+import { CitationPopover, type Citation } from '../rules/CitationPopover';
+
 export type MessageType = 'player' | 'dm';
 
 interface RuleCitation {
+  ruleId?: string;
   title: string;
   source: string;
   excerpt?: string;
+  relevance?: number;
 }
 
 interface MessageBubbleProps {
@@ -69,20 +73,53 @@ export function MessageBubble({
           <div className="mt-3 pt-3 border-t border-border/50">
             <p className="text-xs font-medium text-muted mb-2">Rule References:</p>
             <ul className="text-xs text-muted space-y-1">
-              {ruleCitations.map((citation, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span>
-                    <strong>{citation.title}</strong>
-                    <span className="text-muted"> ({citation.source})</span>
-                    {citation.excerpt && (
-                      <span className="block text-muted/80 mt-0.5">
-                        &quot;{citation.excerpt}&quot;
-                      </span>
-                    )}
-                  </span>
-                </li>
-              ))}
+              {ruleCitations.map((citation, i) => {
+                // Parse source string into components for CitationPopover
+                const sourceParts = citation.source.split(' > ');
+                const citationData: Citation = {
+                  ruleId: citation.ruleId || `temp-${i}`,
+                  title: citation.title,
+                  excerpt: citation.excerpt || '',
+                  source: {
+                    document: sourceParts[0] || citation.source,
+                    chapter: sourceParts[1] || '',
+                    section: sourceParts[2] || '',
+                    page: sourceParts[3]?.replace('p. ', '') || null,
+                  },
+                  relevance: citation.relevance,
+                };
+
+                // Use CitationPopover if we have a ruleId, otherwise simple display
+                if (citation.ruleId) {
+                  return (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <CitationPopover citation={citationData}>
+                        <span className="cursor-pointer hover:text-primary transition-colors">
+                          <strong>{citation.title}</strong>
+                          <span className="text-muted"> ({citation.source})</span>
+                        </span>
+                      </CitationPopover>
+                    </li>
+                  );
+                }
+
+                // Fallback for citations without ruleId
+                return (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      <strong>{citation.title}</strong>
+                      <span className="text-muted"> ({citation.source})</span>
+                      {citation.excerpt && (
+                        <span className="block text-muted/80 mt-0.5">
+                          &quot;{citation.excerpt}&quot;
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
