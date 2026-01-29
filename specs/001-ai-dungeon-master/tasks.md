@@ -284,7 +284,7 @@
 
 ---
 
-## Phase 7: User Story 5 - Campaign and Character Management (Priority: P3)
+## Phase 7: User Story 5 - Campaign and Character Management (Priority: P3) [COMPLETED]
 
 **Goal**: Full CRUD for campaigns and characters with settings configuration
 
@@ -292,44 +292,44 @@
 
 ### Backend - Character Management
 
-- [ ] T118 [US5] Implement CharacterRepository in `backend/src/services/data/character-repo.ts`
+- [x] T118 [US5] Implement CharacterRepository in `backend/src/services/data/character-repo.ts`
 
 ### Backend - API
 
-- [ ] T119 [US5] Add campaign update/delete endpoints in `backend/src/api/routes/campaigns.ts`
-- [ ] T120 [US5] Create characters CRUD routes in `backend/src/api/routes/characters.ts`
+- [x] T119 [US5] Add campaign update/delete endpoints in `backend/src/api/routes/campaigns.ts`
+- [x] T120 [US5] Create characters CRUD routes in `backend/src/api/routes/characters.ts`
 
 ### Frontend - Campaign Settings
 
-- [ ] T121 [US5] Create SettingsForm component (dice_mode, map_mode) in `frontend/src/components/campaign/SettingsForm.tsx`
-- [ ] T122 [US5] Add settings section to campaign detail page
+- [x] T121 [US5] Create SettingsForm component (dice_mode, map_mode) in `frontend/src/components/campaign/SettingsForm.tsx`
+- [x] T122 [US5] Add settings section to campaign detail page
 
 ### Frontend - Character Management
 
-- [ ] T123 [US5] Create character editor page in `frontend/src/app/characters/[id]/page.tsx`
-- [ ] T124 [US5] Create CharacterCard component in `frontend/src/components/campaign/CharacterCard.tsx`
-- [ ] T125 [US5] Create CharacterForm component in `frontend/src/components/campaign/CharacterForm.tsx`
-- [ ] T126 [US5] Add character list to campaign detail page
-- [ ] T127 [US5] Create new character page in `frontend/src/app/campaigns/[id]/characters/new/page.tsx`
+- [x] T123 [US5] Create character editor page in `frontend/src/app/characters/[id]/page.tsx`
+- [x] T124 [US5] Create CharacterCard component in `frontend/src/components/campaign/CharacterCard.tsx`
+- [x] T125 [US5] Create CharacterForm component in `frontend/src/components/campaign/CharacterForm.tsx`
+- [x] T126 [US5] Add character list to campaign detail page
+- [x] T127 [US5] Create new character page in `frontend/src/app/campaigns/[id]/characters/new/page.tsx`
 
 **Checkpoint**: User Story 5 (Campaign/Character Management) is fully functional and testable independently
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 8: Polish & Cross-Cutting Concerns [COMPLETED]
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T128 [P] Add loading states to all async operations in frontend components
-- [ ] T129 [P] Add error boundary component in `frontend/src/components/ui/ErrorBoundary.tsx`
-- [ ] T130 [P] Implement toast notifications for success/error feedback
-- [ ] T131 Add responsive mobile layout to session page
-- [ ] T132 [P] Add keyboard shortcuts (Enter to send message, Escape to close modals)
-- [ ] T133 Implement player-entered dice mode UI in DiceLog component
-- [ ] T134 [P] Add structured logging to all backend services
-- [ ] T135 [P] Create environment validation on startup in `backend/src/config/env.ts`
-- [ ] T136 Run quickstart.md validation - verify all setup steps work
-- [ ] T137 [P] Code cleanup - remove console.logs, unused imports
+- [x] T128 [P] Add loading states to all async operations in frontend components
+- [x] T129 [P] Add error boundary component in `frontend/src/components/ui/ErrorBoundary.tsx`
+- [x] T130 [P] Implement toast notifications for success/error feedback
+- [x] T131 Add responsive mobile layout to session page
+- [x] T132 [P] Add keyboard shortcuts (Enter to send message, Escape to close modals)
+- [x] T133 Implement player-entered dice mode UI in DiceLog component
+- [x] T134 [P] Add structured logging to all backend services
+- [x] T135 [P] Create environment validation on startup in `backend/src/config/env.ts`
+- [x] T136 Run quickstart.md validation - verify all setup steps work
+- [x] T137 [P] Code cleanup - remove console.logs, unused imports
 
 ---
 

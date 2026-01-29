@@ -128,3 +128,77 @@ export const diceRollSchema = z.object({
   reason: z.string().max(200).optional(),
   value: z.number().int().positive().optional(), // For player-entered mode
 });
+
+// Character validation schemas
+const skillProficiencySchema = z.record(z.object({
+  proficient: z.boolean(),
+  expertise: z.boolean(),
+  bonus: z.number(),
+})).optional();
+
+const equipmentItemSchema = z.object({
+  name: z.string(),
+  quantity: z.number().int().positive(),
+  equipped: z.boolean(),
+  description: z.string().optional(),
+});
+
+const spellSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  level: z.number().int().min(0).max(9),
+  prepared: z.boolean(),
+});
+
+const featureSchema = z.object({
+  name: z.string(),
+  source: z.string(),
+  description: z.string(),
+});
+
+export const createCharacterSchema = z.object({
+  campaign_id: z.string().uuid('Invalid campaign ID'),
+  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  race: z.string().min(1, 'Race is required').max(50),
+  class: z.string().min(1, 'Class is required').max(50),
+  level: z.number().int().min(1).max(20).optional().default(1),
+  max_hp: z.number().int().positive('Max HP must be positive'),
+  current_hp: z.number().int().min(0, 'Current HP cannot be negative'),
+  armor_class: z.number().int().min(1).max(30),
+  speed: z.number().int().positive().optional().default(30),
+  strength: z.number().int().min(1).max(30),
+  dexterity: z.number().int().min(1).max(30),
+  constitution: z.number().int().min(1).max(30),
+  intelligence: z.number().int().min(1).max(30),
+  wisdom: z.number().int().min(1).max(30),
+  charisma: z.number().int().min(1).max(30),
+  skills: skillProficiencySchema,
+  proficiencies: z.array(z.string()).optional(),
+  equipment: z.array(equipmentItemSchema).optional(),
+  spells: z.array(spellSchema).optional(),
+  features: z.array(featureSchema).optional(),
+  notes: z.string().max(5000).optional(),
+});
+
+export const updateCharacterSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  race: z.string().min(1).max(50).optional(),
+  class: z.string().min(1).max(50).optional(),
+  level: z.number().int().min(1).max(20).optional(),
+  max_hp: z.number().int().positive().optional(),
+  current_hp: z.number().int().min(0).optional(),
+  armor_class: z.number().int().min(1).max(30).optional(),
+  speed: z.number().int().positive().optional(),
+  strength: z.number().int().min(1).max(30).optional(),
+  dexterity: z.number().int().min(1).max(30).optional(),
+  constitution: z.number().int().min(1).max(30).optional(),
+  intelligence: z.number().int().min(1).max(30).optional(),
+  wisdom: z.number().int().min(1).max(30).optional(),
+  charisma: z.number().int().min(1).max(30).optional(),
+  skills: skillProficiencySchema,
+  proficiencies: z.array(z.string()).optional(),
+  equipment: z.array(equipmentItemSchema).optional(),
+  spells: z.array(spellSchema).optional(),
+  features: z.array(featureSchema).optional(),
+  notes: z.string().max(5000).optional(),
+});

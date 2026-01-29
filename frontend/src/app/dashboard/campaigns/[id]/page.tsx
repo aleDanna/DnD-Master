@@ -7,7 +7,12 @@ import { useAuth } from '@/components/ui/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Modal';
-import { campaignApi, sessionApi } from '@/lib/api';
+import { campaignApi, sessionApi, characterApi, type Character } from '@/lib/api';
+import { SessionCard } from '@/components/campaign/SessionCard';
+import { PlayerList } from '@/components/campaign/PlayerList';
+import { InviteDialog } from '@/components/campaign/InviteDialog';
+import { SettingsForm, type CampaignSettings } from '@/components/campaign/SettingsForm';
+import { CharacterCard } from '@/components/campaign/CharacterCard';
 
 interface Campaign {
   id: string;
@@ -35,47 +40,72 @@ interface Session {
   ended_at: string | null;
 }
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  role: 'player' | 'dm';
+  created_at: string;
+  expires_at: string;
+}
+
+type TabType = 'overview' | 'characters' | 'settings';
+
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { session: authSession } = useAuth();
+  const { user, session: authSession } = useAuth();
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingSession, setCreatingSession] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
 
   const campaignId = params.id as string;
 
-  useEffect(() => {
-    const loadCampaign = async () => {
-      if (!authSession?.access_token) return;
+  const loadCampaignData = async () => {
+    if (!authSession?.access_token) return;
 
-      try {
-        const [campaignResult, sessionsResult] = await Promise.all([
-          campaignApi.get(authSession.access_token, campaignId),
-          sessionApi.listByCampaign(authSession.access_token, campaignId),
-        ]);
+    try {
+      const [campaignResult, sessionsResult, charactersResult] = await Promise.all([
+        campaignApi.get(authSession.access_token, campaignId),
+        sessionApi.listByCampaign(authSession.access_token, campaignId),
+        characterApi.listByCampaign(authSession.access_token, campaignId),
+      ]);
 
-        if (!campaignResult.success) {
-          setError(campaignResult.error?.message || 'Failed to load campaign');
-          return;
-        }
-
-        setCampaign(campaignResult.data!);
-        setSessions(sessionsResult.data || []);
-      } catch (err) {
-        setError('Failed to load campaign');
-        console.error('Load campaign error:', err);
-      } finally {
-        setLoading(false);
+      if (!campaignResult.success) {
+        setError(campaignResult.error?.message || 'Failed to load campaign');
+        return;
       }
-    };
 
-    loadCampaign();
+      setCampaign(campaignResult.data!);
+      setSessions(sessionsResult.data || []);
+      setCharacters(charactersResult.data || []);
+
+      // Load invites if owner
+      if (campaignResult.data?.isOwner) {
+        const invitesResult = await campaignApi.getInvites(authSession.access_token, campaignId);
+        if (invitesResult.success) {
+          setPendingInvites(invitesResult.data || []);
+        }
+      }
+    } catch (err) {
+      setError('Failed to load campaign');
+      console.error('Load campaign error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCampaignData();
   }, [authSession, campaignId]);
 
   const handleStartSession = async () => {
@@ -86,7 +116,6 @@ export default function CampaignDetailPage() {
       const result = await sessionApi.create(authSession.access_token, campaignId);
 
       if (!result.success) {
-        // Check if there's an active session
         if (result.error?.code === 'ACTIVE_SESSION_EXISTS') {
           const data = result.error.details as { sessionId: string };
           router.push(`/session/${data.sessionId}`);
@@ -127,6 +156,64 @@ export default function CampaignDetailPage() {
     }
   };
 
+  const handleSaveSettings = async (settings: CampaignSettings) => {
+    if (!authSession?.access_token) return;
+
+    const result = await campaignApi.update(authSession.access_token, campaignId, settings);
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to save settings');
+    }
+
+    setCampaign((prev) => (prev ? { ...prev, ...settings } : prev));
+  };
+
+  const handleInvite = async (email: string, role: 'player' | 'dm') => {
+    if (!authSession?.access_token) return null;
+
+    const result = await campaignApi.invite(authSession.access_token, campaignId, email, role);
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to send invitation');
+    }
+
+    // Refresh invites
+    const invitesResult = await campaignApi.getInvites(authSession.access_token, campaignId);
+    if (invitesResult.success) {
+      setPendingInvites(invitesResult.data || []);
+    }
+
+    return { inviteUrl: result.data!.invite_url };
+  };
+
+  const handleRemovePlayer = async (userId: string) => {
+    if (!authSession?.access_token) return;
+
+    await campaignApi.removePlayer(authSession.access_token, campaignId, userId);
+    await loadCampaignData();
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    if (!authSession?.access_token) return;
+
+    await campaignApi.revokeInvite(authSession.access_token, campaignId, inviteId);
+    setPendingInvites((prev) => prev.filter((inv) => inv.id !== inviteId));
+  };
+
+  const handleDeleteCharacter = async () => {
+    if (!authSession?.access_token || !characterToDelete) return;
+
+    try {
+      await characterApi.delete(authSession.access_token, characterToDelete.id);
+      setCharacters((prev) => prev.filter((c) => c.id !== characterToDelete.id));
+    } catch (err) {
+      setError('Failed to delete character');
+      console.error('Delete character error:', err);
+    } finally {
+      setCharacterToDelete(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -147,11 +234,11 @@ export default function CampaignDetailPage() {
   }
 
   const activeSession = sessions.find((s) => s.status === 'active');
-  const diceModeLabel = campaign.dice_mode === 'rng' ? 'Auto Roll' : 'Manual Roll';
-  const mapModeLabel = campaign.map_mode === 'grid_2d' ? '2D Grid' : 'Narrative Only';
+  const myCharacter = characters.find((c) => c.user_id === user?.id);
 
   return (
     <div>
+      {/* Header */}
       <div className="mb-8">
         <Link
           href="/dashboard"
@@ -182,106 +269,165 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Campaign Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted">Dice Mode</span>
-              <span className="text-foreground">{diceModeLabel}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Map Mode</span>
-              <span className="text-foreground">{mapModeLabel}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Players</span>
-              <span className="text-foreground">{campaign.players.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Created</span>
-              <span className="text-foreground">
-                {new Date(campaign.created_at).toLocaleDateString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 border-b border-border">
+        {(['overview', 'characters', 'settings'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium capitalize transition-colors relative ${
+              activeTab === tab
+                ? 'text-primary'
+                : 'text-muted hover:text-foreground'
+            }`}
+          >
+            {tab}
+            {activeTab === tab && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+            )}
+          </button>
+        ))}
+      </div>
 
-        {/* Sessions */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Session History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {sessions.length === 0 ? (
-              <p className="text-muted text-sm">No sessions yet. Start your first session!</p>
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Sessions */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Session History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {sessions.length === 0 ? (
+                <p className="text-muted text-sm">No sessions yet. Start your first session!</p>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.map((sess, index) => (
+                    <SessionCard
+                      key={sess.id}
+                      session={{
+                        ...sess,
+                        name: sess.name || `Session ${sessions.length - index}`,
+                      }}
+                      onResume={() => router.push(`/session/${sess.id}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Players */}
+          <PlayerList
+            players={campaign.players.map((p) => ({
+              ...p,
+              user: { id: p.user_id },
+            }))}
+            pendingInvites={campaign.isOwner ? pendingInvites : []}
+            currentUserId={user?.id || ''}
+            isOwner={campaign.isOwner}
+            onRemovePlayer={handleRemovePlayer}
+            onRevokeInvite={handleRevokeInvite}
+            onInviteClick={() => setInviteDialogOpen(true)}
+          />
+        </div>
+      )}
+
+      {activeTab === 'characters' && (
+        <div className="space-y-6">
+          {/* My Character */}
+          {!myCharacter && !campaign.isOwner && (
+            <Card>
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <p className="text-muted mb-4">You don't have a character in this campaign yet.</p>
+                  <Link href={`/campaigns/${campaignId}/characters/new`}>
+                    <Button variant="primary">Create Character</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Character List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                Characters ({characters.length})
+              </h2>
+              {!myCharacter && (
+                <Link href={`/campaigns/${campaignId}/characters/new`}>
+                  <Button variant="secondary" size="sm">
+                    + New Character
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {characters.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted">
+                  No characters in this campaign yet.
+                </CardContent>
+              </Card>
             ) : (
-              <div className="space-y-3">
-                {sessions.map((sess) => (
-                  <div
-                    key={sess.id}
-                    className="flex items-center justify-between p-3 bg-background rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {sess.name || `Session ${sessions.indexOf(sess) + 1}`}
-                      </p>
-                      <p className="text-xs text-muted">
-                        {new Date(sess.started_at).toLocaleDateString()}
-                        {sess.ended_at && ` - ${new Date(sess.ended_at).toLocaleDateString()}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          sess.status === 'active'
-                            ? 'bg-success/20 text-success'
-                            : sess.status === 'paused'
-                            ? 'bg-warning/20 text-warning'
-                            : 'bg-muted/20 text-muted'
-                        }`}
-                      >
-                        {sess.status}
-                      </span>
-                      {sess.status !== 'ended' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => router.push(`/session/${sess.id}`)}
-                        >
-                          {sess.status === 'active' ? 'Join' : 'Resume'}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {characters.map((character) => (
+                  <CharacterCard
+                    key={character.id}
+                    character={character}
+                    isOwner={character.user_id === user?.id}
+                    onEdit={() => router.push(`/characters/${character.id}`)}
+                    onDelete={() => setCharacterToDelete(character)}
+                  />
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Owner Actions */}
-      {campaign.isOwner && (
-        <div className="mt-8 pt-8 border-t border-border">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Campaign Management</h2>
-          <div className="flex gap-4">
-            <Button
-              variant="secondary"
-              onClick={() => router.push(`/dashboard/campaigns/${campaignId}/edit`)}
-            >
-              Edit Campaign
-            </Button>
-            <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
-              Delete Campaign
-            </Button>
           </div>
         </div>
       )}
 
+      {activeTab === 'settings' && (
+        <div className="max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SettingsForm
+                initialValues={{
+                  name: campaign.name,
+                  description: campaign.description,
+                  dice_mode: campaign.dice_mode,
+                  map_mode: campaign.map_mode,
+                }}
+                onSave={handleSaveSettings}
+                isOwner={campaign.isOwner}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone */}
+          {campaign.isOwner && (
+            <Card className="mt-6 border-danger/30">
+              <CardHeader>
+                <CardTitle className="text-danger">Danger Zone</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted mb-4">
+                  Deleting a campaign is permanent and cannot be undone. All sessions, characters,
+                  and history will be lost.
+                </p>
+                <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+                  Delete Campaign
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Modals */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -291,6 +437,23 @@ export default function CampaignDetailPage() {
         confirmText="Delete"
         variant="danger"
         loading={deleting}
+      />
+
+      <ConfirmModal
+        isOpen={!!characterToDelete}
+        onClose={() => setCharacterToDelete(null)}
+        onConfirm={handleDeleteCharacter}
+        title="Delete Character"
+        message={`Are you sure you want to delete ${characterToDelete?.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+      />
+
+      <InviteDialog
+        isOpen={inviteDialogOpen}
+        onClose={() => setInviteDialogOpen(false)}
+        onInvite={handleInvite}
+        campaignName={campaign.name}
       />
     </div>
   );

@@ -423,6 +423,128 @@ export type { CombatState, Combatant, InitiativeEntry, Condition };
 /**
  * Combat API
  */
+/**
+ * Character types
+ */
+interface Character {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  name: string;
+  race: string;
+  class: string;
+  level: number;
+  max_hp: number;
+  current_hp: number;
+  armor_class: number;
+  speed: number;
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  skills: Record<string, { proficient: boolean; expertise: boolean; bonus: number }>;
+  proficiencies: string[];
+  equipment: Array<{ name: string; quantity: number; equipped: boolean; description?: string }>;
+  spells: Array<{ id: string; name: string; level: number; prepared: boolean }>;
+  features: Array<{ name: string; source: string; description: string }>;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  isOwner?: boolean;
+}
+
+interface CreateCharacterInput {
+  campaign_id: string;
+  name: string;
+  race: string;
+  class: string;
+  level?: number;
+  max_hp: number;
+  current_hp: number;
+  armor_class: number;
+  speed?: number;
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  skills?: Character['skills'];
+  proficiencies?: string[];
+  equipment?: Character['equipment'];
+  spells?: Character['spells'];
+  features?: Character['features'];
+  notes?: string;
+}
+
+interface UpdateCharacterInput {
+  name?: string;
+  race?: string;
+  class?: string;
+  level?: number;
+  max_hp?: number;
+  current_hp?: number;
+  armor_class?: number;
+  speed?: number;
+  strength?: number;
+  dexterity?: number;
+  constitution?: number;
+  intelligence?: number;
+  wisdom?: number;
+  charisma?: number;
+  skills?: Character['skills'];
+  proficiencies?: string[];
+  equipment?: Character['equipment'];
+  spells?: Character['spells'];
+  features?: Character['features'];
+  notes?: string;
+}
+
+export type { Character, CreateCharacterInput, UpdateCharacterInput };
+
+/**
+ * Character API
+ */
+export const characterApi = {
+  list: (token: string) =>
+    request<Character[]>('/api/characters', { token }),
+
+  listByCampaign: (token: string, campaignId: string) =>
+    request<Character[]>(`/api/characters/campaign/${campaignId}`, { token }),
+
+  get: (token: string, id: string) =>
+    request<Character & { isOwner: boolean }>(`/api/characters/${id}`, { token }),
+
+  create: (token: string, data: CreateCharacterInput) =>
+    request<Character>('/api/characters', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  update: (token: string, id: string, data: UpdateCharacterInput) =>
+    request<Character>(`/api/characters/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  delete: (token: string, id: string) =>
+    request(`/api/characters/${id}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  updateHp: (token: string, id: string, currentHp: number, maxHp?: number) =>
+    request<Character>(`/api/characters/${id}/hp`, {
+      method: 'PATCH',
+      body: JSON.stringify({ current_hp: currentHp, max_hp: maxHp }),
+      token,
+    }),
+};
+
 export const combatApi = {
   getCombatState: (token: string, sessionId: string) =>
     request<{
