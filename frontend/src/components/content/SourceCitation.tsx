@@ -9,14 +9,27 @@ import { BookOpenIcon } from '../layout/Icons';
 interface SourceCitationProps {
   source: SourceCitationType;
   className?: string;
+  compact?: boolean;
 }
 
-export default function SourceCitation({ source, className = '' }: SourceCitationProps) {
+export default function SourceCitation({
+  source,
+  className = '',
+  compact = false,
+}: SourceCitationProps) {
   if (!source.document && !source.page) {
     return null;
   }
 
   const citation = formatCitation(source);
+
+  if (compact) {
+    return (
+      <span className={`text-xs text-gray-400 ${className}`} title="Source">
+        {citation}
+      </span>
+    );
+  }
 
   return (
     <div className={`flex items-center text-sm text-gray-500 ${className}`}>

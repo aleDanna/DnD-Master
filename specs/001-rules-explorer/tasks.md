@@ -141,47 +141,47 @@
 
 ### Frontend - Content Display Components
 
-- [ ] T066 [P] [US2] Create RuleCard component in `frontend/src/components/content/RuleCard.tsx`
-- [ ] T067 [P] [US2] Create ClassDetail component in `frontend/src/components/content/ClassDetail.tsx`
-- [ ] T068 [P] [US2] Create RaceDetail component in `frontend/src/components/content/RaceDetail.tsx`
-- [ ] T069 [P] [US2] Create SpellCard component in `frontend/src/components/content/SpellCard.tsx`
-- [ ] T070 [P] [US2] Create MonsterStatBlock component in `frontend/src/components/content/MonsterStatBlock.tsx`
-- [ ] T071 [P] [US2] Create ItemCard component in `frontend/src/components/content/ItemCard.tsx`
-- [ ] T072 [P] [US2] Create BackgroundCard component in `frontend/src/components/content/BackgroundCard.tsx`
-- [ ] T073 [P] [US2] Create FeatCard component in `frontend/src/components/content/FeatCard.tsx`
-- [ ] T074 [P] [US2] Create ConditionCard component in `frontend/src/components/content/ConditionCard.tsx`
-- [ ] T075 [P] [US2] Create SkillCard component in `frontend/src/components/content/SkillCard.tsx`
+- [x] T066 [P] [US2] Create RuleCard component in `frontend/src/components/content/RuleCard.tsx`
+- [x] T067 [P] [US2] Create ClassDetail component in `frontend/src/components/content/ClassDetail.tsx`
+- [x] T068 [P] [US2] Create RaceDetail component in `frontend/src/components/content/RaceDetail.tsx`
+- [x] T069 [P] [US2] Create SpellCard component in `frontend/src/components/content/SpellCard.tsx`
+- [x] T070 [P] [US2] Create MonsterStatBlock component in `frontend/src/components/content/MonsterStatBlock.tsx`
+- [x] T071 [P] [US2] Create ItemCard component in `frontend/src/components/content/ItemCard.tsx`
+- [x] T072 [P] [US2] Create BackgroundCard component in `frontend/src/components/content/BackgroundCard.tsx`
+- [x] T073 [P] [US2] Create FeatCard component in `frontend/src/components/content/FeatCard.tsx`
+- [x] T074 [P] [US2] Create ConditionCard component in `frontend/src/components/content/ConditionCard.tsx`
+- [x] T075 [P] [US2] Create SkillCard component in `frontend/src/components/content/SkillCard.tsx`
 
 ### Frontend - Pages (App Router)
 
 - [x] T076 [US1] Create rules layout with sidebar in `frontend/src/app/(rules)/layout.tsx`
 - [x] T077 [US1] Create rules landing page in `frontend/src/app/(rules)/rules/page.tsx`
-- [ ] T078 [P] [US2] Create rule category page in `frontend/src/app/(rules)/rules/[category]/page.tsx`
-- [ ] T079 [P] [US2] Create rule detail page in `frontend/src/app/(rules)/rules/[category]/[slug]/page.tsx`
+- [x] T078 [P] [US2] Create rule category page in `frontend/src/app/(rules)/rules/[category]/page.tsx`
+- [x] T079 [P] [US2] Create rule detail page in `frontend/src/app/(rules)/rules/[category]/[slug]/page.tsx`
 - [x] T080 [P] [US2] Create classes list page in `frontend/src/app/(rules)/classes/page.tsx`
-- [ ] T081 [P] [US2] Create class detail page in `frontend/src/app/(rules)/classes/[slug]/page.tsx`
-- [ ] T082 [P] [US2] Create subclass detail page in `frontend/src/app/(rules)/classes/[slug]/[subclass]/page.tsx`
-- [ ] T083 [P] [US2] Create races list page in `frontend/src/app/(rules)/races/page.tsx`
-- [ ] T084 [P] [US2] Create race detail page in `frontend/src/app/(rules)/races/[slug]/page.tsx`
+- [x] T081 [P] [US2] Create class detail page in `frontend/src/app/(rules)/classes/[slug]/page.tsx`
+- [x] T082 [P] [US2] Create subclass detail page in `frontend/src/app/(rules)/classes/[slug]/[subclass]/page.tsx`
+- [x] T083 [P] [US2] Create races list page in `frontend/src/app/(rules)/races/page.tsx`
+- [x] T084 [P] [US2] Create race detail page in `frontend/src/app/(rules)/races/[slug]/page.tsx`
 - [x] T085 [P] [US2] Create spells list page in `frontend/src/app/(rules)/spells/page.tsx`
-- [ ] T086 [P] [US2] Create spell detail page in `frontend/src/app/(rules)/spells/[slug]/page.tsx`
+- [x] T086 [P] [US2] Create spell detail page in `frontend/src/app/(rules)/spells/[slug]/page.tsx`
 - [x] T087 [P] [US2] Create bestiary list page in `frontend/src/app/(rules)/bestiary/page.tsx`
-- [ ] T088 [P] [US2] Create monster detail page in `frontend/src/app/(rules)/bestiary/[slug]/page.tsx`
-- [ ] T089 [P] [US2] Create items list page in `frontend/src/app/(rules)/items/page.tsx`
-- [ ] T090 [P] [US2] Create item detail page in `frontend/src/app/(rules)/items/[slug]/page.tsx`
-- [ ] T091 [P] [US2] Create backgrounds list page in `frontend/src/app/(rules)/backgrounds/page.tsx`
-- [ ] T092 [P] [US2] Create background detail page in `frontend/src/app/(rules)/backgrounds/[slug]/page.tsx`
-- [ ] T093 [P] [US2] Create feats list page in `frontend/src/app/(rules)/feats/page.tsx`
-- [ ] T094 [P] [US2] Create feat detail page in `frontend/src/app/(rules)/feats/[slug]/page.tsx`
-- [ ] T095 [P] [US2] Create conditions list page in `frontend/src/app/(rules)/conditions/page.tsx`
-- [ ] T096 [P] [US2] Create condition detail page in `frontend/src/app/(rules)/conditions/[slug]/page.tsx`
-- [ ] T097 [P] [US2] Create skills list page in `frontend/src/app/(rules)/skills/page.tsx`
-- [ ] T098 [P] [US2] Create skill detail page in `frontend/src/app/(rules)/skills/[slug]/page.tsx`
+- [x] T088 [P] [US2] Create monster detail page in `frontend/src/app/(rules)/bestiary/[slug]/page.tsx`
+- [x] T089 [P] [US2] Create items list page in `frontend/src/app/(rules)/items/page.tsx`
+- [x] T090 [P] [US2] Create item detail page in `frontend/src/app/(rules)/items/[slug]/page.tsx`
+- [x] T091 [P] [US2] Create backgrounds list page in `frontend/src/app/(rules)/backgrounds/page.tsx`
+- [x] T092 [P] [US2] Create background detail page in `frontend/src/app/(rules)/backgrounds/[slug]/page.tsx`
+- [x] T093 [P] [US2] Create feats list page in `frontend/src/app/(rules)/feats/page.tsx`
+- [x] T094 [P] [US2] Create feat detail page in `frontend/src/app/(rules)/feats/[slug]/page.tsx`
+- [x] T095 [P] [US2] Create conditions list page in `frontend/src/app/(rules)/conditions/page.tsx`
+- [x] T096 [P] [US2] Create condition detail page in `frontend/src/app/(rules)/conditions/[slug]/page.tsx`
+- [x] T097 [P] [US2] Create skills list page in `frontend/src/app/(rules)/skills/page.tsx`
+- [x] T098 [P] [US2] Create skill detail page in `frontend/src/app/(rules)/skills/[slug]/page.tsx`
 
 ### Error Handling
 
-- [ ] T099 [US2] Create 404 not-found page in `frontend/src/app/(rules)/[...slug]/page.tsx`
-- [ ] T100 [US2] Create empty state component in `frontend/src/components/layout/EmptyState.tsx`
+- [x] T099 [US2] Create 404 not-found page in `frontend/src/app/(rules)/[...slug]/page.tsx`
+- [x] T100 [US2] Create empty state component in `frontend/src/components/layout/EmptyState.tsx`
 
 **Checkpoint**: MVP complete - Users can browse all categories and view full content details
 
