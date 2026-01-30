@@ -1,9 +1,9 @@
+// Load environment variables FIRST, before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 import { errorHandler } from './api/middleware/error-handler.js';
 import healthRouter from './api/routes/health.js';
