@@ -25,10 +25,10 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create backend directory structure: `backend/src/models/content/`, `backend/src/services/search/`, `backend/src/services/content/`, `backend/src/routes/`
-- [ ] T002 Create frontend directory structure: `frontend/src/components/layout/`, `frontend/src/components/search/`, `frontend/src/components/content/`, `frontend/src/lib/api/`, `frontend/src/lib/hooks/`
-- [ ] T003 [P] Install backend dependencies (pg, pgvector) in `backend/package.json`
-- [ ] T004 [P] Install frontend dependencies (react-query or swr) in `frontend/package.json`
+- [x] T001 Create backend directory structure: `backend/src/models/content/`, `backend/src/services/search/`, `backend/src/services/content/`, `backend/src/routes/`
+- [x] T002 Create frontend directory structure: `frontend/src/components/layout/`, `frontend/src/components/search/`, `frontend/src/components/content/`, `frontend/src/lib/api/`, `frontend/src/lib/hooks/`
+- [x] T003 [P] Install backend dependencies (pg, pgvector) in `backend/package.json`
+- [x] T004 [P] Install frontend dependencies (react-query or swr) in `frontend/package.json`
 
 ---
 
@@ -40,42 +40,42 @@
 
 ### Database Schema
 
-- [ ] T005 Create pgvector extension migration in `backend/src/migrations/001_enable_pgvector.sql`
-- [ ] T006 Create rule_categories table migration in `backend/src/migrations/002_rule_categories.sql`
-- [ ] T007 Create rules table with search_vector and embedding columns in `backend/src/migrations/003_rules.sql`
-- [ ] T008 [P] Create classes and subclasses table migration in `backend/src/migrations/004_classes.sql`
-- [ ] T009 [P] Create races and subraces table migration in `backend/src/migrations/005_races.sql`
-- [ ] T010 [P] Create spells and spell_classes table migration in `backend/src/migrations/006_spells.sql`
-- [ ] T011 [P] Create monsters table migration in `backend/src/migrations/007_monsters.sql`
-- [ ] T012 [P] Create items table migration in `backend/src/migrations/008_items.sql`
-- [ ] T013 [P] Create backgrounds table migration in `backend/src/migrations/009_backgrounds.sql`
-- [ ] T014 [P] Create feats table migration in `backend/src/migrations/010_feats.sql`
-- [ ] T015 [P] Create conditions table migration in `backend/src/migrations/011_conditions.sql`
-- [ ] T016 [P] Create skills table migration in `backend/src/migrations/012_skills.sql`
-- [ ] T017 Create search vector triggers for all content tables in `backend/src/migrations/013_search_triggers.sql`
+- [x] T005 Create pgvector extension migration in `backend/src/migrations/001_enable_pgvector.sql`
+- [x] T006 Create rule_categories table migration in `backend/src/migrations/002_rule_categories.sql`
+- [x] T007 Create rules table with search_vector and embedding columns in `backend/src/migrations/003_rules.sql`
+- [x] T008 [P] Create classes and subclasses table migration in `backend/src/migrations/004_classes.sql`
+- [x] T009 [P] Create races and subraces table migration in `backend/src/migrations/005_races.sql`
+- [x] T010 [P] Create spells and spell_classes table migration in `backend/src/migrations/006_spells.sql`
+- [x] T011 [P] Create monsters table migration in `backend/src/migrations/007_monsters.sql`
+- [x] T012 [P] Create items table migration in `backend/src/migrations/008_items.sql`
+- [x] T013 [P] Create backgrounds table migration in `backend/src/migrations/009_backgrounds.sql`
+- [x] T014 [P] Create feats table migration in `backend/src/migrations/010_feats.sql`
+- [x] T015 [P] Create conditions table migration in `backend/src/migrations/011_conditions.sql`
+- [x] T016 [P] Create skills table migration in `backend/src/migrations/012_skills.sql`
+- [x] T017 Create search vector triggers for all content tables in `backend/src/migrations/013_search_triggers.sql`
 
 ### TypeScript Types
 
-- [ ] T018 [P] Create shared content types (SourceCitation, BaseEntity) in `backend/src/types/content.types.ts`
-- [ ] T019 [P] Create RuleCategory and Rule types in `backend/src/types/rules.types.ts`
-- [ ] T020 [P] Create Class and Subclass types in `backend/src/types/classes.types.ts`
-- [ ] T021 [P] Create Race and Subrace types in `backend/src/types/races.types.ts`
-- [ ] T022 [P] Create Spell types in `backend/src/types/spells.types.ts`
-- [ ] T023 [P] Create Monster types in `backend/src/types/monsters.types.ts`
-- [ ] T024 [P] Create Item types in `backend/src/types/items.types.ts`
-- [ ] T025 [P] Create Background, Feat, Condition, Skill types in `backend/src/types/misc.types.ts`
-- [ ] T026 [P] Create SearchResult and NavigationTree types in `backend/src/types/search.types.ts`
+- [x] T018 [P] Create shared content types (SourceCitation, BaseEntity) in `backend/src/types/content.types.ts`
+- [x] T019 [P] Create RuleCategory and Rule types in `backend/src/types/rules.types.ts`
+- [x] T020 [P] Create Class and Subclass types in `backend/src/types/classes.types.ts`
+- [x] T021 [P] Create Race and Subrace types in `backend/src/types/races.types.ts`
+- [x] T022 [P] Create Spell types in `backend/src/types/spells.types.ts`
+- [x] T023 [P] Create Monster types in `backend/src/types/monsters.types.ts`
+- [x] T024 [P] Create Item types in `backend/src/types/items.types.ts`
+- [x] T025 [P] Create Background, Feat, Condition, Skill types in `backend/src/types/misc.types.ts`
+- [x] T026 [P] Create SearchResult and NavigationTree types in `backend/src/types/search.types.ts`
 
 ### API Infrastructure
 
-- [ ] T027 Create base content router setup in `backend/src/routes/index.ts`
-- [ ] T028 Create error handling middleware in `backend/src/middleware/errorHandler.ts`
-- [ ] T029 Create request logging middleware in `backend/src/middleware/requestLogger.ts`
+- [x] T027 Create base content router setup in `backend/src/api/routes/content/index.ts` (adapted to existing structure)
+- [x] T028 Create error handling middleware - EXISTS at `backend/src/api/middleware/error-handler.ts`
+- [x] T029 Create request logging middleware - EXISTS in `backend/src/index.ts` (development logging)
 
 ### Frontend Types (shared)
 
-- [ ] T030 [P] Create frontend content types (mirror backend types) in `frontend/src/types/content.types.ts`
-- [ ] T031 [P] Create API response types in `frontend/src/types/api.types.ts`
+- [x] T030 [P] Create frontend content types (mirror backend types) in `frontend/src/types/content.types.ts`
+- [x] T031 [P] Create API response types in `frontend/src/types/api.types.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -89,55 +89,55 @@
 
 ### Backend - Navigation API
 
-- [ ] T032 [US1] Implement getNavigationTree service in `backend/src/services/content/navigationService.ts`
-- [ ] T033 [US1] Create GET /api/rules/tree endpoint in `backend/src/routes/navigation.ts`
+- [x] T032 [US1] Implement getNavigationTree service in `backend/src/services/content/navigationService.ts`
+- [x] T033 [US1] Create GET /api/content/navigation/tree endpoint in `backend/src/api/routes/content/navigation.ts`
 
 ### Backend - Content Services
 
-- [ ] T034 [P] [US2] Implement RuleCategoryService in `backend/src/services/content/ruleCategoryService.ts`
-- [ ] T035 [P] [US2] Implement RuleService in `backend/src/services/content/ruleService.ts`
-- [ ] T036 [P] [US2] Implement ClassService in `backend/src/services/content/classService.ts`
-- [ ] T037 [P] [US2] Implement RaceService in `backend/src/services/content/raceService.ts`
-- [ ] T038 [P] [US2] Implement SpellService in `backend/src/services/content/spellService.ts`
-- [ ] T039 [P] [US2] Implement MonsterService in `backend/src/services/content/monsterService.ts`
-- [ ] T040 [P] [US2] Implement ItemService in `backend/src/services/content/itemService.ts`
-- [ ] T041 [P] [US2] Implement BackgroundService in `backend/src/services/content/backgroundService.ts`
-- [ ] T042 [P] [US2] Implement FeatService in `backend/src/services/content/featService.ts`
-- [ ] T043 [P] [US2] Implement ConditionService in `backend/src/services/content/conditionService.ts`
-- [ ] T044 [P] [US2] Implement SkillService in `backend/src/services/content/skillService.ts`
+- [x] T034 [P] [US2] Implement RuleCategoryService in `backend/src/services/content/ruleCategoryService.ts`
+- [x] T035 [P] [US2] Implement RuleService in `backend/src/services/content/ruleService.ts`
+- [x] T036 [P] [US2] Implement ClassService in `backend/src/services/content/classService.ts`
+- [x] T037 [P] [US2] Implement RaceService in `backend/src/services/content/raceService.ts`
+- [x] T038 [P] [US2] Implement SpellService in `backend/src/services/content/spellService.ts`
+- [x] T039 [P] [US2] Implement MonsterService in `backend/src/services/content/monsterService.ts`
+- [x] T040 [P] [US2] Implement ItemService in `backend/src/services/content/itemService.ts`
+- [x] T041 [P] [US2] Implement BackgroundService in `backend/src/services/content/backgroundService.ts`
+- [x] T042 [P] [US2] Implement FeatService in `backend/src/services/content/featService.ts`
+- [x] T043 [P] [US2] Implement ConditionService in `backend/src/services/content/conditionService.ts`
+- [x] T044 [P] [US2] Implement SkillService in `backend/src/services/content/skillService.ts`
 
 ### Backend - Content Endpoints
 
-- [ ] T045 [P] [US2] Create rules routes (list, category, detail) in `backend/src/routes/rules.ts`
-- [ ] T046 [P] [US2] Create classes routes (list, detail, subclass) in `backend/src/routes/classes.ts`
-- [ ] T047 [P] [US2] Create races routes (list, detail, subrace) in `backend/src/routes/races.ts`
-- [ ] T048 [P] [US2] Create spells routes (list with filters, detail) in `backend/src/routes/spells.ts`
-- [ ] T049 [P] [US2] Create bestiary routes (list with filters, detail) in `backend/src/routes/bestiary.ts`
-- [ ] T050 [P] [US2] Create items routes (list with filters, detail) in `backend/src/routes/items.ts`
-- [ ] T051 [P] [US2] Create backgrounds routes in `backend/src/routes/backgrounds.ts`
-- [ ] T052 [P] [US2] Create feats routes in `backend/src/routes/feats.ts`
-- [ ] T053 [P] [US2] Create conditions routes in `backend/src/routes/conditions.ts`
-- [ ] T054 [P] [US2] Create skills routes in `backend/src/routes/skills.ts`
-- [ ] T055 [US2] Register all content routes in main router in `backend/src/routes/index.ts`
+- [x] T045 [P] [US2] Create rules routes in `backend/src/api/routes/content/rules.ts`
+- [x] T046 [P] [US2] Create classes routes in `backend/src/api/routes/content/classes.ts`
+- [x] T047 [P] [US2] Create races routes in `backend/src/api/routes/content/races.ts`
+- [x] T048 [P] [US2] Create spells routes in `backend/src/api/routes/content/spells.ts`
+- [x] T049 [P] [US2] Create bestiary routes in `backend/src/api/routes/content/bestiary.ts`
+- [x] T050 [P] [US2] Create items routes in `backend/src/api/routes/content/items.ts`
+- [x] T051 [P] [US2] Create backgrounds routes in `backend/src/api/routes/content/backgrounds.ts`
+- [x] T052 [P] [US2] Create feats routes in `backend/src/api/routes/content/feats.ts`
+- [x] T053 [P] [US2] Create conditions routes in `backend/src/api/routes/content/conditions.ts`
+- [x] T054 [P] [US2] Create skills routes in `backend/src/api/routes/content/skills.ts`
+- [x] T055 [US2] Register all content routes in `backend/src/api/routes/content/index.ts` and `backend/src/index.ts`
 
 ### Frontend - API Client
 
-- [ ] T056 [P] [US1] Create navigation API client in `frontend/src/lib/api/navigationApi.ts`
-- [ ] T057 [P] [US2] Create content API client (all categories) in `frontend/src/lib/api/contentApi.ts`
+- [x] T056 [P] [US1] Create navigation API client in `frontend/src/lib/api/navigationApi.ts`
+- [x] T057 [P] [US2] Create content API client (all categories) in `frontend/src/lib/api/contentApi.ts`
 
 ### Frontend - Hooks
 
-- [ ] T058 [US1] Create useSidebar hook (expansion state, localStorage) in `frontend/src/lib/hooks/useSidebar.ts`
-- [ ] T059 [US1] Create useNavigation hook (fetch tree, loading states) in `frontend/src/lib/hooks/useNavigation.ts`
+- [x] T058 [US1] Create useSidebar hook (expansion state, localStorage) in `frontend/src/lib/hooks/useSidebar.ts`
+- [x] T059 [US1] Create useNavigation hook (fetch tree, loading states) in `frontend/src/lib/hooks/useNavigation.ts`
 
 ### Frontend - Layout Components
 
-- [ ] T060 [US1] Create RulesLayout component (sidebar + content area) in `frontend/src/components/layout/RulesLayout.tsx`
-- [ ] T061 [US1] Create Sidebar component (hierarchical navigation) in `frontend/src/components/layout/Sidebar.tsx`
-- [ ] T062 [US1] Create SidebarItem component (expandable tree node) in `frontend/src/components/layout/SidebarItem.tsx`
-- [ ] T063 [US2] Create Breadcrumb component in `frontend/src/components/layout/Breadcrumb.tsx`
-- [ ] T064 [US2] Create ContentPanel component (main display area) in `frontend/src/components/layout/ContentPanel.tsx`
-- [ ] T065 [US2] Create SourceCitation component in `frontend/src/components/content/SourceCitation.tsx`
+- [x] T060 [US1] Create RulesLayout component (sidebar + content area) in `frontend/src/components/layout/RulesLayout.tsx`
+- [x] T061 [US1] Create Sidebar component (hierarchical navigation) in `frontend/src/components/layout/Sidebar.tsx`
+- [x] T062 [US1] Create SidebarItem component (expandable tree node) in `frontend/src/components/layout/SidebarItem.tsx`
+- [x] T063 [US2] Create Breadcrumb component in `frontend/src/components/layout/Breadcrumb.tsx`
+- [x] T064 [US2] Create ContentPanel component (main display area) in `frontend/src/components/layout/ContentPanel.tsx`
+- [x] T065 [US2] Create SourceCitation component in `frontend/src/components/content/SourceCitation.tsx`
 
 ### Frontend - Content Display Components
 
@@ -154,18 +154,18 @@
 
 ### Frontend - Pages (App Router)
 
-- [ ] T076 [US1] Create rules layout with sidebar in `frontend/src/app/(rules)/layout.tsx`
-- [ ] T077 [US1] Create rules landing page in `frontend/src/app/(rules)/rules/page.tsx`
+- [x] T076 [US1] Create rules layout with sidebar in `frontend/src/app/(rules)/layout.tsx`
+- [x] T077 [US1] Create rules landing page in `frontend/src/app/(rules)/rules/page.tsx`
 - [ ] T078 [P] [US2] Create rule category page in `frontend/src/app/(rules)/rules/[category]/page.tsx`
 - [ ] T079 [P] [US2] Create rule detail page in `frontend/src/app/(rules)/rules/[category]/[slug]/page.tsx`
-- [ ] T080 [P] [US2] Create classes list page in `frontend/src/app/(rules)/classes/page.tsx`
+- [x] T080 [P] [US2] Create classes list page in `frontend/src/app/(rules)/classes/page.tsx`
 - [ ] T081 [P] [US2] Create class detail page in `frontend/src/app/(rules)/classes/[slug]/page.tsx`
 - [ ] T082 [P] [US2] Create subclass detail page in `frontend/src/app/(rules)/classes/[slug]/[subclass]/page.tsx`
 - [ ] T083 [P] [US2] Create races list page in `frontend/src/app/(rules)/races/page.tsx`
 - [ ] T084 [P] [US2] Create race detail page in `frontend/src/app/(rules)/races/[slug]/page.tsx`
-- [ ] T085 [P] [US2] Create spells list page in `frontend/src/app/(rules)/spells/page.tsx`
+- [x] T085 [P] [US2] Create spells list page in `frontend/src/app/(rules)/spells/page.tsx`
 - [ ] T086 [P] [US2] Create spell detail page in `frontend/src/app/(rules)/spells/[slug]/page.tsx`
-- [ ] T087 [P] [US2] Create bestiary list page in `frontend/src/app/(rules)/bestiary/page.tsx`
+- [x] T087 [P] [US2] Create bestiary list page in `frontend/src/app/(rules)/bestiary/page.tsx`
 - [ ] T088 [P] [US2] Create monster detail page in `frontend/src/app/(rules)/bestiary/[slug]/page.tsx`
 - [ ] T089 [P] [US2] Create items list page in `frontend/src/app/(rules)/items/page.tsx`
 - [ ] T090 [P] [US2] Create item detail page in `frontend/src/app/(rules)/items/[slug]/page.tsx`
@@ -224,13 +224,13 @@
 
 ### Frontend - Mobile Components
 
-- [ ] T114 [US5] Create MobileDrawer component (slide-over) in `frontend/src/components/layout/MobileDrawer.tsx`
-- [ ] T115 [US5] Create HamburgerButton component in `frontend/src/components/layout/HamburgerButton.tsx`
+- [x] T114 [US5] Create MobileDrawer component (slide-over) in `frontend/src/components/layout/MobileDrawer.tsx` (implemented early with RulesLayout)
+- [x] T115 [US5] Create HamburgerButton component in `frontend/src/components/layout/HamburgerButton.tsx` (implemented early with RulesLayout)
 - [ ] T116 [US5] Create useMobileDrawer hook in `frontend/src/lib/hooks/useMobileDrawer.ts`
-- [ ] T117 [US5] Update RulesLayout with mobile responsive breakpoints in `frontend/src/components/layout/RulesLayout.tsx`
-- [ ] T118 [US5] Update Sidebar for mobile drawer integration in `frontend/src/components/layout/Sidebar.tsx`
+- [x] T117 [US5] Update RulesLayout with mobile responsive breakpoints in `frontend/src/components/layout/RulesLayout.tsx` (implemented with initial RulesLayout)
+- [x] T118 [US5] Update Sidebar for mobile drawer integration in `frontend/src/components/layout/Sidebar.tsx` (implemented with initial Sidebar)
 - [ ] T119 [US5] Add mobile search access (in header when sidebar collapsed) in `frontend/src/components/layout/MobileSearchButton.tsx`
-- [ ] T120 [US5] Apply mobile touch target styles (min 44px) across all interactive components
+- [x] T120 [US5] Apply mobile touch target styles (min 44px) across all interactive components (implemented in SidebarItem, MobileDrawer, HamburgerButton)
 
 **Checkpoint**: Mobile experience complete - All features accessible on mobile devices
 
