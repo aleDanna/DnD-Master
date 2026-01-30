@@ -195,22 +195,22 @@
 
 ### Backend - Search
 
-- [ ] T101 [US3] Implement FullTextSearchService in `backend/src/services/search/fullTextSearchService.ts`
-- [ ] T102 [US3] Create GET /api/search endpoint (full-text mode) in `backend/src/routes/search.ts`
-- [ ] T103 [US3] Add search route to main router in `backend/src/routes/index.ts`
+- [x] T101 [US3] Implement FullTextSearchService in `backend/src/services/search/fullTextSearchService.ts`
+- [x] T102 [US3] Create GET /api/search endpoint (full-text mode) in `backend/src/api/routes/search.ts`
+- [x] T103 [US3] Add search route to main router in `backend/src/index.ts`
 
 ### Frontend - Search
 
-- [ ] T104 [US3] Create useDebounce hook in `frontend/src/lib/hooks/useDebounce.ts`
-- [ ] T105 [US3] Create useSearch hook (query, results, loading) in `frontend/src/lib/hooks/useSearch.ts`
-- [ ] T106 [US3] Create useRecentSearches hook (localStorage) in `frontend/src/lib/hooks/useRecentSearches.ts`
-- [ ] T107 [US3] Create search API client in `frontend/src/lib/api/searchApi.ts`
-- [ ] T108 [US3] Create SearchBar component in `frontend/src/components/search/SearchBar.tsx`
-- [ ] T109 [US3] Create SearchResults component (grouped display) in `frontend/src/components/search/SearchResults.tsx`
-- [ ] T110 [US3] Create SearchResultItem component (with snippet highlight) in `frontend/src/components/search/SearchResultItem.tsx`
-- [ ] T111 [US3] Create RecentSearches component in `frontend/src/components/search/RecentSearches.tsx`
-- [ ] T112 [US3] Create NoResults component with suggestions in `frontend/src/components/search/NoResults.tsx`
-- [ ] T113 [US3] Integrate SearchBar into Sidebar component in `frontend/src/components/layout/Sidebar.tsx`
+- [x] T104 [US3] Create useDebounce hook in `frontend/src/lib/hooks/useDebounce.ts`
+- [x] T105 [US3] Create useSearch hook (query, results, loading) in `frontend/src/lib/hooks/useSearch.ts`
+- [x] T106 [US3] Create useRecentSearches hook (localStorage) in `frontend/src/lib/hooks/useRecentSearches.ts`
+- [x] T107 [US3] Create search API client in `frontend/src/lib/api/searchApi.ts`
+- [x] T108 [US3] Create SearchBar component in `frontend/src/components/search/SearchBar.tsx`
+- [x] T109 [US3] Create SearchResults component (grouped display) in `frontend/src/components/search/SearchResults.tsx`
+- [x] T110 [US3] Create SearchResultItem component (with snippet highlight) in `frontend/src/components/search/SearchResultItem.tsx`
+- [x] T111 [US3] Create RecentSearches component in `frontend/src/components/search/RecentSearches.tsx`
+- [x] T112 [US3] Create NoResults component with suggestions in `frontend/src/components/search/NoResults.tsx`
+- [x] T113 [US3] Integrate SearchBar into Sidebar component in `frontend/src/components/layout/Sidebar.tsx`
 
 **Checkpoint**: Keyword search functional - Users can find content by term
 
@@ -226,10 +226,10 @@
 
 - [x] T114 [US5] Create MobileDrawer component (slide-over) in `frontend/src/components/layout/MobileDrawer.tsx` (implemented early with RulesLayout)
 - [x] T115 [US5] Create HamburgerButton component in `frontend/src/components/layout/HamburgerButton.tsx` (implemented early with RulesLayout)
-- [ ] T116 [US5] Create useMobileDrawer hook in `frontend/src/lib/hooks/useMobileDrawer.ts`
+- [x] T116 [US5] Create useMobileDrawer hook in `frontend/src/lib/hooks/useMobileDrawer.ts`
 - [x] T117 [US5] Update RulesLayout with mobile responsive breakpoints in `frontend/src/components/layout/RulesLayout.tsx` (implemented with initial RulesLayout)
 - [x] T118 [US5] Update Sidebar for mobile drawer integration in `frontend/src/components/layout/Sidebar.tsx` (implemented with initial Sidebar)
-- [ ] T119 [US5] Add mobile search access (in header when sidebar collapsed) in `frontend/src/components/layout/MobileSearchButton.tsx`
+- [x] T119 [US5] Add mobile search access (in header when sidebar collapsed) in `frontend/src/components/layout/MobileSearchButton.tsx`
 - [x] T120 [US5] Apply mobile touch target styles (min 44px) across all interactive components (implemented in SidebarItem, MobileDrawer, HamburgerButton)
 
 **Checkpoint**: Mobile experience complete - All features accessible on mobile devices

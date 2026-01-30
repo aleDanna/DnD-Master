@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Sidebar from './Sidebar';
 import MobileDrawer from './MobileDrawer';
 import HamburgerButton from './HamburgerButton';
+import MobileSearchButton from './MobileSearchButton';
 
 interface RulesLayoutProps {
   children: ReactNode;
@@ -45,9 +46,12 @@ export default function RulesLayout({ children }: RulesLayoutProps) {
         </aside>
 
         {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center h-14 bg-white border-b border-gray-200 px-4">
-          <HamburgerButton onClick={openDrawer} />
-          <h1 className="ml-3 text-lg font-semibold text-gray-900">Rules Explorer</h1>
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-14 bg-white border-b border-gray-200 px-4">
+          <div className="flex items-center">
+            <HamburgerButton onClick={openDrawer} />
+            <h1 className="ml-3 text-lg font-semibold text-gray-900">Rules Explorer</h1>
+          </div>
+          <MobileSearchButton />
         </div>
 
         {/* Mobile Drawer */}

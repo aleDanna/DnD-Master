@@ -9,6 +9,7 @@ import sessionsRouter from './api/routes/sessions.js';
 import gameRouter from './api/routes/game.js';
 import charactersRouter from './api/routes/characters.js';
 import contentRouter from './api/routes/content/index.js';
+import searchRouter from './api/routes/search.js';
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
@@ -37,6 +38,7 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/game', gameRouter);
 app.use('/api/characters', charactersRouter);
 app.use('/api/content', contentRouter); // Rules Explorer content API
+app.use('/api/search', searchRouter); // Rules Explorer search API
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
