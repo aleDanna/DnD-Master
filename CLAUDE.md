@@ -9,7 +9,10 @@ DnD-Master is a web application for Dungeons & Dragons campaign management built
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
+- **Backend**: Express.js
 - **Language**: TypeScript
+- **Database**: PostgreSQL (direct connection via pg)
+- **Authentication**: JWT + bcrypt
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js 18+
 
@@ -68,15 +71,38 @@ API routes are located in `src/app/api/`. Each route should:
 
 ## Environment Variables
 
-Create a `.env.local` file for local development:
-
+### Backend (`backend/.env`)
 ```
-# Add environment variables here
+# Server
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=dnd_master
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_password
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+
+# LLM Provider (openai, gemini, claude, mock)
+LLM_PROVIDER=mock
+```
+
+### Frontend (`frontend/.env.local`)
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ## Active Technologies
-- TypeScript 5.x (frontend and backend) (001-ai-dungeon-master)
-- PostgreSQL via Supabase (campaigns, sessions, characters, events) (001-ai-dungeon-master)
+- TypeScript 5.x (frontend and backend)
+- PostgreSQL (direct connection via pg/node-postgres)
+- JWT-based authentication (jsonwebtoken + bcryptjs)
 
 ## Recent Changes
-- 001-ai-dungeon-master: Added TypeScript 5.x (frontend and backend)
+- Removed Supabase dependency, replaced with direct PostgreSQL connection
+- Added JWT-based authentication with bcrypt password hashing

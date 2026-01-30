@@ -8,8 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { User, Session, AuthError, AuthChangeEvent } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient, type User, type Session, type AuthError } from '@/lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -32,13 +31,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = getSupabaseClient();
+  const client = getSupabaseClient();
 
   useEffect(() => {
     // Get initial session
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data: { session: initialSession } } = await client.auth.getSession();
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
       } catch (error) {
@@ -51,8 +50,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: AuthChangeEvent, newSession: Session | null) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange(
+      async (_event: string, newSession: Session | null) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
@@ -62,22 +61,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [client.auth]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await client.auth.signInWithPassword({
         email,
         password,
       });
       return { error };
     },
-    [supabase.auth]
+    [client.auth]
   );
 
   const signUp = useCallback(
     async (email: string, password: string, displayName?: string) => {
-      const { error } = await supabase.auth.signUp({
+      const { error } = await client.auth.signUp({
         email,
         password,
         options: {
@@ -88,23 +87,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       return { error };
     },
-    [supabase.auth]
+    [client.auth]
   );
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await client.auth.signOut();
     setUser(null);
     setSession(null);
-  }, [supabase.auth]);
+  }, [client.auth]);
 
   const resetPassword = useCallback(
     async (email: string) => {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await client.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      return { error };
+      return { error: error as AuthError | null };
     },
-    [supabase.auth]
+    [client.auth]
   );
 
   const value: AuthContextType = {

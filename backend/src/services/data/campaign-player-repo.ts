@@ -3,18 +3,16 @@
  * Handles all database operations for campaign memberships and invitations
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
+import { query, DbClient } from '../../config/database.js';
+import type { CampaignPlayerRow } from '../../models/database.types.js';
 import { randomBytes } from 'crypto';
-
-type DbClient = SupabaseClient<Database>;
 
 export interface CampaignPlayer {
   id: string;
   campaign_id: string;
   user_id: string;
-  role: 'player' | 'dm';
-  joined_at: string;
+  role: 'player' | 'dm' | 'owner';
+  joined_at: string | null;
   user?: {
     id: string;
     email?: string;
@@ -41,46 +39,58 @@ export interface CreateInviteInput {
   invited_by: string;
 }
 
+interface CampaignInviteRow {
+  id: string;
+  campaign_id: string;
+  email: string;
+  token: string;
+  role: string;
+  invited_by: string;
+  created_at: string;
+  expires_at: string;
+  accepted_at: string | null;
+}
+
 export class CampaignPlayerRepository {
-  constructor(private client: DbClient) {}
+  constructor(private client?: DbClient) {}
+
+  private async executeQuery<T>(text: string, params?: any[]): Promise<{ rows: T[]; rowCount: number }> {
+    if (this.client) {
+      return this.client.query<T>(text, params);
+    }
+    return query<T>(text, params);
+  }
 
   /**
    * Get all players in a campaign
    */
   async listByCampaign(campaignId: string): Promise<CampaignPlayer[]> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .select(`
-        *,
-        user:profiles(id, email, name)
-      `)
-      .eq('campaign_id', campaignId)
-      .order('joined_at', { ascending: true });
+    const result = await this.executeQuery<CampaignPlayerRow & { user_email?: string; user_name?: string }>(
+      `SELECT cp.*, p.email as user_email, p.display_name as user_name
+       FROM campaign_players cp
+       LEFT JOIN profiles p ON cp.user_id = p.id
+       WHERE cp.campaign_id = $1
+       ORDER BY cp.joined_at ASC`,
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to list campaign players: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToPlayer);
+    return result.rows.map(row => this.mapToPlayer(row));
   }
 
   /**
    * Get a player's membership in a campaign
    */
   async getByUserAndCampaign(userId: string, campaignId: string): Promise<CampaignPlayer | null> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId)
-      .single();
+    const result = await this.executeQuery<CampaignPlayerRow>(
+      'SELECT * FROM campaign_players WHERE campaign_id = $1 AND user_id = $2',
+      [campaignId, userId]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get campaign player: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToPlayer(data);
+    return this.mapToPlayer(result.rows[0]);
   }
 
   /**
@@ -89,42 +99,30 @@ export class CampaignPlayerRepository {
   async addPlayer(
     campaignId: string,
     userId: string,
-    role: 'player' | 'dm' = 'player'
+    role: 'player' | 'dm' | 'owner' = 'player'
   ): Promise<CampaignPlayer> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .insert({
-        campaign_id: campaignId,
-        user_id: userId,
-        role,
-        joined_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const result = await this.executeQuery<CampaignPlayerRow>(
+      `INSERT INTO campaign_players (campaign_id, user_id, role, invite_status, joined_at)
+       VALUES ($1, $2, $3, 'accepted', NOW())
+       RETURNING *`,
+      [campaignId, userId, role]
+    );
 
-    if (error) {
-      if (error.code === '23505') {
-        throw new Error('Player is already a member of this campaign');
-      }
-      throw new Error(`Failed to add player: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Failed to add player');
     }
 
-    return this.mapToPlayer(data);
+    return this.mapToPlayer(result.rows[0]);
   }
 
   /**
    * Remove a player from a campaign
    */
   async removePlayer(campaignId: string, userId: string): Promise<void> {
-    const { error } = await this.client
-      .from('campaign_players')
-      .delete()
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId);
-
-    if (error) {
-      throw new Error(`Failed to remove player: ${error.message}`);
-    }
+    await this.executeQuery(
+      'DELETE FROM campaign_players WHERE campaign_id = $1 AND user_id = $2',
+      [campaignId, userId]
+    );
   }
 
   /**
@@ -133,21 +131,18 @@ export class CampaignPlayerRepository {
   async updateRole(
     campaignId: string,
     userId: string,
-    role: 'player' | 'dm'
+    role: 'player' | 'dm' | 'owner'
   ): Promise<CampaignPlayer> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .update({ role })
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId)
-      .select()
-      .single();
+    const result = await this.executeQuery<CampaignPlayerRow>(
+      `UPDATE campaign_players SET role = $1 WHERE campaign_id = $2 AND user_id = $3 RETURNING *`,
+      [role, campaignId, userId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to update player role: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Player not found');
     }
 
-    return this.mapToPlayer(data);
+    return this.mapToPlayer(result.rows[0]);
   }
 
   /**
@@ -163,23 +158,19 @@ export class CampaignPlayerRepository {
    */
   async isDM(campaignId: string, userId: string): Promise<boolean> {
     const player = await this.getByUserAndCampaign(userId, campaignId);
-    return player?.role === 'dm';
+    return player?.role === 'dm' || player?.role === 'owner';
   }
 
   /**
    * Get player count for a campaign
    */
   async getPlayerCount(campaignId: string): Promise<number> {
-    const { count, error } = await this.client
-      .from('campaign_players')
-      .select('*', { count: 'exact', head: true })
-      .eq('campaign_id', campaignId);
+    const result = await this.executeQuery<{ count: string }>(
+      'SELECT COUNT(*) as count FROM campaign_players WHERE campaign_id = $1',
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to count players: ${error.message}`);
-    }
-
-    return count || 0;
+    return parseInt(result.rows[0]?.count || '0', 10);
   }
 
   /**
@@ -190,63 +181,55 @@ export class CampaignPlayerRepository {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 day expiration
 
-    const { data, error } = await this.client
-      .from('campaign_invites')
-      .insert({
-        campaign_id: input.campaign_id,
-        email: input.email.toLowerCase(),
+    const result = await this.executeQuery<CampaignInviteRow>(
+      `INSERT INTO campaign_invites (campaign_id, email, token, role, invited_by, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        input.campaign_id,
+        input.email.toLowerCase(),
         token,
-        role: input.role || 'player',
-        invited_by: input.invited_by,
-        created_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        accepted_at: null,
-      })
-      .select()
-      .single();
+        input.role || 'player',
+        input.invited_by,
+        expiresAt.toISOString(),
+      ]
+    );
 
-    if (error) {
-      throw new Error(`Failed to create invite: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Failed to create invite');
     }
 
-    return this.mapToInvite(data);
+    return this.mapToInvite(result.rows[0]);
   }
 
   /**
    * Get an invitation by token
    */
   async getInviteByToken(token: string): Promise<CampaignInvite | null> {
-    const { data, error } = await this.client
-      .from('campaign_invites')
-      .select('*')
-      .eq('token', token)
-      .single();
+    const result = await this.executeQuery<CampaignInviteRow>(
+      'SELECT * FROM campaign_invites WHERE token = $1',
+      [token]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get invite: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToInvite(data);
+    return this.mapToInvite(result.rows[0]);
   }
 
   /**
    * Get pending invitations for a campaign
    */
   async getPendingInvites(campaignId: string): Promise<CampaignInvite[]> {
-    const { data, error } = await this.client
-      .from('campaign_invites')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .is('accepted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+    const result = await this.executeQuery<CampaignInviteRow>(
+      `SELECT * FROM campaign_invites
+       WHERE campaign_id = $1 AND accepted_at IS NULL AND expires_at > NOW()
+       ORDER BY created_at DESC`,
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to get pending invites: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToInvite);
+    return result.rows.map(this.mapToInvite);
   }
 
   /**
@@ -268,67 +251,56 @@ export class CampaignPlayerRepository {
     }
 
     // Mark invite as accepted
-    const { error: updateError } = await this.client
-      .from('campaign_invites')
-      .update({ accepted_at: new Date().toISOString() })
-      .eq('id', invite.id);
-
-    if (updateError) {
-      throw new Error(`Failed to accept invite: ${updateError.message}`);
-    }
+    await this.executeQuery(
+      'UPDATE campaign_invites SET accepted_at = NOW() WHERE id = $1',
+      [invite.id]
+    );
 
     // Add player to campaign
-    return this.addPlayer(invite.campaign_id, userId, invite.role);
+    return this.addPlayer(invite.campaign_id, userId, invite.role as 'player' | 'dm');
   }
 
   /**
    * Revoke an invitation
    */
   async revokeInvite(inviteId: string): Promise<void> {
-    const { error } = await this.client
-      .from('campaign_invites')
-      .delete()
-      .eq('id', inviteId);
-
-    if (error) {
-      throw new Error(`Failed to revoke invite: ${error.message}`);
-    }
+    await this.executeQuery(
+      'DELETE FROM campaign_invites WHERE id = $1',
+      [inviteId]
+    );
   }
 
   /**
    * Get all campaigns a user is a member of
    */
   async getCampaignsForUser(userId: string): Promise<string[]> {
-    const { data, error } = await this.client
-      .from('campaign_players')
-      .select('campaign_id')
-      .eq('user_id', userId);
+    const result = await this.executeQuery<{ campaign_id: string }>(
+      'SELECT campaign_id FROM campaign_players WHERE user_id = $1',
+      [userId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to get user campaigns: ${error.message}`);
-    }
-
-    return (data || []).map(d => d.campaign_id);
+    return result.rows.map(d => d.campaign_id);
   }
 
-  private mapToPlayer(data: Database['public']['Tables']['campaign_players']['Row'] & {
-    user?: { id: string; email?: string; name?: string };
+  private mapToPlayer(data: CampaignPlayerRow & {
+    user_email?: string;
+    user_name?: string;
   }): CampaignPlayer {
     return {
       id: data.id,
       campaign_id: data.campaign_id,
       user_id: data.user_id,
-      role: data.role as 'player' | 'dm',
+      role: data.role as 'player' | 'dm' | 'owner',
       joined_at: data.joined_at,
-      user: data.user ? {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
+      user: data.user_email ? {
+        id: data.user_id,
+        email: data.user_email,
+        name: data.user_name,
       } : undefined,
     };
   }
 
-  private mapToInvite(data: Database['public']['Tables']['campaign_invites']['Row']): CampaignInvite {
+  private mapToInvite(data: CampaignInviteRow): CampaignInvite {
     return {
       id: data.id,
       campaign_id: data.campaign_id,
@@ -346,6 +318,6 @@ export class CampaignPlayerRepository {
 /**
  * Factory function to create a campaign player repository
  */
-export function createCampaignPlayerRepository(client: DbClient): CampaignPlayerRepository {
+export function createCampaignPlayerRepository(client?: DbClient): CampaignPlayerRepository {
   return new CampaignPlayerRepository(client);
 }

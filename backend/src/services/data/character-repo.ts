@@ -3,185 +3,178 @@
  * Handles all database operations for characters
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
+import { query, DbClient } from '../../config/database.js';
+import type { CharacterRow } from '../../models/database.types.js';
 import type {
   Character,
   CreateCharacterInput,
   UpdateCharacterInput,
 } from '../../models/character.js';
 
-type DbClient = SupabaseClient<Database>;
-
 export class CharacterRepository {
-  constructor(private client: DbClient) {}
+  constructor(private client?: DbClient) {}
+
+  private async executeQuery<T>(text: string, params?: any[]): Promise<{ rows: T[]; rowCount: number }> {
+    if (this.client) {
+      return this.client.query<T>(text, params);
+    }
+    return query<T>(text, params);
+  }
 
   /**
    * Create a new character
    */
   async create(input: CreateCharacterInput, userId: string): Promise<Character> {
-    const { data, error } = await this.client
-      .from('characters')
-      .insert({
-        campaign_id: input.campaign_id,
-        user_id: userId,
-        name: input.name,
-        race: input.race,
-        class: input.class,
-        level: input.level ?? 1,
-        max_hp: input.max_hp,
-        current_hp: input.current_hp,
-        armor_class: input.armor_class,
-        speed: input.speed ?? 30,
-        strength: input.strength,
-        dexterity: input.dexterity,
-        constitution: input.constitution,
-        intelligence: input.intelligence,
-        wisdom: input.wisdom,
-        charisma: input.charisma,
-        skills: input.skills ?? {},
-        proficiencies: input.proficiencies ?? [],
-        equipment: input.equipment ?? [],
-        spells: input.spells ?? [],
-        features: input.features ?? [],
-        notes: input.notes ?? null,
-      })
-      .select()
-      .single();
+    const result = await this.executeQuery<CharacterRow>(
+      `INSERT INTO characters (
+        campaign_id, user_id, name, race, class, level, max_hp, current_hp,
+        armor_class, speed, strength, dexterity, constitution, intelligence,
+        wisdom, charisma, skills, proficiencies, equipment, spells, features, notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      RETURNING *`,
+      [
+        input.campaign_id,
+        userId,
+        input.name,
+        input.race,
+        input.class,
+        input.level ?? 1,
+        input.max_hp,
+        input.current_hp,
+        input.armor_class,
+        input.speed ?? 30,
+        input.strength,
+        input.dexterity,
+        input.constitution,
+        input.intelligence,
+        input.wisdom,
+        input.charisma,
+        JSON.stringify(input.skills ?? {}),
+        JSON.stringify(input.proficiencies ?? []),
+        JSON.stringify(input.equipment ?? []),
+        JSON.stringify(input.spells ?? []),
+        JSON.stringify(input.features ?? []),
+        input.notes ?? null,
+      ]
+    );
 
-    if (error) {
-      throw new Error(`Failed to create character: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Failed to create character');
     }
 
-    return this.mapToCharacter(data);
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
    * Get a character by ID
    */
   async getById(id: string): Promise<Character | null> {
-    const { data, error } = await this.client
-      .from('characters')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const result = await this.executeQuery<CharacterRow>(
+      'SELECT * FROM characters WHERE id = $1',
+      [id]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get character: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToCharacter(data);
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
    * Get all characters in a campaign
    */
   async listByCampaign(campaignId: string): Promise<Character[]> {
-    const { data, error } = await this.client
-      .from('characters')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('created_at', { ascending: true });
+    const result = await this.executeQuery<CharacterRow>(
+      'SELECT * FROM characters WHERE campaign_id = $1 ORDER BY created_at ASC',
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to list characters: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToCharacter);
+    return result.rows.map(this.mapToCharacter);
   }
 
   /**
    * Get all characters owned by a user
    */
   async listByUser(userId: string): Promise<Character[]> {
-    const { data, error } = await this.client
-      .from('characters')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    const result = await this.executeQuery<CharacterRow>(
+      'SELECT * FROM characters WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to list user characters: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToCharacter);
+    return result.rows.map(this.mapToCharacter);
   }
 
   /**
    * Get a user's character in a specific campaign
    */
   async getByUserAndCampaign(userId: string, campaignId: string): Promise<Character | null> {
-    const { data, error } = await this.client
-      .from('characters')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('campaign_id', campaignId)
-      .single();
+    const result = await this.executeQuery<CharacterRow>(
+      'SELECT * FROM characters WHERE user_id = $1 AND campaign_id = $2',
+      [userId, campaignId]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get character: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToCharacter(data);
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
    * Update a character
    */
   async update(id: string, input: UpdateCharacterInput): Promise<Character> {
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    // Build dynamic update query
+    const updates: string[] = ['updated_at = NOW()'];
+    const values: any[] = [];
+    let paramIndex = 1;
 
-    // Only include fields that are provided
-    if (input.name !== undefined) updateData.name = input.name;
-    if (input.race !== undefined) updateData.race = input.race;
-    if (input.class !== undefined) updateData.class = input.class;
-    if (input.level !== undefined) updateData.level = input.level;
-    if (input.max_hp !== undefined) updateData.max_hp = input.max_hp;
-    if (input.current_hp !== undefined) updateData.current_hp = input.current_hp;
-    if (input.armor_class !== undefined) updateData.armor_class = input.armor_class;
-    if (input.speed !== undefined) updateData.speed = input.speed;
-    if (input.strength !== undefined) updateData.strength = input.strength;
-    if (input.dexterity !== undefined) updateData.dexterity = input.dexterity;
-    if (input.constitution !== undefined) updateData.constitution = input.constitution;
-    if (input.intelligence !== undefined) updateData.intelligence = input.intelligence;
-    if (input.wisdom !== undefined) updateData.wisdom = input.wisdom;
-    if (input.charisma !== undefined) updateData.charisma = input.charisma;
-    if (input.skills !== undefined) updateData.skills = input.skills;
-    if (input.proficiencies !== undefined) updateData.proficiencies = input.proficiencies;
-    if (input.equipment !== undefined) updateData.equipment = input.equipment;
-    if (input.spells !== undefined) updateData.spells = input.spells;
-    if (input.features !== undefined) updateData.features = input.features;
-    if (input.notes !== undefined) updateData.notes = input.notes;
+    const fields: (keyof UpdateCharacterInput)[] = [
+      'name', 'race', 'class', 'level', 'max_hp', 'current_hp', 'armor_class',
+      'speed', 'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom',
+      'charisma', 'skills', 'proficiencies', 'equipment', 'spells', 'features', 'notes'
+    ];
 
-    const { data, error } = await this.client
-      .from('characters')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to update character: ${error.message}`);
+    for (const field of fields) {
+      if (input[field] !== undefined) {
+        updates.push(`${field} = $${paramIndex}`);
+        const value = input[field];
+        // JSON stringify objects and arrays
+        if (typeof value === 'object' && value !== null) {
+          values.push(JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
+        paramIndex++;
+      }
     }
 
-    return this.mapToCharacter(data);
+    values.push(id);
+
+    const result = await this.executeQuery<CharacterRow>(
+      `UPDATE characters SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error('Character not found');
+    }
+
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
    * Delete a character
    */
   async delete(id: string): Promise<void> {
-    const { error } = await this.client
-      .from('characters')
-      .delete()
-      .eq('id', id);
+    const result = await this.executeQuery(
+      'DELETE FROM characters WHERE id = $1',
+      [id]
+    );
 
-    if (error) {
-      throw new Error(`Failed to delete character: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Character not found');
     }
   }
 
@@ -197,27 +190,24 @@ export class CharacterRepository {
    * Update character HP
    */
   async updateHp(id: string, currentHp: number, maxHp?: number): Promise<Character> {
-    const updateData: Record<string, unknown> = {
-      current_hp: currentHp,
-      updated_at: new Date().toISOString(),
-    };
+    let queryText: string;
+    let params: any[];
 
     if (maxHp !== undefined) {
-      updateData.max_hp = maxHp;
+      queryText = `UPDATE characters SET current_hp = $1, max_hp = $2, updated_at = NOW() WHERE id = $3 RETURNING *`;
+      params = [currentHp, maxHp, id];
+    } else {
+      queryText = `UPDATE characters SET current_hp = $1, updated_at = NOW() WHERE id = $2 RETURNING *`;
+      params = [currentHp, id];
     }
 
-    const { data, error } = await this.client
-      .from('characters')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const result = await this.executeQuery<CharacterRow>(queryText, params);
 
-    if (error) {
-      throw new Error(`Failed to update character HP: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Character not found');
     }
 
-    return this.mapToCharacter(data);
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
@@ -229,29 +219,25 @@ export class CharacterRepository {
       throw new Error('Character not found');
     }
 
-    const { data, error } = await this.client
-      .from('characters')
-      .update({
-        level: newLevel,
-        max_hp: character.max_hp + hpIncrease,
-        current_hp: character.current_hp + hpIncrease,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    const result = await this.executeQuery<CharacterRow>(
+      `UPDATE characters
+       SET level = $1, max_hp = max_hp + $2, current_hp = current_hp + $2, updated_at = NOW()
+       WHERE id = $3
+       RETURNING *`,
+      [newLevel, hpIncrease, id]
+    );
 
-    if (error) {
-      throw new Error(`Failed to level up character: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Failed to level up character');
     }
 
-    return this.mapToCharacter(data);
+    return this.mapToCharacter(result.rows[0]);
   }
 
   /**
    * Map database row to Character type
    */
-  private mapToCharacter(data: Database['public']['Tables']['characters']['Row']): Character {
+  private mapToCharacter(data: CharacterRow): Character {
     return {
       id: data.id,
       campaign_id: data.campaign_id,
@@ -270,11 +256,11 @@ export class CharacterRepository {
       intelligence: data.intelligence,
       wisdom: data.wisdom,
       charisma: data.charisma,
-      skills: (data.skills as Character['skills']) ?? {},
-      proficiencies: (data.proficiencies as string[]) ?? [],
-      equipment: (data.equipment as Character['equipment']) ?? [],
-      spells: (data.spells as Character['spells']) ?? [],
-      features: (data.features as Character['features']) ?? [],
+      skills: (typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills) ?? {},
+      proficiencies: (typeof data.proficiencies === 'string' ? JSON.parse(data.proficiencies) : data.proficiencies) ?? [],
+      equipment: (typeof data.equipment === 'string' ? JSON.parse(data.equipment) : data.equipment) ?? [],
+      spells: (typeof data.spells === 'string' ? JSON.parse(data.spells) : data.spells) ?? [],
+      features: (typeof data.features === 'string' ? JSON.parse(data.features) : data.features) ?? [],
       notes: data.notes,
       created_at: data.created_at,
       updated_at: data.updated_at,
@@ -285,6 +271,6 @@ export class CharacterRepository {
 /**
  * Factory function to create a character repository
  */
-export function createCharacterRepository(client: DbClient): CharacterRepository {
+export function createCharacterRepository(client?: DbClient): CharacterRepository {
   return new CharacterRepository(client);
 }
