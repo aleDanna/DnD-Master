@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { supabaseAdmin } from '../../config/supabase.js';
+import { healthCheck } from '../../config/database.js';
 
 const router = Router();
 
@@ -34,12 +34,8 @@ router.get('/', async (_req: Request, res: Response) => {
 
   // Check database connection
   try {
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .limit(1);
-
-    health.services.database = error ? 'down' : 'up';
+    const isHealthy = await healthCheck();
+    health.services.database = isHealthy ? 'up' : 'down';
   } catch {
     health.services.database = 'down';
   }
@@ -60,12 +56,9 @@ router.get('/', async (_req: Request, res: Response) => {
 router.get('/ready', async (_req: Request, res: Response) => {
   try {
     // Check database
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .limit(1);
+    const isHealthy = await healthCheck();
 
-    if (error) {
+    if (!isHealthy) {
       res.status(503).json({
         ready: false,
         reason: 'Database not ready',

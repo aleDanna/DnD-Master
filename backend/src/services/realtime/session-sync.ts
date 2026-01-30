@@ -1,7 +1,7 @@
 /**
  * Session Sync Service
  * Handles real-time session synchronization using EventEmitter pattern
- * (Replaces Supabase Realtime with in-memory event handling)
+ * Uses in-memory event handling for real-time updates
  */
 
 import { EventEmitter } from 'events';

@@ -70,7 +70,7 @@ export function errorHandler(
     return;
   }
 
-  // Handle Supabase errors
+  // Handle JWT authentication errors
   if (err.message?.includes('JWT')) {
     res.status(401).json({
       success: false,
