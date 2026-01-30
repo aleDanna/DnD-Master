@@ -278,8 +278,8 @@ router.post(
     try {
       const { id } = req.params;
       const sessionRepo = createSessionRepository();
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Verify session exists
       const session = await sessionRepo.getWithCampaign(id);
@@ -354,8 +354,8 @@ router.post(
       const { id } = req.params;
       const { skipRecap } = req.body;
       const sessionRepo = createSessionRepository();
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Verify session exists
       const sessionCheck = await sessionRepo.getById(id);
