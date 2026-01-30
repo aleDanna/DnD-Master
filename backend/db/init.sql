@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS characters CASCADE;
 DROP TABLE IF EXISTS campaign_players CASCADE;
 DROP TABLE IF EXISTS campaigns CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
 
 -- D&D Content junction tables
 DROP TABLE IF EXISTS class_spells CASCADE;
@@ -140,10 +140,10 @@ CREATE TYPE rarity AS ENUM (
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- 4.1 Users Table (replaces Supabase auth.users)
+-- 4.1 Profiles Table (user accounts)
 -- ---------------------------------------------------------------------------
 
-CREATE TABLE users (
+CREATE TABLE profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_profiles_email ON profiles(email);
 
 -- ---------------------------------------------------------------------------
 -- 4.2 Campaigns Table
@@ -162,7 +162,7 @@ CREATE INDEX idx_users_email ON users(email);
 
 CREATE TABLE campaigns (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     dice_mode dice_mode NOT NULL DEFAULT 'rng',
@@ -181,7 +181,7 @@ CREATE INDEX idx_campaigns_created_at ON campaigns(created_at DESC);
 CREATE TABLE campaign_players (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     role player_role NOT NULL DEFAULT 'player',
     invite_status invite_status NOT NULL DEFAULT 'pending',
     invited_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -200,7 +200,7 @@ CREATE INDEX idx_campaign_players_status ON campaign_players(invite_status);
 CREATE TABLE characters (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     race TEXT NOT NULL,
     class TEXT NOT NULL,
@@ -275,7 +275,7 @@ CREATE TABLE events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
     type event_type NOT NULL,
-    actor_id UUID REFERENCES users(id),
+    actor_id UUID REFERENCES profiles(id),
     actor_name TEXT,
 
     -- Event payload (structure depends on type)
@@ -304,7 +304,7 @@ CREATE TABLE campaign_invites (
     email VARCHAR(255) NOT NULL,
     token VARCHAR(64) NOT NULL UNIQUE,
     role VARCHAR(20) NOT NULL DEFAULT 'player' CHECK (role IN ('player', 'dm')),
-    invited_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    invited_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
     accepted_at TIMESTAMPTZ
@@ -725,7 +725,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Apply triggers to tables
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_campaigns_updated_at BEFORE UPDATE ON campaigns
