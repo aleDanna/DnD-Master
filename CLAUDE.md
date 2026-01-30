@@ -102,6 +102,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - TypeScript 5.x (frontend and backend)
 - PostgreSQL (direct connection via pg/node-postgres)
 - JWT-based authentication (jsonwebtoken + bcryptjs)
+- TypeScript 5.x + Next.js 14 (App Router), Express.js, Tailwind CSS, pg (node-postgres) (001-rules-explorer)
+- PostgreSQL with pgvector extension for semantic search embeddings (001-rules-explorer)
 
 ## Recent Changes
 - Removed Supabase dependency, replaced with direct PostgreSQL connection
