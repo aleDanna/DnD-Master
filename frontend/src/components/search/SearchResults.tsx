@@ -1,6 +1,7 @@
 /**
  * Search Results Component
  * T109: Create SearchResults component (grouped display)
+ * T126: Add AI-powered indicator to search results
  */
 
 'use client';
@@ -30,6 +31,19 @@ export default function SearchResults({
 
   return (
     <div className="space-y-8">
+      {/* AI-Powered Banner */}
+      {results.mode === 'semantic' && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+          <span className="text-lg">✨</span>
+          <div>
+            <span className="font-medium text-purple-900">AI-Powered Search</span>
+            <span className="text-purple-700 text-sm ml-2">
+              Results are ranked by semantic similarity
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Results Summary */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">

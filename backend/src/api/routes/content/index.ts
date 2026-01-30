@@ -1,11 +1,13 @@
 /**
  * Content Routes Index
  * T055: Register all content routes in main router
+ * T131: Add request caching headers for content endpoints
  *
  * This file registers all content-related routes for the Rules Explorer feature.
  */
 
 import { Router } from 'express';
+import { longCache } from '../../middleware/cache-headers.js';
 
 // Import route modules
 import rulesRouter from './rules.js';
@@ -22,6 +24,9 @@ import navigationRouter from './navigation.js';
 // import searchRouter from './search.js'; // Phase 4
 
 const contentRouter = Router();
+
+// Apply caching to all content routes (static D&D reference content)
+contentRouter.use(longCache);
 
 // Register routes
 contentRouter.use('/rules', rulesRouter);

@@ -1,6 +1,7 @@
 /**
  * Search Bar Component
  * T108: Create SearchBar component
+ * T124: Update SearchBar with search mode toggle
  */
 
 'use client';
@@ -8,6 +9,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { SearchIcon, XMarkIcon } from '@/components/layout/Icons';
+import { SearchMode } from '@/types/api.types';
 
 interface SearchBarProps {
   value: string;
@@ -18,6 +20,9 @@ interface SearchBarProps {
   isLoading?: boolean;
   autoFocus?: boolean;
   className?: string;
+  searchMode?: SearchMode;
+  onSearchModeChange?: (mode: SearchMode) => void;
+  showModeToggle?: boolean;
 }
 
 export default function SearchBar({
@@ -29,6 +34,9 @@ export default function SearchBar({
   isLoading = false,
   autoFocus = false,
   className = '',
+  searchMode = 'full-text',
+  onSearchModeChange,
+  showModeToggle = false,
 }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +66,7 @@ export default function SearchBar({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`${className}`}>
       <div className="relative">
         {/* Search Icon */}
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -106,6 +114,44 @@ export default function SearchBar({
           </button>
         )}
       </div>
+
+      {/* Search Mode Toggle */}
+      {showModeToggle && onSearchModeChange && (
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-xs text-gray-500">Mode:</span>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => onSearchModeChange('full-text')}
+              className={`
+                px-3 py-1 text-xs font-medium transition-colors
+                ${searchMode === 'full-text'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                }
+              `}
+              aria-label="Keyword search"
+            >
+              Keyword
+            </button>
+            <button
+              type="button"
+              onClick={() => onSearchModeChange('semantic')}
+              className={`
+                px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1
+                ${searchMode === 'semantic'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                }
+              `}
+              aria-label="AI-powered semantic search"
+            >
+              <span>AI</span>
+              <span className="text-[10px]">✨</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

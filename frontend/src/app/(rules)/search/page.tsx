@@ -6,9 +6,12 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
-import { useSearch } from '@/lib/hooks/useSearch';
+import { useState, useEffect, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 import { useRecentSearches } from '@/lib/hooks/useRecentSearches';
+import { search } from '@/lib/api/searchApi';
+import { SearchMode } from '@/types/api.types';
 import SearchBar from '@/components/search/SearchBar';
 import SearchResults, { SearchResultsSkeleton } from '@/components/search/SearchResults';
 import RecentSearches from '@/components/search/RecentSearches';
@@ -17,16 +20,30 @@ function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQuery = searchParams.get('q') || '';
+  const initialMode = (searchParams.get('mode') as SearchMode) || 'full-text';
+
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>(initialMode);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const debouncedQuery = useDebounce(query, 400);
+  const shouldSearch = debouncedQuery.trim().length >= 2;
 
   const {
-    query,
-    setQuery,
-    results,
+    data: results,
     isLoading,
     isError,
-    hasSearched,
-  } = useSearch({
-    debounceMs: 400,
+  } = useQuery({
+    queryKey: ['search', debouncedQuery, searchMode],
+    queryFn: () =>
+      search({
+        query: debouncedQuery,
+        type: searchMode,
+        limit: 50,
+      }),
+    enabled: shouldSearch,
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
 
   const { addSearch } = useRecentSearches();
@@ -36,21 +53,33 @@ function SearchPageContent() {
     if (initialQuery && !query) {
       setQuery(initialQuery);
     }
-  }, [initialQuery, query, setQuery]);
+  }, [initialQuery, query]);
 
-  // Update URL when query changes
+  // Update URL when query or mode changes
   useEffect(() => {
     if (query) {
-      router.replace(`/search?q=${encodeURIComponent(query)}`, { scroll: false });
+      const params = new URLSearchParams();
+      params.set('q', query);
+      if (searchMode !== 'full-text') {
+        params.set('mode', searchMode);
+      }
+      router.replace(`/search?${params.toString()}`, { scroll: false });
     }
-  }, [query, router]);
+  }, [query, searchMode, router]);
+
+  // Track when search has happened
+  useEffect(() => {
+    if (shouldSearch) {
+      setHasSearched(true);
+    }
+  }, [shouldSearch]);
 
   // Save to recent searches when results are shown
   useEffect(() => {
     if (results && results.totalResults > 0) {
-      addSearch(query, 'full-text');
+      addSearch(query, searchMode);
     }
-  }, [results, query, addSearch]);
+  }, [results, query, searchMode, addSearch]);
 
   const handleRecentSearchSelect = (selectedQuery: string) => {
     setQuery(selectedQuery);
@@ -64,9 +93,12 @@ function SearchPageContent() {
         <SearchBar
           value={query}
           onChange={setQuery}
-          isLoading={isLoading}
+          isLoading={shouldSearch && isLoading}
           autoFocus={!initialQuery}
           className="max-w-2xl"
+          searchMode={searchMode}
+          onSearchModeChange={setSearchMode}
+          showModeToggle
         />
       </div>
 

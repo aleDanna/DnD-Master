@@ -1,6 +1,7 @@
 /**
  * Search API Client
  * T107: Create search API client
+ * T127: Update search API client for semantic type
  */
 
 import {

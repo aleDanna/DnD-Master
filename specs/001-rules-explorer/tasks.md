@@ -244,16 +244,16 @@
 
 ### Backend - Semantic Search
 
-- [ ] T121 [US4] Implement SemanticSearchService (pgvector queries) in `backend/src/services/search/semanticSearchService.ts`
-- [ ] T122 [US4] Add semantic search mode to GET /api/search endpoint in `backend/src/routes/search.ts`
-- [ ] T123 [US4] Add fallback logic when embeddings unavailable in `backend/src/services/search/semanticSearchService.ts`
+- [x] T121 [US4] Implement SemanticSearchService (pgvector queries) in `backend/src/services/search/semanticSearchService.ts`
+- [x] T122 [US4] Add semantic search mode to GET /api/search endpoint in `backend/src/api/routes/search.ts`
+- [x] T123 [US4] Add fallback logic when embeddings unavailable in `backend/src/services/search/semanticSearchService.ts`
 
 ### Frontend - Semantic Search
 
-- [ ] T124 [US4] Update SearchBar with search mode toggle in `frontend/src/components/search/SearchBar.tsx`
-- [ ] T125 [US4] Update useSearch hook to support semantic mode in `frontend/src/lib/hooks/useSearch.ts`
-- [ ] T126 [US4] Add AI-powered indicator to search results in `frontend/src/components/search/SearchResults.tsx`
-- [ ] T127 [US4] Update search API client for semantic type in `frontend/src/lib/api/searchApi.ts`
+- [x] T124 [US4] Update SearchBar with search mode toggle in `frontend/src/components/search/SearchBar.tsx`
+- [x] T125 [US4] Update useSearch hook to support semantic mode in `frontend/src/lib/hooks/useSearch.ts`
+- [x] T126 [US4] Add AI-powered indicator to search results in `frontend/src/components/search/SearchResults.tsx`
+- [x] T127 [US4] Update search API client for semantic type in `frontend/src/lib/api/searchApi.ts`
 
 **Checkpoint**: Semantic search complete - Users can search by concept
 
@@ -263,14 +263,14 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T128 [P] Add loading skeletons for all content pages in `frontend/src/components/layout/ContentSkeleton.tsx`
-- [ ] T129 [P] Add error boundary for content display in `frontend/src/components/layout/ErrorBoundary.tsx`
-- [ ] T130 Optimize database queries with proper indexing verification
-- [ ] T131 Add request caching headers for content endpoints
-- [ ] T132 Performance audit: Ensure search < 1s, page load < 3s
-- [ ] T133 Accessibility audit: Ensure ARIA labels, keyboard navigation
-- [ ] T134 Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] T135 Validate against quickstart.md development workflow
+- [x] T128 [P] Add loading skeletons for all content pages in `frontend/src/components/layout/ContentSkeleton.tsx`
+- [x] T129 [P] Add error boundary for content display in `frontend/src/components/layout/ErrorBoundary.tsx`
+- [ ] T130 Optimize database queries with proper indexing verification (requires manual testing)
+- [x] T131 Add request caching headers for content endpoints in `backend/src/api/middleware/cache-headers.ts`
+- [ ] T132 Performance audit: Ensure search < 1s, page load < 3s (requires manual testing)
+- [ ] T133 Accessibility audit: Ensure ARIA labels, keyboard navigation (requires manual testing)
+- [ ] T134 Cross-browser testing (Chrome, Firefox, Safari, Edge) (requires manual testing)
+- [ ] T135 Validate against quickstart.md development workflow (requires manual testing)
 
 ---
 

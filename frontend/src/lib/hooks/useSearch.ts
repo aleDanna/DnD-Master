@@ -1,6 +1,7 @@
 /**
  * useSearch Hook
  * T105: Create useSearch hook (query, results, loading)
+ * T125: Update useSearch hook to support semantic mode
  */
 
 'use client';

@@ -1,10 +1,12 @@
 /**
  * Search Routes
  * T102: Create GET /api/search endpoint (full-text mode)
+ * T122: Add semantic search mode to GET /api/search endpoint
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { fullTextSearch } from '../../services/search/fullTextSearchService.js';
+import { semanticSearch } from '../../services/search/semanticSearchService.js';
 import { ContentCategory } from '../../types/search.types.js';
 
 const router = Router();
@@ -44,24 +46,23 @@ router.get('/', async (req: Request<{}, {}, {}, SearchQuery>, res: Response, nex
     // Parse limit
     const searchLimit = limit ? parseInt(limit, 10) : 50;
 
-    // Currently only full-text search is implemented
-    // Semantic search will be added in Phase 6
+    // Perform search based on mode
+    let results;
     if (type === 'semantic') {
-      res.status(501).json({
-        success: false,
-        error: {
-          code: 'NOT_IMPLEMENTED',
-          message: 'Semantic search is not yet implemented. Use full-text mode.',
-        },
+      // Semantic search with fallback to full-text
+      results = await semanticSearch({
+        query: q,
+        categories: categoryList,
+        limit: searchLimit,
       });
-      return;
+    } else {
+      // Full-text search
+      results = await fullTextSearch({
+        query: q,
+        categories: categoryList,
+        limit: searchLimit,
+      });
     }
-
-    const results = await fullTextSearch({
-      query: q,
-      categories: categoryList,
-      limit: searchLimit,
-    });
 
     res.json({
       success: true,
