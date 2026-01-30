@@ -1,13 +1,3 @@
-// Load environment variables FIRST, before any other imports
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// When compiled, __dirname is backend/dist, so ../.env points to backend/.env
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
