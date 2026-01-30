@@ -21,7 +21,7 @@ import { createDiceService } from '../../services/game/dice-service.js';
 import { createStateService } from '../../services/game/state-service.js';
 import { createCombatService } from '../../services/game/combat-service.js';
 import { createDMService } from '../../services/ai/dm-service.js';
-import { createUserClient, supabaseAdmin } from '../../config/supabase.js';
+import { createSessionSyncService } from '../../services/realtime/session-sync.js';
 import type { StartCombatInput } from '../../models/combat.js';
 
 const router = Router();
@@ -47,11 +47,9 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { action, character_id } = req.body;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const stateService = createStateService(sessionRepo, eventRepo);
 
       // Check session exists and is active
@@ -149,11 +147,9 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { dice, reason, value } = req.body;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Get session and campaign
       const session = await sessionRepo.getWithCampaign(sessionId);
@@ -268,10 +264,9 @@ router.get(
         types?: string;
       };
 
-      const client = createUserClient(req.accessToken!);
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -348,10 +343,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -388,26 +382,23 @@ router.get(
       // Send initial connection message
       res.write(`data: ${JSON.stringify({ type: 'connected', sessionId })}\n\n`);
 
-      // Set up Supabase realtime subscription
-      const channel = supabaseAdmin
-        .channel(`session-${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'events',
-            filter: `session_id=eq.${sessionId}`,
-          },
-          (payload) => {
-            res.write(`data: ${JSON.stringify({ type: 'event', data: payload.new })}\n\n`);
-          }
-        )
-        .subscribe();
+      // Set up EventEmitter-based session sync subscription
+      const syncService = createSessionSyncService(sessionId);
+      syncService.subscribe({
+        onEventCreated: (event) => {
+          res.write(`data: ${JSON.stringify({ type: 'event', data: event })}\n\n`);
+        },
+        onSessionUpdate: (update) => {
+          res.write(`data: ${JSON.stringify({ type: 'session_update', data: update })}\n\n`);
+        },
+        onCombatStateChange: (combatState) => {
+          res.write(`data: ${JSON.stringify({ type: 'combat_update', data: combatState })}\n\n`);
+        },
+      });
 
       // Handle client disconnect
       req.on('close', () => {
-        channel.unsubscribe();
+        syncService.unsubscribe();
         res.end();
       });
 
@@ -443,11 +434,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -524,10 +513,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
 
-      const sessionRepo = createSessionRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const campaignRepo = createCampaignRepository();
 
       // Check session exists
       const session = await sessionRepo.getById(sessionId);
@@ -588,11 +576,9 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { participants } = req.body as StartCombatInput;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -698,11 +684,9 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id: sessionId } = req.params;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -810,11 +794,9 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { outcome, summary } = req.body;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const diceService = createDiceService(eventRepo);
       const stateService = createStateService(sessionRepo, eventRepo);
 
@@ -908,11 +890,9 @@ router.post(
     try {
       const { id: sessionId } = req.params;
       const { action, character_id } = req.body;
-      const client = createUserClient(req.accessToken!);
-
-      const sessionRepo = createSessionRepository(client);
-      const eventRepo = createEventRepository(client);
-      const campaignRepo = createCampaignRepository(client);
+      const sessionRepo = createSessionRepository();
+      const eventRepo = createEventRepository();
+      const campaignRepo = createCampaignRepository();
       const stateService = createStateService(sessionRepo, eventRepo);
 
       // Check session exists and is active

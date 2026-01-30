@@ -53,9 +53,9 @@ export async function getServerSession(): Promise<Session | null> {
 }
 
 /**
- * Create a server-side client (for compatibility)
+ * Create a server-side auth client (for compatibility)
  */
-export async function createServerSupabaseClient() {
+export async function createServerAuthClient() {
   const session = await getServerSession();
 
   return {

@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { getSupabaseClient, type User, type Session, type AuthError } from '@/lib/supabase';
+import { getAuthClient, type User, type Session, type AuthError } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const client = getSupabaseClient();
+  const client = getAuthClient();
 
   useEffect(() => {
     // Get initial session

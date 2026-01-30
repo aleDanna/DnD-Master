@@ -227,7 +227,7 @@ export function createClient() {
  */
 let clientInstance: { auth: typeof auth } | null = null;
 
-export function getSupabaseClient() {
+export function getAuthClient() {
   if (!clientInstance) {
     clientInstance = createClient();
   }
