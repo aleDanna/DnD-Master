@@ -3,8 +3,8 @@
  * Handles all database operations for game sessions
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
+import { query, DbClient } from '../../config/database.js';
+import type { SessionRow, CampaignRow } from '../../models/database.types.js';
 import type {
   Session,
   CreateSessionInput,
@@ -12,92 +12,82 @@ import type {
   SessionWithCampaign,
 } from '../../models/session.js';
 
-type DbClient = SupabaseClient<Database>;
-
 export class SessionRepository {
-  constructor(private client: DbClient) {}
+  constructor(private client?: DbClient) {}
+
+  private async executeQuery<T>(text: string, params?: any[]): Promise<{ rows: T[]; rowCount: number }> {
+    if (this.client) {
+      return this.client.query<T>(text, params);
+    }
+    return query<T>(text, params);
+  }
 
   /**
    * Create a new session
    */
   async create(input: CreateSessionInput): Promise<Session> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .insert({
-        campaign_id: input.campaign_id,
-        name: input.name,
-        status: 'active',
-        version: 1,
-        narrative_summary: null,
-        current_location: null,
-        active_npcs: [],
-        combat_state: null,
-        map_state: null,
-        started_at: new Date().toISOString(),
-        ended_at: null,
-        last_activity: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const result = await this.executeQuery<SessionRow>(
+      `INSERT INTO sessions (
+        campaign_id, name, status, version, narrative_summary, current_location,
+        active_npcs, combat_state, map_state, started_at, ended_at, last_activity
+      ) VALUES ($1, $2, 'active', 1, NULL, NULL, $3, NULL, NULL, NOW(), NULL, NOW())
+      RETURNING *`,
+      [
+        input.campaign_id,
+        input.name || null,
+        JSON.stringify([]),
+      ]
+    );
 
-    if (error) {
-      throw new Error(`Failed to create session: ${error.message}`);
+    if (result.rowCount === 0) {
+      throw new Error('Failed to create session');
     }
 
-    return this.mapToSession(data);
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
    * Get a session by ID
    */
   async getById(id: string): Promise<Session | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const result = await this.executeQuery<SessionRow>(
+      'SELECT * FROM sessions WHERE id = $1',
+      [id]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get session: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToSession(data);
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
    * Get a session with campaign details
    */
   async getWithCampaign(id: string): Promise<SessionWithCampaign | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select(`
-        *,
-        campaign:campaigns(id, name, dice_mode, map_mode)
-      `)
-      .eq('id', id)
-      .single();
+    const result = await this.executeQuery<SessionRow & { campaign_id: string; campaign_name: string; campaign_dice_mode: string; campaign_map_mode: string }>(
+      `SELECT s.*, c.name as campaign_name, c.dice_mode as campaign_dice_mode, c.map_mode as campaign_map_mode
+       FROM sessions s
+       JOIN campaigns c ON s.campaign_id = c.id
+       WHERE s.id = $1`,
+      [id]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get session: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    const session = this.mapToSession(data);
-    const campaign = data.campaign as {
-      id: string;
-      name: string;
-      dice_mode: string;
-      map_mode: string;
-    };
+    const row = result.rows[0];
+    const session = this.mapToSession(row);
 
     return {
       ...session,
       campaign: {
-        id: campaign.id,
-        name: campaign.name,
-        dice_mode: campaign.dice_mode,
-        map_mode: campaign.map_mode,
+        id: row.campaign_id,
+        name: row.campaign_name,
+        dice_mode: row.campaign_dice_mode,
+        map_mode: row.campaign_map_mode,
       },
     };
   }
@@ -106,36 +96,28 @@ export class SessionRepository {
    * List sessions for a campaign
    */
   async listByCampaign(campaignId: string): Promise<Session[]> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('started_at', { ascending: false });
+    const result = await this.executeQuery<SessionRow>(
+      'SELECT * FROM sessions WHERE campaign_id = $1 ORDER BY started_at DESC',
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to list sessions: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToSession);
+    return result.rows.map(this.mapToSession);
   }
 
   /**
    * Get active session for a campaign (there should only be one)
    */
   async getActiveSession(campaignId: string): Promise<Session | null> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('status', 'active')
-      .single();
+    const result = await this.executeQuery<SessionRow>(
+      `SELECT * FROM sessions WHERE campaign_id = $1 AND status = 'active' LIMIT 1`,
+      [campaignId]
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`Failed to get active session: ${error.message}`);
+    if (result.rowCount === 0) {
+      return null;
     }
 
-    return this.mapToSession(data);
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -143,36 +125,68 @@ export class SessionRepository {
    * Uses optimistic locking with version number
    */
   async update(id: string, input: UpdateSessionInput, expectedVersion: number): Promise<Session> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .update({
-        name: input.name,
-        status: input.status,
-        narrative_summary: input.narrative_summary,
-        current_location: input.current_location,
-        active_npcs: input.active_npcs ? JSON.parse(JSON.stringify(input.active_npcs)) : undefined,
-        combat_state: input.combat_state !== undefined
-          ? (input.combat_state ? JSON.parse(JSON.stringify(input.combat_state)) : null)
-          : undefined,
-        map_state: input.map_state !== undefined
-          ? (input.map_state ? JSON.parse(JSON.stringify(input.map_state)) : null)
-          : undefined,
-        version: expectedVersion + 1,
-        last_activity: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('version', expectedVersion)
-      .select()
-      .single();
+    // Build dynamic update query
+    const updates: string[] = ['version = $1', 'last_activity = NOW()'];
+    const values: any[] = [expectedVersion + 1];
+    let paramIndex = 2;
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new Error('Session was modified by another request. Please refresh and try again.');
-      }
-      throw new Error(`Failed to update session: ${error.message}`);
+    if (input.name !== undefined) {
+      updates.push(`name = $${paramIndex}`);
+      values.push(input.name);
+      paramIndex++;
     }
 
-    return this.mapToSession(data);
+    if (input.status !== undefined) {
+      updates.push(`status = $${paramIndex}`);
+      values.push(input.status);
+      paramIndex++;
+    }
+
+    if (input.narrative_summary !== undefined) {
+      updates.push(`narrative_summary = $${paramIndex}`);
+      values.push(input.narrative_summary);
+      paramIndex++;
+    }
+
+    if (input.current_location !== undefined) {
+      updates.push(`current_location = $${paramIndex}`);
+      values.push(input.current_location);
+      paramIndex++;
+    }
+
+    if (input.active_npcs !== undefined) {
+      updates.push(`active_npcs = $${paramIndex}`);
+      values.push(JSON.stringify(input.active_npcs));
+      paramIndex++;
+    }
+
+    if (input.combat_state !== undefined) {
+      updates.push(`combat_state = $${paramIndex}`);
+      values.push(input.combat_state ? JSON.stringify(input.combat_state) : null);
+      paramIndex++;
+    }
+
+    if (input.map_state !== undefined) {
+      updates.push(`map_state = $${paramIndex}`);
+      values.push(input.map_state ? JSON.stringify(input.map_state) : null);
+      paramIndex++;
+    }
+
+    values.push(id);
+    values.push(expectedVersion);
+
+    const result = await this.executeQuery<SessionRow>(
+      `UPDATE sessions SET ${updates.join(', ')}
+       WHERE id = $${paramIndex} AND version = $${paramIndex + 1}
+       RETURNING *`,
+      values
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error('Session was modified by another request. Please refresh and try again.');
+    }
+
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -184,14 +198,18 @@ export class SessionRepository {
       throw new Error('Session not found');
     }
 
-    return this.update(
-      id,
-      { status: 'ended' },
-      session.version
-    ).then(s => ({
-      ...s,
-      ended_at: new Date().toISOString(),
-    }));
+    const result = await this.executeQuery<SessionRow>(
+      `UPDATE sessions SET status = 'ended', ended_at = NOW(), last_activity = NOW(), version = version + 1
+       WHERE id = $1 AND version = $2
+       RETURNING *`,
+      [id, session.version]
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error('Session was modified by another request');
+    }
+
+    return this.mapToSession(result.rows[0]);
   }
 
   /**
@@ -241,38 +259,28 @@ export class SessionRepository {
    * Get paused sessions that can be resumed
    */
   async getPausedSessions(campaignId: string): Promise<Session[]> {
-    const { data, error } = await this.client
-      .from('sessions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('status', 'paused')
-      .order('last_activity', { ascending: false });
+    const result = await this.executeQuery<SessionRow>(
+      `SELECT * FROM sessions WHERE campaign_id = $1 AND status = 'paused' ORDER BY last_activity DESC`,
+      [campaignId]
+    );
 
-    if (error) {
-      throw new Error(`Failed to get paused sessions: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapToSession);
+    return result.rows.map(this.mapToSession);
   }
 
   /**
    * Update last activity timestamp
    */
   async touchSession(id: string): Promise<void> {
-    const { error } = await this.client
-      .from('sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Failed to update session activity:', error);
-    }
+    await this.executeQuery(
+      'UPDATE sessions SET last_activity = NOW() WHERE id = $1',
+      [id]
+    );
   }
 
   /**
    * Map database row to Session type
    */
-  private mapToSession(data: Database['public']['Tables']['sessions']['Row']): Session {
+  private mapToSession(data: SessionRow): Session {
     return {
       id: data.id,
       campaign_id: data.campaign_id,
@@ -281,9 +289,9 @@ export class SessionRepository {
       version: data.version,
       narrative_summary: data.narrative_summary,
       current_location: data.current_location,
-      active_npcs: (data.active_npcs as Session['active_npcs']) || [],
-      combat_state: data.combat_state as Session['combat_state'],
-      map_state: data.map_state as Session['map_state'],
+      active_npcs: (typeof data.active_npcs === 'string' ? JSON.parse(data.active_npcs) : data.active_npcs) || [],
+      combat_state: typeof data.combat_state === 'string' ? JSON.parse(data.combat_state) : data.combat_state,
+      map_state: typeof data.map_state === 'string' ? JSON.parse(data.map_state) : data.map_state,
       started_at: data.started_at,
       ended_at: data.ended_at,
       last_activity: data.last_activity,
@@ -294,6 +302,6 @@ export class SessionRepository {
 /**
  * Factory function to create a session repository
  */
-export function createSessionRepository(client: DbClient): SessionRepository {
+export function createSessionRepository(client?: DbClient): SessionRepository {
   return new SessionRepository(client);
 }

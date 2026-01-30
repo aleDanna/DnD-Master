@@ -1,12 +1,10 @@
 /**
  * Session Sync Service
- * Handles Supabase Realtime subscriptions for multiplayer sessions
+ * Handles real-time session synchronization using EventEmitter pattern
+ * (Replaces Supabase Realtime with in-memory event handling)
  */
 
-import { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../models/database.types.js';
-
-type DbClient = SupabaseClient<Database>;
+import { EventEmitter } from 'events';
 
 export interface SessionUpdate {
   type: 'session' | 'event' | 'combat' | 'player_joined' | 'player_left';
@@ -24,12 +22,18 @@ export interface SessionSyncHandler {
   onError?: (error: Error) => void;
 }
 
+// Global event emitter for session events
+const sessionEmitter = new EventEmitter();
+sessionEmitter.setMaxListeners(100); // Allow many concurrent session subscriptions
+
+// Track online players per session
+const onlinePlayers: Map<string, Map<string, unknown>> = new Map();
+
 export class SessionSyncService {
-  private channel: RealtimeChannel | null = null;
   private handlers: SessionSyncHandler = {};
+  private boundHandlers: Map<string, (...args: any[]) => void> = new Map();
 
   constructor(
-    private client: DbClient,
     private sessionId: string
   ) {}
 
@@ -39,117 +43,95 @@ export class SessionSyncService {
   subscribe(handlers: SessionSyncHandler): void {
     this.handlers = handlers;
 
-    // Create channel for this session
-    this.channel = this.client.channel(`session:${this.sessionId}`, {
-      config: {
-        broadcast: { self: true },
-        presence: { key: this.sessionId },
-      },
-    });
+    // Create bound handlers for each event type
+    const sessionHandler = (payload: unknown) => {
+      const update: SessionUpdate = {
+        type: 'session',
+        sessionId: this.sessionId,
+        payload,
+        timestamp: new Date().toISOString(),
+      };
+      this.handlers.onSessionUpdate?.(update);
+    };
 
-    // Subscribe to session table changes
-    this.channel.on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'sessions',
-        filter: `id=eq.${this.sessionId}`,
-      },
-      (payload) => {
-        this.handleSessionChange(payload);
-      }
-    );
+    const eventHandler = (payload: unknown) => {
+      this.handlers.onEventCreated?.(payload);
+      const update: SessionUpdate = {
+        type: 'event',
+        sessionId: this.sessionId,
+        payload,
+        timestamp: new Date().toISOString(),
+      };
+      this.handlers.onSessionUpdate?.(update);
+    };
 
-    // Subscribe to new events
-    this.channel.on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'events',
-        filter: `session_id=eq.${this.sessionId}`,
-      },
-      (payload) => {
-        this.handleNewEvent(payload);
-      }
-    );
+    const combatHandler = (combatState: unknown) => {
+      this.handlers.onCombatStateChange?.(combatState);
+    };
 
-    // Subscribe to broadcast messages for custom updates
-    this.channel.on('broadcast', { event: 'player_action' }, (payload) => {
-      this.handleBroadcast('player_action', payload);
-    });
+    const playerJoinHandler = (player: unknown) => {
+      this.handlers.onPlayerJoin?.(player);
+    };
 
-    this.channel.on('broadcast', { event: 'combat_update' }, (payload) => {
-      this.handleBroadcast('combat_update', payload);
-    });
+    const playerLeaveHandler = (playerId: string) => {
+      this.handlers.onPlayerLeave?.(playerId);
+    };
 
-    this.channel.on('broadcast', { event: 'player_joined' }, (payload) => {
-      this.handleBroadcast('player_joined', payload);
-    });
+    // Store bound handlers for cleanup
+    this.boundHandlers.set('session', sessionHandler);
+    this.boundHandlers.set('event', eventHandler);
+    this.boundHandlers.set('combat', combatHandler);
+    this.boundHandlers.set('player_join', playerJoinHandler);
+    this.boundHandlers.set('player_leave', playerLeaveHandler);
 
-    this.channel.on('broadcast', { event: 'player_left' }, (payload) => {
-      this.handleBroadcast('player_left', payload);
-    });
+    // Subscribe to events for this session
+    sessionEmitter.on(`session:${this.sessionId}:update`, sessionHandler);
+    sessionEmitter.on(`session:${this.sessionId}:event`, eventHandler);
+    sessionEmitter.on(`session:${this.sessionId}:combat`, combatHandler);
+    sessionEmitter.on(`session:${this.sessionId}:player_join`, playerJoinHandler);
+    sessionEmitter.on(`session:${this.sessionId}:player_leave`, playerLeaveHandler);
 
-    // Handle presence (who's online)
-    this.channel.on('presence', { event: 'sync' }, () => {
-      const state = this.channel?.presenceState();
-      console.log('Presence sync:', state);
-    });
-
-    this.channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-      console.log('Player joined:', key, newPresences);
-      if (handlers.onPlayerJoin) {
-        handlers.onPlayerJoin(newPresences);
-      }
-    });
-
-    this.channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-      console.log('Player left:', key, leftPresences);
-      if (handlers.onPlayerLeave) {
-        handlers.onPlayerLeave(key);
-      }
-    });
-
-    // Subscribe to channel
-    this.channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log(`Subscribed to session ${this.sessionId}`);
-      } else if (status === 'CHANNEL_ERROR') {
-        handlers.onError?.(new Error('Channel subscription error'));
-      }
-    });
+    console.log(`Subscribed to session ${this.sessionId}`);
   }
 
   /**
    * Track presence (mark player as online in session)
    */
   async trackPresence(userId: string, playerInfo: { name: string; role: string }): Promise<void> {
-    if (!this.channel) {
-      throw new Error('Not subscribed to session');
+    if (!onlinePlayers.has(this.sessionId)) {
+      onlinePlayers.set(this.sessionId, new Map());
     }
 
-    await this.channel.track({
+    const sessionPlayers = onlinePlayers.get(this.sessionId)!;
+    sessionPlayers.set(userId, {
       user_id: userId,
       online_at: new Date().toISOString(),
       ...playerInfo,
     });
+
+    // Emit player joined event
+    sessionEmitter.emit(`session:${this.sessionId}:player_join`, {
+      user_id: userId,
+      ...playerInfo,
+    });
+  }
+
+  /**
+   * Remove player presence
+   */
+  async untrackPresence(userId: string): Promise<void> {
+    const sessionPlayers = onlinePlayers.get(this.sessionId);
+    if (sessionPlayers) {
+      sessionPlayers.delete(userId);
+      sessionEmitter.emit(`session:${this.sessionId}:player_leave`, userId);
+    }
   }
 
   /**
    * Broadcast a message to all subscribers
    */
   async broadcast(event: string, payload: unknown): Promise<void> {
-    if (!this.channel) {
-      throw new Error('Not subscribed to session');
-    }
-
-    await this.channel.send({
-      type: 'broadcast',
-      event,
-      payload,
-    });
+    sessionEmitter.emit(`session:${this.sessionId}:${event}`, payload);
   }
 
   /**
@@ -160,7 +142,8 @@ export class SessionSyncService {
     playerName: string,
     action: string
   ): Promise<void> {
-    await this.broadcast('player_action', {
+    await this.broadcast('event', {
+      type: 'player_action',
       player_id: playerId,
       player_name: playerName,
       action,
@@ -172,74 +155,42 @@ export class SessionSyncService {
    * Broadcast combat state update
    */
   async broadcastCombatUpdate(combatState: unknown): Promise<void> {
-    await this.broadcast('combat_update', {
-      combat_state: combatState,
-      timestamp: new Date().toISOString(),
-    });
+    await this.broadcast('combat', combatState);
+  }
+
+  /**
+   * Broadcast session update
+   */
+  async broadcastSessionUpdate(sessionData: unknown): Promise<void> {
+    await this.broadcast('update', sessionData);
   }
 
   /**
    * Get current online players
    */
   getOnlinePlayers(): Record<string, unknown[]> {
-    return this.channel?.presenceState() || {};
+    const sessionPlayers = onlinePlayers.get(this.sessionId);
+    if (!sessionPlayers) {
+      return {};
+    }
+
+    return {
+      [this.sessionId]: Array.from(sessionPlayers.values()),
+    };
   }
 
   /**
    * Unsubscribe from real-time updates
    */
   async unsubscribe(): Promise<void> {
-    if (this.channel) {
-      await this.channel.unsubscribe();
-      this.channel = null;
+    // Remove all event listeners for this session
+    for (const [eventType, handler] of this.boundHandlers) {
+      sessionEmitter.off(`session:${this.sessionId}:${eventType === 'player_join' ? 'player_join' : eventType === 'player_leave' ? 'player_leave' : eventType}`, handler);
     }
+    this.boundHandlers.clear();
     this.handlers = {};
-  }
 
-  private handleSessionChange(payload: { new: unknown; old: unknown }): void {
-    const update: SessionUpdate = {
-      type: 'session',
-      sessionId: this.sessionId,
-      payload: payload.new,
-      timestamp: new Date().toISOString(),
-    };
-
-    this.handlers.onSessionUpdate?.(update);
-
-    // Check for combat state change
-    const newSession = payload.new as { combat_state?: unknown };
-    const oldSession = payload.old as { combat_state?: unknown };
-    if (JSON.stringify(newSession.combat_state) !== JSON.stringify(oldSession.combat_state)) {
-      this.handlers.onCombatStateChange?.(newSession.combat_state);
-    }
-  }
-
-  private handleNewEvent(payload: { new: unknown }): void {
-    this.handlers.onEventCreated?.(payload.new);
-
-    const update: SessionUpdate = {
-      type: 'event',
-      sessionId: this.sessionId,
-      payload: payload.new,
-      timestamp: new Date().toISOString(),
-    };
-
-    this.handlers.onSessionUpdate?.(update);
-  }
-
-  private handleBroadcast(event: string, payload: { payload: unknown }): void {
-    switch (event) {
-      case 'player_joined':
-        this.handlers.onPlayerJoin?.(payload.payload);
-        break;
-      case 'player_left':
-        this.handlers.onPlayerLeave?.(payload.payload as string);
-        break;
-      case 'combat_update':
-        const combatPayload = payload.payload as { combat_state: unknown };
-        this.handlers.onCombatStateChange?.(combatPayload.combat_state);
-        break;
-    }
+    console.log(`Unsubscribed from session ${this.sessionId}`);
   }
 }
 
@@ -247,8 +198,28 @@ export class SessionSyncService {
  * Factory function to create a session sync service
  */
 export function createSessionSyncService(
-  client: DbClient,
   sessionId: string
 ): SessionSyncService {
-  return new SessionSyncService(client, sessionId);
+  return new SessionSyncService(sessionId);
+}
+
+/**
+ * Emit a session update event (for use by other services)
+ */
+export function emitSessionUpdate(sessionId: string, payload: unknown): void {
+  sessionEmitter.emit(`session:${sessionId}:update`, payload);
+}
+
+/**
+ * Emit a new event notification (for use by other services)
+ */
+export function emitNewEvent(sessionId: string, event: unknown): void {
+  sessionEmitter.emit(`session:${sessionId}:event`, event);
+}
+
+/**
+ * Emit a combat state change (for use by other services)
+ */
+export function emitCombatUpdate(sessionId: string, combatState: unknown): void {
+  sessionEmitter.emit(`session:${sessionId}:combat`, combatState);
 }

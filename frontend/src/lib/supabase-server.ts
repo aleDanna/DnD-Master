@@ -1,36 +1,94 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 /**
- * Create a Supabase client for server-side usage (Server Components, Route Handlers)
- * This client handles cookie-based session management
+ * Server-side authentication helpers
+ * For use in Server Components and Route Handlers
+ */
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const SESSION_COOKIE_NAME = 'dnd_auth_token';
+
+export interface User {
+  id: string;
+  email: string;
+  display_name?: string;
+}
+
+export interface Session {
+  access_token: string;
+  user: User;
+}
+
+/**
+ * Get the current session from cookies (server-side)
+ */
+export async function getServerSession(): Promise<Session | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+    if (!token) {
+      return null;
+    }
+
+    // Decode JWT payload (without verification - verification happens on backend)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+
+    return {
+      access_token: token,
+      user: {
+        id: payload.sub,
+        email: payload.email,
+        display_name: payload.display_name,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Create a server-side client (for compatibility)
  */
 export async function createServerSupabaseClient() {
-  const cookieStore = await cookies();
+  const session = await getServerSession();
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch {
-            // Handle cookies in read-only context (Server Components)
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch {
-            // Handle cookies in read-only context (Server Components)
-          }
-        },
+  return {
+    auth: {
+      getSession: async () => ({ data: { session }, error: null }),
+      getUser: async () => ({ data: { user: session?.user || null }, error: null }),
+      exchangeCodeForSession: async (_code: string) => {
+        // OAuth code exchange is not supported in this implementation
+        console.warn('[Server Auth] OAuth code exchange not implemented');
+        return { error: { message: 'OAuth not implemented' } };
       },
+    },
+  };
+}
+
+/**
+ * Verify a session token with the backend
+ */
+export async function verifySession(token: string): Promise<User | null> {
+  try {
+    const response = await fetch(`${API_URL}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
     }
-  );
+
+    const result = await response.json();
+    return result.success ? result.data.user : null;
+  } catch {
+    return null;
+  }
 }

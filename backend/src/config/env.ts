@@ -9,10 +9,18 @@ interface EnvConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   FRONTEND_URL: string;
 
-  // Supabase
-  SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
-  SUPABASE_SERVICE_KEY?: string;
+  // Database (PostgreSQL)
+  DATABASE_HOST: string;
+  DATABASE_PORT: number;
+  DATABASE_NAME: string;
+  DATABASE_USER: string;
+  DATABASE_PASSWORD: string;
+  DATABASE_URL?: string;
+  DATABASE_POOL_SIZE: number;
+
+  // JWT Authentication
+  JWT_SECRET: string;
+  JWT_EXPIRES_IN: string;
 
   // LLM Providers (at least one required)
   OPENAI_API_KEY?: string;
@@ -44,24 +52,53 @@ export function validateEnv(): ValidationResult {
   config.NODE_ENV = (process.env.NODE_ENV as EnvConfig['NODE_ENV']) || 'development';
   config.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-  // Supabase (required)
-  if (!process.env.SUPABASE_URL) {
-    errors.push('SUPABASE_URL is required');
+  // Database configuration
+  // Check for DATABASE_URL first (common in production environments)
+  if (process.env.DATABASE_URL) {
+    config.DATABASE_URL = process.env.DATABASE_URL;
   } else {
-    config.SUPABASE_URL = process.env.SUPABASE_URL;
+    // Check individual database environment variables
+    if (!process.env.DATABASE_HOST) {
+      warnings.push('DATABASE_HOST not set - using mock database mode');
+    } else {
+      config.DATABASE_HOST = process.env.DATABASE_HOST;
+    }
+
+    if (!process.env.DATABASE_NAME) {
+      warnings.push('DATABASE_NAME not set - using mock database mode');
+    } else {
+      config.DATABASE_NAME = process.env.DATABASE_NAME;
+    }
+
+    if (!process.env.DATABASE_USER) {
+      warnings.push('DATABASE_USER not set - using mock database mode');
+    } else {
+      config.DATABASE_USER = process.env.DATABASE_USER;
+    }
+
+    if (!process.env.DATABASE_PASSWORD) {
+      warnings.push('DATABASE_PASSWORD not set - using mock database mode');
+    } else {
+      config.DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
+    }
   }
 
-  if (!process.env.SUPABASE_ANON_KEY) {
-    errors.push('SUPABASE_ANON_KEY is required');
+  config.DATABASE_PORT = parseInt(process.env.DATABASE_PORT || '5432', 10);
+  config.DATABASE_POOL_SIZE = parseInt(process.env.DATABASE_POOL_SIZE || '10', 10);
+
+  // JWT configuration
+  if (!process.env.JWT_SECRET) {
+    if (config.NODE_ENV === 'production') {
+      errors.push('JWT_SECRET is required in production');
+    } else {
+      warnings.push('JWT_SECRET not set - using default development secret');
+      config.JWT_SECRET = 'dev-secret-change-in-production';
+    }
   } else {
-    config.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+    config.JWT_SECRET = process.env.JWT_SECRET;
   }
 
-  if (process.env.SUPABASE_SERVICE_KEY) {
-    config.SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-  } else {
-    warnings.push('SUPABASE_SERVICE_KEY not set - some admin features may be limited');
-  }
+  config.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
   // LLM Provider configuration
   const llmProvider = process.env.LLM_PROVIDER as EnvConfig['LLM_PROVIDER'];

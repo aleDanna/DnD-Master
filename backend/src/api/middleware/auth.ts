@@ -1,14 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient } from '@supabase/supabase-js';
-import { isMockMode } from '../../config/mockSupabase.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { query } from '../../config/database.js';
+import { isMockMode } from '../../config/mockDatabase.js';
+import type { ProfileRow } from '../../models/database.types.js';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export interface AuthenticatedUser {
   id: string;
   email: string;
   display_name?: string;
+}
+
+export interface JWTPayload {
+  sub: string;
+  email: string;
+  display_name?: string;
+  iat: number;
+  exp: number;
 }
 
 declare global {
@@ -35,14 +46,16 @@ function parseMockToken(token: string): AuthenticatedUser | null {
     };
   }
 
-  // Try to decode as a simple base64 JSON (for localStorage mock sessions)
+  return null;
+}
+
+/**
+ * Verify JWT token and return payload
+ */
+function verifyToken(token: string): JWTPayload | null {
   try {
-    // The mock session from frontend may have user data
-    return {
-      id: 'mock-user-' + Date.now(),
-      email: 'test@mock.local',
-      display_name: 'Test User',
-    };
+    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return payload;
   } catch {
     return null;
   }
@@ -83,31 +96,10 @@ export async function authMiddleware(
       }
     }
 
-    // Real Supabase authentication
-    if (!supabaseUrl || !supabaseAnonKey) {
-      res.status(500).json({
-        success: false,
-        error: {
-          code: 'CONFIG_ERROR',
-          message: 'Supabase not configured',
-        },
-      });
-      return;
-    }
+    // Verify JWT token
+    const payload = verifyToken(token);
 
-    // Create a Supabase client with the user's token
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    });
-
-    // Verify the token by getting the user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
+    if (!payload) {
       res.status(401).json({
         success: false,
         error: {
@@ -120,9 +112,9 @@ export async function authMiddleware(
 
     // Attach user info to request
     req.user = {
-      id: user.id,
-      email: user.email || '',
-      display_name: user.user_metadata?.name,
+      id: payload.sub,
+      email: payload.email,
+      display_name: payload.display_name,
     };
     req.accessToken = token;
 
@@ -168,27 +160,14 @@ export async function optionalAuthMiddleware(
       return;
     }
 
-    // Real Supabase authentication
-    if (!supabaseUrl || !supabaseAnonKey) {
-      next();
-      return;
-    }
+    // Verify JWT token
+    const payload = verifyToken(token);
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser(token);
-
-    if (user) {
+    if (payload) {
       req.user = {
-        id: user.id,
-        email: user.email || '',
-        display_name: user.user_metadata?.name,
+        id: payload.sub,
+        email: payload.email,
+        display_name: payload.display_name,
       };
       req.accessToken = token;
     }
@@ -198,4 +177,134 @@ export async function optionalAuthMiddleware(
     // Silently continue without auth
     next();
   }
+}
+
+/**
+ * Generate a JWT token for a user
+ */
+export function generateToken(user: AuthenticatedUser): string {
+  const payload: Omit<JWTPayload, 'iat' | 'exp'> = {
+    sub: user.id,
+    email: user.email,
+    display_name: user.display_name,
+  };
+
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+/**
+ * Hash a password
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+}
+
+/**
+ * Verify a password against a hash
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+/**
+ * Register a new user
+ */
+export async function registerUser(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<{ user: AuthenticatedUser; token: string }> {
+  // Check if user already exists
+  const existingResult = await query<ProfileRow>(
+    'SELECT * FROM profiles WHERE email = $1',
+    [email.toLowerCase()]
+  );
+
+  if (existingResult.rowCount > 0) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Hash password and create user
+  const passwordHash = await hashPassword(password);
+
+  const result = await query<ProfileRow>(
+    `INSERT INTO profiles (email, password_hash, display_name)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [email.toLowerCase(), passwordHash, displayName]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error('Failed to create user');
+  }
+
+  const profile = result.rows[0];
+  const user: AuthenticatedUser = {
+    id: profile.id,
+    email: profile.email,
+    display_name: profile.display_name,
+  };
+
+  const token = generateToken(user);
+
+  return { user, token };
+}
+
+/**
+ * Login a user
+ */
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<{ user: AuthenticatedUser; token: string }> {
+  // Find user by email
+  const result = await query<ProfileRow>(
+    'SELECT * FROM profiles WHERE email = $1',
+    [email.toLowerCase()]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error('Invalid email or password');
+  }
+
+  const profile = result.rows[0];
+
+  // Verify password
+  const isValid = await verifyPassword(password, profile.password_hash);
+
+  if (!isValid) {
+    throw new Error('Invalid email or password');
+  }
+
+  const user: AuthenticatedUser = {
+    id: profile.id,
+    email: profile.email,
+    display_name: profile.display_name,
+  };
+
+  const token = generateToken(user);
+
+  return { user, token };
+}
+
+/**
+ * Get user by ID
+ */
+export async function getUserById(id: string): Promise<AuthenticatedUser | null> {
+  const result = await query<ProfileRow>(
+    'SELECT * FROM profiles WHERE id = $1',
+    [id]
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  const profile = result.rows[0];
+  return {
+    id: profile.id,
+    email: profile.email,
+    display_name: profile.display_name,
+  };
 }

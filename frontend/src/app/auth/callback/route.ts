@@ -1,24 +1,20 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 
 /**
- * Auth callback handler for Supabase email confirmation and OAuth
- * Exchanges the auth code for a session and redirects to dashboard
+ * Auth callback handler
+ * Since we're using JWT-based auth instead of OAuth, this route
+ * simply redirects to the dashboard or login page
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/dashboard';
+  const error = searchParams.get('error');
 
-  if (code) {
-    const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+  if (error) {
+    // Redirect to login with error
+    return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error)}`);
   }
 
-  // Return to login page with error if code exchange failed
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_error`);
+  // Redirect to the intended destination
+  return NextResponse.redirect(`${origin}${next}`);
 }
