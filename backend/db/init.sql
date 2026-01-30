@@ -18,7 +18,9 @@
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgvector";
+-- Note: pgvector extension must be installed on PostgreSQL server
+-- Install with: CREATE EXTENSION vector; (requires pgvector package)
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- =============================================================================
 -- SECTION 2: Drop Existing Objects (Idempotent)
