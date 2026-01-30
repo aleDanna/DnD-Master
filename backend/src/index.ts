@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
 import { errorHandler } from './api/middleware/error-handler.js';
+import authRouter from './api/routes/auth.js';
 import healthRouter from './api/routes/health.js';
 import campaignsRouter from './api/routes/campaigns.js';
 import sessionsRouter from './api/routes/sessions.js';
@@ -28,6 +29,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/health', healthRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/sessions', sessionsRouter);
