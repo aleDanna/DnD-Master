@@ -164,7 +164,15 @@ async function runWithPgLibrary(
 
       console.log(`   Parsing statements...`);
       const statements = splitSqlStatements(sql);
-      console.log(`   ${statements.length} statements to execute\n`);
+      console.log(`   ${statements.length} statements found\n`);
+
+      // Debug: show first few chars of each statement
+      if (process.env.DEBUG_SQL) {
+        statements.forEach((s, idx) => {
+          console.log(`   [${idx + 1}] ${s.slice(0, 70).replace(/\n/g, ' ')}...`);
+        });
+        console.log('');
+      }
 
       let executed = 0;
       let skipped = 0;
@@ -317,8 +325,17 @@ function splitSqlStatements(sql: string): string[] {
     // Check for statement end (semicolon outside dollar quotes)
     if (sql[i] === ';' && !inDollarQuote) {
       current += ';';
-      const trimmed = current.trim();
-      if (trimmed && !trimmed.startsWith('--')) {
+      // Strip leading comment lines and whitespace
+      let trimmed = current.trim();
+      while (trimmed.startsWith('--')) {
+        const newlineIdx = trimmed.indexOf('\n');
+        if (newlineIdx === -1) {
+          trimmed = '';
+          break;
+        }
+        trimmed = trimmed.slice(newlineIdx + 1).trim();
+      }
+      if (trimmed) {
         statements.push(trimmed);
       }
       current = '';
