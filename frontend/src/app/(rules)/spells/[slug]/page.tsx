@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchSpell } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import SpellCard from '@/components/content/SpellCard';
 
 interface SpellDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function SpellDetailPage({ params }: SpellDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const { slug } = params;
 
   const { data: spell, isLoading, isError } = useQuery({
     queryKey: ['spell', slug],

@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchRule, fetchRuleCategoryPath } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import RuleCard from '@/components/content/RuleCard';
 
 interface RuleDetailPageProps {
-  params: Promise<{ category: string; slug: string }>;
+  params: { category: string; slug: string };
 }
 
 export default function RuleDetailPage({ params }: RuleDetailPageProps) {
-  const resolvedParams = use(params);
-  const { category, slug } = resolvedParams;
+  const { category, slug } = params;
 
   const { data: rule, isLoading, isError } = useQuery({
     queryKey: ['rule', slug],

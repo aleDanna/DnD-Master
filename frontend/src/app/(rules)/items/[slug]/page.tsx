@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchItem } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import ItemCard from '@/components/content/ItemCard';
 
 interface ItemDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function ItemDetailPage({ params }: ItemDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const { slug } = params;
 
   const { data: item, isLoading, isError } = useQuery({
     queryKey: ['item', slug],

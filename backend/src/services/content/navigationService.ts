@@ -15,24 +15,51 @@ import {
 
 /**
  * Get the complete navigation tree for the Rules Explorer sidebar
+ * Returns empty categories if database tables don't exist yet
  */
 export async function getNavigationTree(): Promise<NavigationTree> {
-  const categories: NavigationCategory[] = await Promise.all([
-    buildRulesCategory(),
-    buildClassesCategory(),
-    buildRacesCategory(),
-    buildSpellsCategory(),
-    buildBestiaryCategory(),
-    buildItemsCategory(),
-    buildBackgroundsCategory(),
-    buildFeatsCategory(),
-    buildConditionsCategory(),
-    buildSkillsCategory(),
-  ]);
+  const categoryBuilders = [
+    { fn: buildRulesCategory, fallback: createEmptyCategory('rules', 'Rules', 'book', '/rules') },
+    { fn: buildClassesCategory, fallback: createEmptyCategory('classes', 'Classes', 'users', '/classes') },
+    { fn: buildRacesCategory, fallback: createEmptyCategory('races', 'Races', 'person', '/races') },
+    { fn: buildSpellsCategory, fallback: createEmptyCategory('spells', 'Spells', 'sparkles', '/spells') },
+    { fn: buildBestiaryCategory, fallback: createEmptyCategory('bestiary', 'Bestiary', 'skull', '/bestiary') },
+    { fn: buildItemsCategory, fallback: createEmptyCategory('items', 'Items', 'backpack', '/items') },
+    { fn: buildBackgroundsCategory, fallback: createEmptyCategory('backgrounds', 'Backgrounds', 'scroll', '/backgrounds') },
+    { fn: buildFeatsCategory, fallback: createEmptyCategory('feats', 'Feats', 'award', '/feats') },
+    { fn: buildConditionsCategory, fallback: createEmptyCategory('conditions', 'Conditions', 'alert-circle', '/conditions') },
+    { fn: buildSkillsCategory, fallback: createEmptyCategory('skills', 'Skills', 'target', '/skills') },
+  ];
+
+  const categories: NavigationCategory[] = await Promise.all(
+    categoryBuilders.map(async ({ fn, fallback }) => {
+      try {
+        return await fn();
+      } catch (error) {
+        // Return empty category if table doesn't exist yet
+        console.warn(`Navigation category build failed, using fallback:`, error);
+        return fallback;
+      }
+    })
+  );
 
   return {
     categories,
     lastUpdated: new Date(),
+  };
+}
+
+/**
+ * Create an empty category for fallback when tables don't exist
+ */
+function createEmptyCategory(id: string, label: string, icon: string, path: string): NavigationCategory {
+  return {
+    id,
+    label,
+    slug: id,
+    icon,
+    path,
+    children: [],
   };
 }
 
