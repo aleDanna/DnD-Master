@@ -14,20 +14,45 @@ import {
 } from '../../types/search.types.js';
 
 /**
+ * Safely execute a category builder with error handling
+ */
+async function safeBuildCategory<T>(
+  builder: () => Promise<T>,
+  fallback: T,
+  categoryName: string
+): Promise<T> {
+  try {
+    return await builder();
+  } catch (error) {
+    console.error(`Error building ${categoryName} category:`, error);
+    return fallback;
+  }
+}
+
+/**
  * Get the complete navigation tree for the Rules Explorer sidebar
  */
 export async function getNavigationTree(): Promise<NavigationTree> {
+  const emptyCategory = (id: string, label: string, slug: string, icon: string): NavigationCategory => ({
+    id,
+    label,
+    slug,
+    icon,
+    path: `/${slug}`,
+    children: [],
+  });
+
   const categories: NavigationCategory[] = await Promise.all([
-    buildRulesCategory(),
-    buildClassesCategory(),
-    buildRacesCategory(),
-    buildSpellsCategory(),
-    buildBestiaryCategory(),
-    buildItemsCategory(),
-    buildBackgroundsCategory(),
-    buildFeatsCategory(),
-    buildConditionsCategory(),
-    buildSkillsCategory(),
+    safeBuildCategory(buildRulesCategory, emptyCategory('rules', CATEGORY_LABELS.rules, 'rules', 'book'), 'rules'),
+    safeBuildCategory(buildClassesCategory, emptyCategory('classes', CATEGORY_LABELS.classes, 'classes', 'users'), 'classes'),
+    safeBuildCategory(buildRacesCategory, emptyCategory('races', CATEGORY_LABELS.races, 'races', 'person'), 'races'),
+    safeBuildCategory(buildSpellsCategory, emptyCategory('spells', CATEGORY_LABELS.spells, 'spells', 'sparkles'), 'spells'),
+    safeBuildCategory(buildBestiaryCategory, emptyCategory('bestiary', CATEGORY_LABELS.bestiary, 'bestiary', 'skull'), 'bestiary'),
+    safeBuildCategory(buildItemsCategory, emptyCategory('items', CATEGORY_LABELS.items, 'items', 'backpack'), 'items'),
+    safeBuildCategory(buildBackgroundsCategory, emptyCategory('backgrounds', CATEGORY_LABELS.backgrounds, 'backgrounds', 'scroll'), 'backgrounds'),
+    safeBuildCategory(buildFeatsCategory, emptyCategory('feats', CATEGORY_LABELS.feats, 'feats', 'award'), 'feats'),
+    safeBuildCategory(buildConditionsCategory, emptyCategory('conditions', CATEGORY_LABELS.conditions, 'conditions', 'alert-circle'), 'conditions'),
+    safeBuildCategory(buildSkillsCategory, emptyCategory('skills', CATEGORY_LABELS.skills, 'skills', 'target'), 'skills'),
   ]);
 
   return {
