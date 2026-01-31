@@ -158,9 +158,12 @@ async function runWithPgLibrary(
       const filePath = resolve(__dirname, '../sql', file.name);
       console.log(`📄 Running ${file.name}...`);
 
+      console.log(`   Reading file...`);
       const sql = readFileSync(filePath, 'utf-8');
-      const statements = splitSqlStatements(sql);
+      console.log(`   File loaded (${(sql.length / 1024).toFixed(1)} KB)`);
 
+      console.log(`   Parsing statements...`);
+      const statements = splitSqlStatements(sql);
       console.log(`   ${statements.length} statements to execute\n`);
 
       let executed = 0;
@@ -287,39 +290,33 @@ function splitSqlStatements(sql: string): string[] {
   let i = 0;
 
   while (i < sql.length) {
-    const char = sql[i];
-
     // Check for dollar quote start/end
-    if (char === '$') {
-      // Look for dollar quote tag
-      let j = i + 1;
-      while (j < sql.length && (sql[j].match(/[a-zA-Z0-9_]/) || sql[j] === '$')) {
-        if (sql[j] === '$') {
-          const tag = sql.slice(i, j + 1);
-          if (inDollarQuote && tag === dollarTag) {
-            // End of dollar quote
-            current += tag;
-            i = j + 1;
-            inDollarQuote = false;
-            dollarTag = '';
-            continue;
-          } else if (!inDollarQuote) {
-            // Start of dollar quote
-            inDollarQuote = true;
-            dollarTag = tag;
-            current += tag;
-            i = j + 1;
-            continue;
-          }
-          break;
+    if (sql[i] === '$') {
+      // Look ahead for dollar quote tag (e.g., $$, $tag$)
+      const match = sql.slice(i).match(/^\$([a-zA-Z0-9_]*)\$/);
+      if (match) {
+        const tag = match[0];
+        if (inDollarQuote && tag === dollarTag) {
+          // End of dollar quote
+          current += tag;
+          i += tag.length;
+          inDollarQuote = false;
+          dollarTag = '';
+          continue;
+        } else if (!inDollarQuote) {
+          // Start of dollar quote
+          inDollarQuote = true;
+          dollarTag = tag;
+          current += tag;
+          i += tag.length;
+          continue;
         }
-        j++;
       }
     }
 
     // Check for statement end (semicolon outside dollar quotes)
-    if (char === ';' && !inDollarQuote) {
-      current += char;
+    if (sql[i] === ';' && !inDollarQuote) {
+      current += ';';
       const trimmed = current.trim();
       if (trimmed && !trimmed.startsWith('--')) {
         statements.push(trimmed);
@@ -329,7 +326,7 @@ function splitSqlStatements(sql: string): string[] {
       continue;
     }
 
-    current += char;
+    current += sql[i];
     i++;
   }
 
