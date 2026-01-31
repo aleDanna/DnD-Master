@@ -134,13 +134,18 @@ async function runWithPgLibrary(
   files: typeof SQL_FILES
 ): Promise<void> {
   const config = connectionString
-    ? { connectionString, ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false }
+    ? {
+        connectionString,
+        ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+        statement_timeout: 60000, // 60 second timeout per statement
+      }
     : {
         host: dbHost,
         port: parseInt(dbPort, 10),
         database: dbName,
         user: dbUser,
         password: dbPassword,
+        statement_timeout: 60000,
       };
 
   const pool = new Pool(config);
@@ -165,24 +170,28 @@ async function runWithPgLibrary(
         const stmt = statements[i].trim();
         if (!stmt || stmt.startsWith('--')) continue;
 
+        // Show progress for every statement
+        const stmtPreview = stmt.slice(0, 50).replace(/\n/g, ' ').trim();
+        process.stdout.write(`\r   [${i + 1}/${statements.length}] ${stmtPreview}...`.padEnd(80));
+
         try {
           await pool.query(stmt);
           executed++;
-          process.stdout.write('.');
         } catch (err: any) {
           // Ignore "already exists" errors for idempotent migrations
           if (err.code === '42710' || err.code === '42P07' || err.code === '23505') {
             skipped++;
-            process.stdout.write('s');
           } else {
             console.error(`\n   ✗ Error in statement ${i + 1}:`, err.message);
-            console.error('   Statement:', stmt.slice(0, 100) + '...');
+            console.error('   Statement:', stmt.slice(0, 150).replace(/\n/g, ' ') + '...');
             throw err;
           }
         }
       }
 
-      console.log(`\n   ✓ ${file.description} (${executed} executed, ${skipped} skipped)\n`);
+      // Clear the line and show summary
+      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      console.log(`   ✓ ${file.description} (${executed} executed, ${skipped} skipped)\n`);
     }
   } finally {
     await pool.end();
