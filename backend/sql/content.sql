@@ -1655,7 +1655,7 @@ INSERT INTO items (name, slug, item_type, description, cost, weight, source_docu
 ('Bedroll', 'bedroll', 'adventuring_gear', 'A bedroll helps you sleep in comfort.', '1 gp', '7 lb.', 'rules.txt', 48),
 ('Tinderbox', 'tinderbox', 'adventuring_gear', 'This small container holds flint, fire steel, and tinder used to kindle a fire.', '5 sp', '1 lb.', 'rules.txt', 48),
 ('Healer''s Kit', 'healers-kit', 'adventuring_gear', 'This kit is a leather pouch containing bandages, salves, and splints. The kit has ten uses. You can use it to stabilize a creature that has 0 hit points without needing to make a Wisdom (Medicine) check.', '5 gp', '3 lb.', 'rules.txt', 48),
-('Thieves'' Tools', 'thieves-tools', 'tool', 'This set of tools includes a small file, a set of lock picks, a small mirror mounted on a metal handle, a set of narrow-bladed scissors, and a pair of pliers.', '25 gp', '1 lb.', 'rules.txt', 48)
+('Thieves'' Tools', 'thieves-tools', 'tool', 'This set of tools includes a small file, a set of lock picks, a small mirror mounted on a metal handle, a set of narrow-bladed scissors, and a pair of pliers.', '25 gp', '1 lb.', 'rules.txt', 48);
 
 -- ---------------------------------------------------------------------------
 -- 8.7 Feats

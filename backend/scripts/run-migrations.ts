@@ -116,8 +116,13 @@ async function tryPsql(
 
     return true;
   } catch (err: any) {
+    // Fall back to pg library if psql is not available or can't connect
     if (err.message?.includes('which psql')) {
       console.log('psql not available, using pg library...\n');
+      return false;
+    }
+    if (err.message?.includes('Connection refused') || err.message?.includes('could not connect')) {
+      console.log('psql connection failed, using pg library...\n');
       return false;
     }
     throw err;
