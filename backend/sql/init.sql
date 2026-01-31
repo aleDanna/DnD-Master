@@ -441,20 +441,10 @@ CREATE TRIGGER update_rule_entries_tsv
   EXECUTE FUNCTION update_rule_entry_tsv();
 
 -- =============================================================================
--- SEED DATA (Optional)
+-- SEED DATA
 -- =============================================================================
-
--- Insert default rule categories
-INSERT INTO rule_categories (name, description) VALUES
-  ('Combat', 'Rules related to combat mechanics'),
-  ('Spellcasting', 'Rules for casting spells and magical effects'),
-  ('Character Creation', 'Rules for creating and leveling characters'),
-  ('Equipment', 'Rules about weapons, armor, and items'),
-  ('Skills', 'Rules for skill checks and abilities'),
-  ('Conditions', 'Status conditions and their effects'),
-  ('Movement', 'Rules for movement and travel'),
-  ('Rest', 'Rules for short and long rests')
-ON CONFLICT (name) DO NOTHING;
+-- Note: Rule categories are seeded by seed-dnd-content.sql which has
+-- compatible data for the content.sql schema (includes slug column)
 
 -- =============================================================================
 -- POST-INITIALIZATION NOTICE
