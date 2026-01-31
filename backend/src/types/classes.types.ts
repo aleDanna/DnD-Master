@@ -80,12 +80,13 @@ export interface ClassRow {
   description: string;
   hit_die: string;
   primary_ability: string;
-  saving_throws: string[];
+  saving_throws: string[] | null;
   armor_proficiencies: string[] | null;
   weapon_proficiencies: string[] | null;
   tool_proficiencies: string[] | null;
-  skill_choices: SkillChoices | null;
-  features: ClassFeature[];
+  skill_choices: string[] | null;
+  skill_count: number | null;
+  features?: ClassFeature[];
   source_document: string | null;
   source_page: number | null;
   created_at: Date;
@@ -101,7 +102,7 @@ export interface SubclassRow {
   slug: string;
   class_id: string;
   description: string;
-  features: ClassFeature[];
+  features?: ClassFeature[];
   source_document: string | null;
   source_page: number | null;
   created_at: Date;
@@ -112,6 +113,11 @@ export interface SubclassRow {
  * Map database row to Class
  */
 export function toClass(row: ClassRow): Class {
+  // Convert skill_choices TEXT[] + skill_count to SkillChoices object
+  const skillChoices: SkillChoices | null = row.skill_choices
+    ? { count: row.skill_count || 2, options: row.skill_choices }
+    : null;
+
   return {
     id: row.id,
     name: row.name,
@@ -119,12 +125,12 @@ export function toClass(row: ClassRow): Class {
     description: row.description,
     hitDie: row.hit_die,
     primaryAbility: row.primary_ability,
-    savingThrows: row.saving_throws,
+    savingThrows: row.saving_throws || [],
     armorProficiencies: row.armor_proficiencies || [],
     weaponProficiencies: row.weapon_proficiencies || [],
     toolProficiencies: row.tool_proficiencies || [],
-    skillChoices: row.skill_choices,
-    features: row.features,
+    skillChoices,
+    features: row.features || [],
     source: toSourceCitation(row.source_document, row.source_page),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -155,7 +161,7 @@ export function toSubclass(row: SubclassRow): Subclass {
     slug: row.slug,
     classId: row.class_id,
     description: row.description,
-    features: row.features,
+    features: row.features || [],
     source: toSourceCitation(row.source_document, row.source_page),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
