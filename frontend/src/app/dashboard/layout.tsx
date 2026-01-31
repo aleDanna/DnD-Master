@@ -71,6 +71,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="mr-3">🧙</span>
             Characters
           </Link>
+          <Link
+            href="/rules"
+            className="flex items-center px-4 py-2 text-foreground hover:bg-background rounded-md transition-colors"
+          >
+            <span className="mr-3">📖</span>
+            Rules Explorer
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-border">
