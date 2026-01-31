@@ -161,7 +161,7 @@ async function runWithPgLibrary(
       const sql = readFileSync(filePath, 'utf-8');
       const statements = splitSqlStatements(sql);
 
-      console.log(`   ${statements.length} statements to execute`);
+      console.log(`   ${statements.length} statements to execute\n`);
 
       let executed = 0;
       let skipped = 0;
@@ -170,28 +170,28 @@ async function runWithPgLibrary(
         const stmt = statements[i].trim();
         if (!stmt || stmt.startsWith('--')) continue;
 
-        // Show progress for every statement
-        const stmtPreview = stmt.slice(0, 50).replace(/\n/g, ' ').trim();
-        process.stdout.write(`\r   [${i + 1}/${statements.length}] ${stmtPreview}...`.padEnd(80));
+        // Show progress for every statement (verbose mode for debugging)
+        const stmtPreview = stmt.slice(0, 60).replace(/\n/g, ' ').trim();
+        console.log(`   [${i + 1}/${statements.length}] ${stmtPreview}...`);
 
         try {
           await pool.query(stmt);
           executed++;
+          console.log(`   ✓ done`);
         } catch (err: any) {
           // Ignore "already exists" errors for idempotent migrations
           if (err.code === '42710' || err.code === '42P07' || err.code === '23505') {
             skipped++;
+            console.log(`   ⊘ skipped (already exists)`);
           } else {
-            console.error(`\n   ✗ Error in statement ${i + 1}:`, err.message);
-            console.error('   Statement:', stmt.slice(0, 150).replace(/\n/g, ' ') + '...');
+            console.error(`   ✗ Error:`, err.message);
+            console.error('   Statement:', stmt.slice(0, 200).replace(/\n/g, ' '));
             throw err;
           }
         }
       }
 
-      // Clear the line and show summary
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      console.log(`   ✓ ${file.description} (${executed} executed, ${skipped} skipped)\n`);
+      console.log(`\n   ✓ ${file.description} completed (${executed} executed, ${skipped} skipped)\n`);
     }
   } finally {
     await pool.end();
