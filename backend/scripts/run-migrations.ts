@@ -288,19 +288,20 @@ async function verifyTables(
 }
 
 /**
- * Split SQL into statements, respecting dollar-quoted strings and DO blocks
+ * Split SQL into statements, respecting dollar-quoted strings, single-quoted strings, and DO blocks
  */
 function splitSqlStatements(sql: string): string[] {
   const statements: string[] = [];
   let current = '';
   let inDollarQuote = false;
   let dollarTag = '';
+  let inSingleQuote = false;
   let inLineComment = false;
   let i = 0;
 
   while (i < sql.length) {
-    // Handle line comments (-- to end of line)
-    if (!inDollarQuote && !inLineComment && sql[i] === '-' && sql[i + 1] === '-') {
+    // Handle line comments (-- to end of line) - only outside quotes
+    if (!inDollarQuote && !inSingleQuote && !inLineComment && sql[i] === '-' && sql[i + 1] === '-') {
       inLineComment = true;
       i += 2;
       continue;
@@ -316,8 +317,28 @@ function splitSqlStatements(sql: string): string[] {
       continue;
     }
 
-    // Check for dollar quote start/end
-    if (sql[i] === '$') {
+    // Handle single-quoted strings (only when not in dollar quote)
+    if (!inDollarQuote && sql[i] === "'") {
+      current += sql[i];
+      if (inSingleQuote) {
+        // Check for escaped quote ('')
+        if (sql[i + 1] === "'") {
+          current += sql[i + 1];
+          i += 2;
+          continue;
+        }
+        // End of single-quoted string
+        inSingleQuote = false;
+      } else {
+        // Start of single-quoted string
+        inSingleQuote = true;
+      }
+      i++;
+      continue;
+    }
+
+    // Check for dollar quote start/end (only when not in single quote)
+    if (!inSingleQuote && sql[i] === '$') {
       const match = sql.slice(i).match(/^\$([a-zA-Z0-9_]*)\$/);
       if (match) {
         const tag = match[0];
@@ -337,8 +358,8 @@ function splitSqlStatements(sql: string): string[] {
       }
     }
 
-    // Check for statement end (semicolon outside dollar quotes)
-    if (sql[i] === ';' && !inDollarQuote) {
+    // Check for statement end (semicolon outside all quotes)
+    if (sql[i] === ';' && !inDollarQuote && !inSingleQuote) {
       current += ';';
       const trimmed = current.trim();
       if (trimmed && trimmed !== ';') {
