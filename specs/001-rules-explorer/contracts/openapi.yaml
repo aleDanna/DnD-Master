@@ -1,0 +1,1279 @@
+openapi: 3.0.3
+info:
+  title: Rules Explorer API
+  description: API for D&D 5th Edition rules reference and search
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: Backend API
+
+paths:
+  /search:
+    get:
+      summary: Search across all content types
+      operationId: search
+      tags:
+        - Search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [full-text, semantic]
+            default: full-text
+          description: Search type
+        - name: categories
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated category filter (rules,spells,monsters,etc.)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+          description: Maximum results per category
+      responses:
+        '200':
+          description: Search results grouped by category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rules/tree:
+    get:
+      summary: Get hierarchical navigation tree
+      operationId: getNavigationTree
+      tags:
+        - Navigation
+      responses:
+        '200':
+          description: Navigation tree structure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigationTree'
+
+  /rules:
+    get:
+      summary: List rule categories
+      operationId: listRuleCategories
+      tags:
+        - Rules
+      responses:
+        '200':
+          description: Top-level rule categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuleCategorySummary'
+
+  /rules/{categorySlug}:
+    get:
+      summary: Get rule category with children
+      operationId: getRuleCategory
+      tags:
+        - Rules
+      parameters:
+        - $ref: '#/components/parameters/CategorySlug'
+      responses:
+        '200':
+          description: Category with subcategories and rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleCategoryDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules/{categorySlug}/{ruleSlug}:
+    get:
+      summary: Get individual rule
+      operationId: getRule
+      tags:
+        - Rules
+      parameters:
+        - $ref: '#/components/parameters/CategorySlug'
+        - name: ruleSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rule detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rule'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /classes:
+    get:
+      summary: List all classes
+      operationId: listClasses
+      tags:
+        - Classes
+      responses:
+        '200':
+          description: List of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassSummary'
+
+  /classes/{slug}:
+    get:
+      summary: Get class detail
+      operationId: getClass
+      tags:
+        - Classes
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Class detail with features
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /classes/{slug}/{subclassSlug}:
+    get:
+      summary: Get subclass detail
+      operationId: getSubclass
+      tags:
+        - Classes
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+        - name: subclassSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subclass detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubclassDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /races:
+    get:
+      summary: List all races
+      operationId: listRaces
+      tags:
+        - Races
+      responses:
+        '200':
+          description: List of races
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RaceSummary'
+
+  /races/{slug}:
+    get:
+      summary: Get race detail
+      operationId: getRace
+      tags:
+        - Races
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Race detail with traits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaceDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /spells:
+    get:
+      summary: List spells with filters
+      operationId: listSpells
+      tags:
+        - Spells
+      parameters:
+        - name: level
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9
+          description: Filter by spell level (0 = cantrip)
+        - name: school
+          in: query
+          schema:
+            type: string
+          description: Filter by magic school
+        - name: class
+          in: query
+          schema:
+            type: string
+          description: Filter by class slug
+        - name: concentration
+          in: query
+          schema:
+            type: boolean
+          description: Filter by concentration requirement
+        - name: ritual
+          in: query
+          schema:
+            type: boolean
+          description: Filter by ritual tag
+      responses:
+        '200':
+          description: Filtered spell list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpellSummary'
+
+  /spells/{slug}:
+    get:
+      summary: Get spell detail
+      operationId: getSpell
+      tags:
+        - Spells
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Spell detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpellDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /bestiary:
+    get:
+      summary: List monsters with filters
+      operationId: listMonsters
+      tags:
+        - Bestiary
+      parameters:
+        - name: cr
+          in: query
+          schema:
+            type: string
+          description: Filter by challenge rating (e.g., "1/4", "5")
+        - name: cr_min
+          in: query
+          schema:
+            type: number
+          description: Minimum CR (numeric)
+        - name: cr_max
+          in: query
+          schema:
+            type: number
+          description: Maximum CR (numeric)
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Filter by creature type
+        - name: size
+          in: query
+          schema:
+            type: string
+          description: Filter by size
+      responses:
+        '200':
+          description: Filtered monster list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MonsterSummary'
+
+  /bestiary/{slug}:
+    get:
+      summary: Get monster stat block
+      operationId: getMonster
+      tags:
+        - Bestiary
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Monster stat block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonsterDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /items:
+    get:
+      summary: List items with filters
+      operationId: listItems
+      tags:
+        - Items
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [weapon, armor, gear, magic]
+          description: Filter by item type
+        - name: rarity
+          in: query
+          schema:
+            type: string
+          description: Filter by rarity (magic items)
+      responses:
+        '200':
+          description: Filtered item list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemSummary'
+
+  /items/{slug}:
+    get:
+      summary: Get item detail
+      operationId: getItem
+      tags:
+        - Items
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Item detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /backgrounds:
+    get:
+      summary: List all backgrounds
+      operationId: listBackgrounds
+      tags:
+        - Backgrounds
+      responses:
+        '200':
+          description: List of backgrounds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BackgroundSummary'
+
+  /backgrounds/{slug}:
+    get:
+      summary: Get background detail
+      operationId: getBackground
+      tags:
+        - Backgrounds
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Background detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackgroundDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /feats:
+    get:
+      summary: List all feats
+      operationId: listFeats
+      tags:
+        - Feats
+      responses:
+        '200':
+          description: List of feats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatSummary'
+
+  /feats/{slug}:
+    get:
+      summary: Get feat detail
+      operationId: getFeat
+      tags:
+        - Feats
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Feat detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /conditions:
+    get:
+      summary: List all conditions
+      operationId: listConditions
+      tags:
+        - Conditions
+      responses:
+        '200':
+          description: List of conditions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConditionSummary'
+
+  /conditions/{slug}:
+    get:
+      summary: Get condition detail
+      operationId: getCondition
+      tags:
+        - Conditions
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Condition detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConditionDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /skills:
+    get:
+      summary: List all skills
+      operationId: listSkills
+      tags:
+        - Skills
+      responses:
+        '200':
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkillSummary'
+
+  /skills/{slug}:
+    get:
+      summary: Get skill detail
+      operationId: getSkill
+      tags:
+        - Skills
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Skill detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: URL-friendly identifier
+
+    CategorySlug:
+      name: categorySlug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Category URL-friendly identifier
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+
+    SourceCitation:
+      type: object
+      properties:
+        document:
+          type: string
+          description: Source book name
+        page:
+          type: integer
+          description: Page number
+
+    SearchResults:
+      type: object
+      properties:
+        query:
+          type: string
+        type:
+          type: string
+          enum: [full-text, semantic]
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              results:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResultItem'
+
+    SearchResultItem:
+      type: object
+      required:
+        - type
+        - id
+        - title
+        - slug
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        snippet:
+          type: string
+          description: Text snippet with highlighted matches
+        score:
+          type: number
+          description: Relevance score
+
+    NavigationTree:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/NavigationNode'
+
+    NavigationNode:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - type
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+          enum: [category, item, group]
+        path:
+          type: string
+          description: Full URL path
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/NavigationNode'
+
+    RuleCategorySummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+
+    RuleCategoryDetail:
+      allOf:
+        - $ref: '#/components/schemas/RuleCategorySummary'
+        - type: object
+          properties:
+            subcategories:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleCategorySummary'
+            rules:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleSummary'
+            breadcrumb:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  slug:
+                    type: string
+
+    RuleSummary:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+
+    Rule:
+      allOf:
+        - $ref: '#/components/schemas/RuleSummary'
+        - type: object
+          required:
+            - content
+          properties:
+            content:
+              type: string
+            keywords:
+              type: array
+              items:
+                type: string
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+            breadcrumb:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  slug:
+                    type: string
+
+    ClassSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        hitDie:
+          type: string
+        primaryAbility:
+          type: string
+
+    ClassDetail:
+      allOf:
+        - $ref: '#/components/schemas/ClassSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            savingThrows:
+              type: array
+              items:
+                type: string
+            armorProficiencies:
+              type: array
+              items:
+                type: string
+            weaponProficiencies:
+              type: array
+              items:
+                type: string
+            toolProficiencies:
+              type: array
+              items:
+                type: string
+            skillChoices:
+              type: object
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  level:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+            subclasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubclassSummary'
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    SubclassSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    SubclassDetail:
+      allOf:
+        - $ref: '#/components/schemas/SubclassSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  level:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+            parentClass:
+              $ref: '#/components/schemas/ClassSummary'
+
+    RaceSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        size:
+          type: string
+        speed:
+          type: integer
+
+    RaceDetail:
+      allOf:
+        - $ref: '#/components/schemas/RaceSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            abilityScoreIncrease:
+              type: object
+            ageDescription:
+              type: string
+            languages:
+              type: array
+              items:
+                type: string
+            traits:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+            subraces:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubraceSummary'
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    SubraceSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    SpellSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - level
+        - school
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        level:
+          type: integer
+        school:
+          type: string
+        concentration:
+          type: boolean
+        ritual:
+          type: boolean
+
+    SpellDetail:
+      allOf:
+        - $ref: '#/components/schemas/SpellSummary'
+        - type: object
+          required:
+            - castingTime
+            - range
+            - components
+            - duration
+            - description
+          properties:
+            castingTime:
+              type: string
+            range:
+              type: string
+            components:
+              type: object
+              properties:
+                verbal:
+                  type: boolean
+                somatic:
+                  type: boolean
+                material:
+                  type: boolean
+                materialDescription:
+                  type: string
+            duration:
+              type: string
+            description:
+              type: string
+            higherLevels:
+              type: string
+            classes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClassSummary'
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    MonsterSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - type
+        - challengeRating
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        size:
+          type: string
+        type:
+          type: string
+        challengeRating:
+          type: string
+        armorClass:
+          type: integer
+
+    MonsterDetail:
+      allOf:
+        - $ref: '#/components/schemas/MonsterSummary'
+        - type: object
+          properties:
+            subtype:
+              type: string
+            alignment:
+              type: string
+            armorType:
+              type: string
+            hitPoints:
+              type: integer
+            hitDice:
+              type: string
+            speed:
+              type: object
+            abilityScores:
+              type: object
+              properties:
+                str:
+                  type: integer
+                dex:
+                  type: integer
+                con:
+                  type: integer
+                int:
+                  type: integer
+                wis:
+                  type: integer
+                cha:
+                  type: integer
+            savingThrows:
+              type: object
+            skills:
+              type: object
+            damageVulnerabilities:
+              type: array
+              items:
+                type: string
+            damageResistances:
+              type: array
+              items:
+                type: string
+            damageImmunities:
+              type: array
+              items:
+                type: string
+            conditionImmunities:
+              type: array
+              items:
+                type: string
+            senses:
+              type: object
+            languages:
+              type: array
+              items:
+                type: string
+            experiencePoints:
+              type: integer
+            traits:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+            actions:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+            reactions:
+              type: array
+              items:
+                type: object
+            legendaryActions:
+              type: array
+              items:
+                type: object
+            description:
+              type: string
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    ItemSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - type
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+        subtype:
+          type: string
+        rarity:
+          type: string
+
+    ItemDetail:
+      allOf:
+        - $ref: '#/components/schemas/ItemSummary'
+        - type: object
+          properties:
+            cost:
+              type: object
+              properties:
+                amount:
+                  type: number
+                currency:
+                  type: string
+            weight:
+              type: number
+            properties:
+              type: array
+              items:
+                type: string
+            damage:
+              type: object
+            armorClass:
+              type: object
+            description:
+              type: string
+            requiresAttunement:
+              type: boolean
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    BackgroundSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        featureName:
+          type: string
+
+    BackgroundDetail:
+      allOf:
+        - $ref: '#/components/schemas/BackgroundSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            skillProficiencies:
+              type: array
+              items:
+                type: string
+            toolProficiencies:
+              type: array
+              items:
+                type: string
+            languages:
+              type: integer
+            equipment:
+              type: string
+            featureDescription:
+              type: string
+            suggestedCharacteristics:
+              type: object
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    FeatSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        prerequisites:
+          type: string
+
+    FeatDetail:
+      allOf:
+        - $ref: '#/components/schemas/FeatSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            benefits:
+              type: object
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    ConditionSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    ConditionDetail:
+      allOf:
+        - $ref: '#/components/schemas/ConditionSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+    SkillSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - ability
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        ability:
+          type: string
+
+    SkillDetail:
+      allOf:
+        - $ref: '#/components/schemas/SkillSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            source:
+              $ref: '#/components/schemas/SourceCitation'
+
+tags:
+  - name: Search
+    description: Cross-content search operations
+  - name: Navigation
+    description: Navigation tree structure
+  - name: Rules
+    description: Rule categories and individual rules
+  - name: Classes
+    description: Character classes and subclasses
+  - name: Races
+    description: Character races and subraces
+  - name: Spells
+    description: Magic spells
+  - name: Bestiary
+    description: Monsters and creatures
+  - name: Items
+    description: Equipment and magic items
+  - name: Backgrounds
+    description: Character backgrounds
+  - name: Feats
+    description: Character feats
+  - name: Conditions
+    description: Status conditions
+  - name: Skills
+    description: Character skills
