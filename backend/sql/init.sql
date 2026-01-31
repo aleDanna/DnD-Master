@@ -270,11 +270,17 @@ CREATE INDEX IF NOT EXISTS idx_rule_entries_tsv ON rule_entries USING gin(conten
 -- Rule categories (for organizing rules)
 CREATE TABLE IF NOT EXISTS rule_categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
   description TEXT,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add unique constraint on name if it doesn't exist
+DO $$ BEGIN
+  ALTER TABLE rule_categories ADD CONSTRAINT rule_categories_name_key UNIQUE (name);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Rule entry categories (many-to-many join table)
 CREATE TABLE IF NOT EXISTS rule_entry_categories (
