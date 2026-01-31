@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchSubclass, fetchClass } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import SourceCitation from '@/components/content/SourceCitation';
 
 interface SubclassDetailPageProps {
-  params: Promise<{ slug: string; subclass: string }>;
+  params: { slug: string; subclass: string };
 }
 
 export default function SubclassDetailPage({ params }: SubclassDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug: classSlug, subclass: subclassSlug } = resolvedParams;
+  const { slug: classSlug, subclass: subclassSlug } = params;
 
   const { data: subclass, isLoading, isError } = useQuery({
     queryKey: ['subclass', classSlug, subclassSlug],

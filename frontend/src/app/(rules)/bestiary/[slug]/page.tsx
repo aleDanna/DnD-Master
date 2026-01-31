@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchMonster } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import MonsterStatBlock from '@/components/content/MonsterStatBlock';
 
 interface MonsterDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function MonsterDetailPage({ params }: MonsterDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const { slug } = params;
 
   const { data: monster, isLoading, isError } = useQuery({
     queryKey: ['monster', slug],

@@ -13,7 +13,7 @@ const router = Router();
 
 interface SearchQuery {
   q?: string;
-  type?: 'full-text' | 'semantic';
+  type?: 'full-text' | 'semantic' | 'hybrid';
   categories?: string;
   limit?: string;
 }
@@ -48,7 +48,66 @@ router.get('/', async (req: Request<{}, {}, {}, SearchQuery>, res: Response, nex
 
     // Perform search based on mode
     let results;
-    if (type === 'semantic') {
+    if (type === 'hybrid') {
+      // Hybrid search: combine full-text and semantic results
+      const [fullTextResults, semanticResults] = await Promise.all([
+        fullTextSearch({
+          query: q,
+          categories: categoryList,
+          limit: Math.ceil(searchLimit / 2),
+        }),
+        semanticSearch({
+          query: q,
+          categories: categoryList,
+          limit: Math.ceil(searchLimit / 2),
+        }),
+      ]);
+
+      // Merge and deduplicate results
+      const seenIds = new Set<string>();
+      const mergedGroups = new Map<string, typeof fullTextResults.groups[0]>();
+
+      // Add full-text results first (higher priority for exact matches)
+      for (const group of fullTextResults.groups) {
+        const existing = mergedGroups.get(group.category) || {
+          ...group,
+          items: [],
+          totalCount: 0,
+        };
+        for (const item of group.items) {
+          if (!seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            existing.items.push(item);
+            existing.totalCount++;
+          }
+        }
+        mergedGroups.set(group.category, existing);
+      }
+
+      // Add semantic results
+      for (const group of semanticResults.groups) {
+        const existing = mergedGroups.get(group.category) || {
+          ...group,
+          items: [],
+          totalCount: 0,
+        };
+        for (const item of group.items) {
+          if (!seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            existing.items.push(item);
+            existing.totalCount++;
+          }
+        }
+        mergedGroups.set(group.category, existing);
+      }
+
+      results = {
+        query: q,
+        mode: 'hybrid' as const,
+        totalResults: seenIds.size,
+        groups: Array.from(mergedGroups.values()),
+      };
+    } else if (type === 'semantic') {
       // Semantic search with fallback to full-text
       results = await semanticSearch({
         query: q,
@@ -56,7 +115,7 @@ router.get('/', async (req: Request<{}, {}, {}, SearchQuery>, res: Response, nex
         limit: searchLimit,
       });
     } else {
-      // Full-text search
+      // Full-text search (default)
       results = await fullTextSearch({
         query: q,
         categories: categoryList,

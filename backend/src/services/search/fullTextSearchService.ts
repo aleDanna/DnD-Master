@@ -3,7 +3,7 @@
  * T101: Implement FullTextSearchService using PostgreSQL full-text search
  */
 
-import { pool } from '../../config/database.js';
+import { query as dbQuery } from '../../config/database.js';
 import {
   SearchResultItem,
   ContentType,
@@ -193,7 +193,7 @@ async function searchTable(
   tsQuery: string,
   limit: number
 ): Promise<SearchResultItem[]> {
-  const query = `
+  const sqlQuery = `
     SELECT
       id,
       ${config.titleColumn} as title,
@@ -209,7 +209,7 @@ async function searchTable(
   `;
 
   try {
-    const result = await pool.query(query, [tsQuery, limit]);
+    const result = await dbQuery(sqlQuery, [tsQuery, limit]);
 
     return result.rows.map(row => ({
       id: row.id,

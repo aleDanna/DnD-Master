@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchCondition } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import ConditionCard from '@/components/content/ConditionCard';
 
 interface ConditionDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function ConditionDetailPage({ params }: ConditionDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const { slug } = params;
 
   const { data: condition, isLoading, isError } = useQuery({
     queryKey: ['condition', slug],

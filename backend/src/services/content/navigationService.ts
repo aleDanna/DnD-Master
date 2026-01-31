@@ -14,20 +14,45 @@ import {
 } from '../../types/search.types.js';
 
 /**
+ * Safely execute a category builder with error handling
+ */
+async function safeBuildCategory<T>(
+  builder: () => Promise<T>,
+  fallback: T,
+  categoryName: string
+): Promise<T> {
+  try {
+    return await builder();
+  } catch (error) {
+    console.error(`Error building ${categoryName} category:`, error);
+    return fallback;
+  }
+}
+
+/**
  * Get the complete navigation tree for the Rules Explorer sidebar
  */
 export async function getNavigationTree(): Promise<NavigationTree> {
+  const emptyCategory = (id: string, label: string, slug: string, icon: string): NavigationCategory => ({
+    id,
+    label,
+    slug,
+    icon,
+    path: `/${slug}`,
+    children: [],
+  });
+
   const categories: NavigationCategory[] = await Promise.all([
-    buildRulesCategory(),
-    buildClassesCategory(),
-    buildRacesCategory(),
-    buildSpellsCategory(),
-    buildBestiaryCategory(),
-    buildItemsCategory(),
-    buildBackgroundsCategory(),
-    buildFeatsCategory(),
-    buildConditionsCategory(),
-    buildSkillsCategory(),
+    safeBuildCategory(buildRulesCategory, emptyCategory('rules', CATEGORY_LABELS.rules, 'rules', 'book'), 'rules'),
+    safeBuildCategory(buildClassesCategory, emptyCategory('classes', CATEGORY_LABELS.classes, 'classes', 'users'), 'classes'),
+    safeBuildCategory(buildRacesCategory, emptyCategory('races', CATEGORY_LABELS.races, 'races', 'person'), 'races'),
+    safeBuildCategory(buildSpellsCategory, emptyCategory('spells', CATEGORY_LABELS.spells, 'spells', 'sparkles'), 'spells'),
+    safeBuildCategory(buildBestiaryCategory, emptyCategory('bestiary', CATEGORY_LABELS.bestiary, 'bestiary', 'skull'), 'bestiary'),
+    safeBuildCategory(buildItemsCategory, emptyCategory('items', CATEGORY_LABELS.items, 'items', 'backpack'), 'items'),
+    safeBuildCategory(buildBackgroundsCategory, emptyCategory('backgrounds', CATEGORY_LABELS.backgrounds, 'backgrounds', 'scroll'), 'backgrounds'),
+    safeBuildCategory(buildFeatsCategory, emptyCategory('feats', CATEGORY_LABELS.feats, 'feats', 'award'), 'feats'),
+    safeBuildCategory(buildConditionsCategory, emptyCategory('conditions', CATEGORY_LABELS.conditions, 'conditions', 'alert-circle'), 'conditions'),
+    safeBuildCategory(buildSkillsCategory, emptyCategory('skills', CATEGORY_LABELS.skills, 'skills', 'target'), 'skills'),
   ]);
 
   return {
@@ -276,47 +301,49 @@ async function buildSpellsCategory(): Promise<NavigationCategory> {
  */
 async function buildBestiaryCategory(): Promise<NavigationCategory> {
   // Build type-based navigation
-  const typeResult = await query<{ type: string; count: string }>(`
-    SELECT type, COUNT(*) as count
+  const typeResult = await query<{ monster_type: string; count: string }>(`
+    SELECT monster_type, COUNT(*) as count
     FROM monsters
-    GROUP BY type
-    ORDER BY type
+    GROUP BY monster_type
+    ORDER BY monster_type
   `);
 
   const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `monster-type-${row.type.toLowerCase().replace(/\s+/g, '-')}`,
-    label: row.type,
-    slug: row.type.toLowerCase().replace(/\s+/g, '-'),
+    id: `monster-type-${row.monster_type.toLowerCase().replace(/\s+/g, '-')}`,
+    label: row.monster_type,
+    slug: row.monster_type.toLowerCase().replace(/\s+/g, '-'),
     type: 'category' as const,
-    path: `/bestiary?type=${encodeURIComponent(row.type)}`,
+    path: `/bestiary?type=${encodeURIComponent(row.monster_type)}`,
     itemCount: parseInt(row.count, 10),
   }));
 
-  // Build CR-based navigation
+  // Build CR-based navigation using challenge_rating VARCHAR
+  // Parse CR strings like '1/4', '1/2', '1', '10' etc.
   const crRanges = [
-    { label: 'CR 0-1', min: 0, max: 1 },
-    { label: 'CR 2-4', min: 2, max: 4 },
-    { label: 'CR 5-10', min: 5, max: 10 },
-    { label: 'CR 11-16', min: 11, max: 16 },
-    { label: 'CR 17+', min: 17, max: 100 },
+    { label: 'CR 0-1', crs: ['0', '1/8', '1/4', '1/2', '1'] },
+    { label: 'CR 2-4', crs: ['2', '3', '4'] },
+    { label: 'CR 5-10', crs: ['5', '6', '7', '8', '9', '10'] },
+    { label: 'CR 11-16', crs: ['11', '12', '13', '14', '15', '16'] },
+    { label: 'CR 17+', crs: ['17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30'] },
   ];
 
   const crNodes: NavigationNode[] = [];
   for (const range of crRanges) {
+    const placeholders = range.crs.map((_, i) => `$${i + 1}`).join(', ');
     const countResult = await query<{ count: string }>(`
       SELECT COUNT(*) as count
       FROM monsters
-      WHERE challenge_rating_numeric >= $1 AND challenge_rating_numeric <= $2
-    `, [range.min, range.max]);
+      WHERE challenge_rating IN (${placeholders})
+    `, range.crs);
 
     const count = parseInt(countResult.rows[0]?.count || '0', 10);
     if (count > 0) {
       crNodes.push({
-        id: `monster-cr-${range.min}-${range.max}`,
+        id: `monster-cr-${range.label.replace(/\s+/g, '-').toLowerCase()}`,
         label: range.label,
-        slug: `cr-${range.min}-${range.max}`,
+        slug: range.label.replace(/\s+/g, '-').toLowerCase(),
         type: 'category',
-        path: `/bestiary?minCr=${range.min}&maxCr=${range.max}`,
+        path: `/bestiary?cr=${encodeURIComponent(range.crs.join(','))}`,
         itemCount: count,
       });
     }
@@ -353,19 +380,19 @@ async function buildBestiaryCategory(): Promise<NavigationCategory> {
  * Build Items category organized by type
  */
 async function buildItemsCategory(): Promise<NavigationCategory> {
-  const typeResult = await query<{ type: string; count: string }>(`
-    SELECT type, COUNT(*) as count
+  const typeResult = await query<{ item_type: string; count: string }>(`
+    SELECT item_type, COUNT(*) as count
     FROM items
-    GROUP BY type
-    ORDER BY type
+    GROUP BY item_type
+    ORDER BY item_type
   `);
 
   const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `item-type-${row.type.toLowerCase()}`,
-    label: capitalizeFirst(row.type),
-    slug: row.type.toLowerCase(),
+    id: `item-type-${row.item_type.toLowerCase().replace(/_/g, '-')}`,
+    label: capitalizeFirst(row.item_type.replace(/_/g, ' ')),
+    slug: row.item_type.toLowerCase().replace(/_/g, '-'),
     type: 'category' as const,
-    path: `/items?type=${row.type}`,
+    path: `/items?type=${row.item_type}`,
     itemCount: parseInt(row.count, 10),
   }));
 
@@ -483,20 +510,21 @@ async function buildSkillsCategory(): Promise<NavigationCategory> {
     id: string;
     name: string;
     slug: string;
-    ability: string;
+    ability_name: string;
   }>(`
-    SELECT id, name, slug, ability
-    FROM skills
-    ORDER BY ability, name
+    SELECT s.id, s.name, s.slug, a.name as ability_name
+    FROM skills s
+    JOIN abilities a ON s.ability_id = a.id
+    ORDER BY a.name, s.name
   `);
 
   // Group by ability
   const abilityGroups = new Map<string, NavigationNode[]>();
   for (const row of result.rows) {
-    if (!abilityGroups.has(row.ability)) {
-      abilityGroups.set(row.ability, []);
+    if (!abilityGroups.has(row.ability_name)) {
+      abilityGroups.set(row.ability_name, []);
     }
-    abilityGroups.get(row.ability)!.push({
+    abilityGroups.get(row.ability_name)!.push({
       id: row.id,
       label: row.name,
       slug: row.slug,

@@ -318,9 +318,102 @@ INSERT INTO backgrounds (name, slug, description, skill_proficiencies, tool_prof
 ('Soldier', 'soldier', 'War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, learned basic survival techniques, including how to stay alive on the battlefield.', ARRAY['Athletics', 'Intimidation'], ARRAY['One type of gaming set', 'Vehicles (land)'], 0, 'An insignia of rank, a trophy taken from a fallen enemy, a set of bone dice or deck of cards, a set of common clothes, and a pouch containing 10 gp', 'Military Rank', 'You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank.', 'rules.txt', 40);
 
 -- =============================================================================
--- END OF SEED FILE
+-- SECTION 6: Spells
 -- =============================================================================
--- Note: For complete D&D content including subclasses, class features, spells,
--- monsters, items, and feats, refer to the original migrations/001-dnd-content.sql
--- This seed file contains the core reference data needed for game operations.
+
+INSERT INTO spells (name, slug, level, school, casting_time, range, components, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
+('Fireball', 'fireball', 3, 'Evocation', '1 action', '150 feet', 'V, S, M', 'Instantaneous', false, false, 'A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one. The fire spreads around corners. It ignites flammable objects in the area that aren''t being worn or carried.', 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.', 'handbook.txt', 241),
+
+('Magic Missile', 'magic-missile', 1, 'Evocation', '1 action', '120 feet', 'V, S', 'Instantaneous', false, false, 'You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.', 'When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st.', 'handbook.txt', 257),
+
+('Cure Wounds', 'cure-wounds', 1, 'Evocation', '1 action', 'Touch', 'V, S', 'Instantaneous', false, false, 'A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.', 'When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st.', 'handbook.txt', 230),
+
+('Shield', 'shield', 1, 'Abjuration', '1 reaction', 'Self', 'V, S', '1 round', false, false, 'An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.', NULL, 'handbook.txt', 275),
+
+('Light', 'light', 0, 'Evocation', '1 action', 'Touch', 'V, M', '1 hour', false, false, 'You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.', NULL, 'handbook.txt', 255),
+
+('Mage Hand', 'mage-hand', 0, 'Conjuration', '1 action', '30 feet', 'V, S', '1 minute', false, false, 'A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again. You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial.', NULL, 'handbook.txt', 256),
+
+('Detect Magic', 'detect-magic', 1, 'Divination', '1 action', 'Self', 'V, S', '10 minutes', true, true, 'For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its school of magic, if any. The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.', NULL, 'handbook.txt', 231),
+
+('Healing Word', 'healing-word', 1, 'Evocation', '1 bonus action', '60 feet', 'V', 'Instantaneous', false, false, 'A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on undead or constructs.', 'When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d4 for each slot level above 1st.', 'handbook.txt', 250),
+
+('Thunderwave', 'thunderwave', 1, 'Evocation', '1 action', 'Self (15-foot cube)', 'V, S', 'Instantaneous', false, false, 'A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn''t pushed.', 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st.', 'handbook.txt', 282),
+
+('Prestidigitation', 'prestidigitation', 0, 'Transmutation', '1 action', '10 feet', 'V, S', '1 hour', false, false, 'This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: a harmless sensory effect, light or snuff a small flame, clean or soil a small object, chill/warm/flavor material, make a small mark or symbol, or create a trinket or illusory image that fits in your hand.', NULL, 'handbook.txt', 267),
+
+('Lightning Bolt', 'lightning-bolt', 3, 'Evocation', '1 action', 'Self (100-foot line)', 'V, S, M', 'Instantaneous', false, false, 'A stroke of lightning forming a line 100 feet long and 5 feet wide blasts out from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes 8d6 lightning damage on a failed save, or half as much damage on a successful one.', 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.', 'handbook.txt', 255),
+
+('Counterspell', 'counterspell', 3, 'Abjuration', '1 reaction', '60 feet', 'S', 'Instantaneous', false, false, 'You attempt to interrupt a creature in the process of casting a spell. If the creature is casting a spell of 3rd level or lower, its spell fails and has no effect. If it is casting a spell of 4th level or higher, make an ability check using your spellcasting ability. The DC equals 10 + the spell''s level. On a success, the creature''s spell fails and has no effect.', 'When you cast this spell using a spell slot of 4th level or higher, the interrupted spell has no effect if its level is less than or equal to the level of the spell slot you used.', 'handbook.txt', 228);
+
+-- =============================================================================
+-- SECTION 7: Monsters
+-- =============================================================================
+
+INSERT INTO monsters (name, slug, size, monster_type, alignment, armor_class, hit_points, hit_dice, speed, ability_scores, challenge_rating, experience_points, actions, description, source_document, source_page) VALUES
+('Goblin', 'goblin', 'Small', 'Humanoid', 'Neutral Evil', 15, 7, '2d6', '{"walk": 30}', '{"strength": 8, "dexterity": 14, "constitution": 10, "intelligence": 10, "wisdom": 8, "charisma": 8}', '1/4', 50, '[{"name": "Scimitar", "desc": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."}, {"name": "Shortbow", "desc": "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage."}]', 'Goblins are small, black-hearted, selfish humanoids that lair in caves, abandoned mines, despoiled dungeons, and other dismal settings.', 'monster-manual.txt', 166),
+
+('Orc', 'orc', 'Medium', 'Humanoid', 'Chaotic Evil', 13, 15, '2d8+6', '{"walk": 30}', '{"strength": 16, "dexterity": 12, "constitution": 16, "intelligence": 7, "wisdom": 11, "charisma": 10}', '1/2', 100, '[{"name": "Greataxe", "desc": "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 9 (1d12 + 3) slashing damage."}, {"name": "Javelin", "desc": "Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 6 (1d6 + 3) piercing damage."}]', 'Orcs are savage raiders and pillagers with stooped postures, low foreheads, and piggish faces with prominent lower canines that resemble tusks.', 'monster-manual.txt', 246),
+
+('Dragon, Young Red', 'young-red-dragon', 'Large', 'Dragon', 'Chaotic Evil', 18, 178, '17d10+85', '{"walk": 40, "climb": 40, "fly": 80}', '{"strength": 23, "dexterity": 10, "constitution": 21, "intelligence": 14, "wisdom": 11, "charisma": 19}', '10', 5900, '[{"name": "Multiattack", "desc": "The dragon makes three attacks: one with its bite and two with its claws."}, {"name": "Bite", "desc": "Melee Weapon Attack: +10 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) piercing damage plus 3 (1d6) fire damage."}, {"name": "Fire Breath (Recharge 5-6)", "desc": "The dragon exhales fire in a 30-foot cone. Each creature in that area must make a DC 17 Dexterity saving throw, taking 56 (16d6) fire damage on a failed save, or half as much damage on a successful one."}]', 'The most covetous of the true dragons, red dragons tirelessly seek to increase their treasure hoards. They lair in high mountains and use their powerful fire breath to devastating effect.', 'monster-manual.txt', 98),
+
+('Skeleton', 'skeleton', 'Medium', 'Undead', 'Lawful Evil', 13, 13, '2d8+4', '{"walk": 30}', '{"strength": 10, "dexterity": 14, "constitution": 15, "intelligence": 6, "wisdom": 8, "charisma": 5}', '1/4', 50, '[{"name": "Shortsword", "desc": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) piercing damage."}, {"name": "Shortbow", "desc": "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage."}]', 'Skeletons arise when animated by dark magic. They obey the orders of their creators and do not tire.', 'monster-manual.txt', 272),
+
+('Zombie', 'zombie', 'Medium', 'Undead', 'Neutral Evil', 8, 22, '3d8+9', '{"walk": 20}', '{"strength": 13, "dexterity": 6, "constitution": 16, "intelligence": 3, "wisdom": 6, "charisma": 5}', '1/4', 50, '[{"name": "Slam", "desc": "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 4 (1d6 + 1) bludgeoning damage."}]', 'From somewhere in the darkness, a horrible stench wafts on the air. Rotting flesh hangs in shreds from bone, and dead eyes burn with hatred for the living.', 'monster-manual.txt', 316),
+
+('Owlbear', 'owlbear', 'Large', 'Monstrosity', 'Unaligned', 13, 59, '7d10+21', '{"walk": 40}', '{"strength": 20, "dexterity": 12, "constitution": 17, "intelligence": 3, "wisdom": 12, "charisma": 7}', '3', 700, '[{"name": "Multiattack", "desc": "The owlbear makes two attacks: one with its beak and one with its claws."}, {"name": "Beak", "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft., one creature. Hit: 10 (1d10 + 5) piercing damage."}, {"name": "Claws", "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 14 (2d8 + 5) slashing damage."}]', 'An owlbear is a monstrous cross between a giant owl and a bear. It has a bear''s body with an owl''s head, and it is known for its savage ferocity.', 'monster-manual.txt', 249),
+
+('Beholder', 'beholder', 'Large', 'Aberration', 'Lawful Evil', 18, 180, '19d10+76', '{"fly": 20}', '{"strength": 10, "dexterity": 14, "constitution": 18, "intelligence": 17, "wisdom": 15, "charisma": 17}', '13', 10000, '[{"name": "Bite", "desc": "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 14 (4d6) piercing damage."}, {"name": "Eye Rays", "desc": "The beholder shoots three of its magical eye rays at random, choosing one to three targets it can see within 120 feet of it."}]', 'One glance at a beholder is enough to assess its foul and otherworldly nature. Aggressive, hateful, and greedy, beholders are among the most feared creatures of the Underdark.', 'monster-manual.txt', 28),
+
+('Giant Spider', 'giant-spider', 'Large', 'Beast', 'Unaligned', 14, 26, '4d10+4', '{"walk": 30, "climb": 30}', '{"strength": 14, "dexterity": 16, "constitution": 12, "intelligence": 2, "wisdom": 11, "charisma": 4}', '1', 200, '[{"name": "Bite", "desc": "Melee Weapon Attack: +5 to hit, reach 5 ft., one creature. Hit: 7 (1d8 + 3) piercing damage, and the target must make a DC 11 Constitution saving throw, taking 9 (2d8) poison damage on a failed save, or half as much damage on a successful one."}, {"name": "Web (Recharge 5-6)", "desc": "Ranged Weapon Attack: +5 to hit, range 30/60 ft., one creature. Hit: The target is restrained by webbing."}]', 'To snare its prey, a giant spider spins elaborate webs or shoots sticky strands of webbing from its abdomen.', 'monster-manual.txt', 328);
+
+-- =============================================================================
+-- SECTION 8: Items
+-- =============================================================================
+
+INSERT INTO items (name, slug, item_type, rarity, description, cost, weight, weapon_properties, damage, damage_type, source_document, source_page) VALUES
+('Longsword', 'longsword', 'weapon', 'common', 'A versatile slashing weapon favored by warriors.', '15 gp', '3 lb', ARRAY['Versatile (1d10)'], '1d8', 'slashing', 'handbook.txt', 149),
+
+('Shortbow', 'shortbow', 'weapon', 'common', 'A simple ranged weapon made from flexible wood.', '25 gp', '2 lb', ARRAY['Ammunition (range 80/320)', 'Two-Handed'], '1d6', 'piercing', 'handbook.txt', 149),
+
+('Chain Mail', 'chain-mail', 'armor', 'common', 'Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath to prevent chafing.', '75 gp', '55 lb', NULL, NULL, NULL, 'handbook.txt', 145),
+
+('Leather Armor', 'leather-armor', 'armor', 'common', 'The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil.', '10 gp', '10 lb', NULL, NULL, NULL, 'handbook.txt', 145),
+
+('Healing Potion', 'healing-potion', 'magic_item', 'common', 'You regain 2d4 + 2 hit points when you drink this potion. The potion''s red liquid glimmers when agitated.', '50 gp', '0.5 lb', NULL, NULL, NULL, 'handbook.txt', 187),
+
+('Rope, Hempen (50 feet)', 'hempen-rope', 'adventuring_gear', 'common', 'Rope has 2 hit points and can be burst with a DC 17 Strength check.', '1 gp', '10 lb', NULL, NULL, NULL, 'handbook.txt', 153),
+
+('Torch', 'torch', 'adventuring_gear', 'common', 'A torch burns for 1 hour, providing bright light in a 20-foot radius and dim light for an additional 20 feet. If you make a melee attack with a burning torch and hit, it deals 1 fire damage.', '1 cp', '1 lb', NULL, NULL, NULL, 'handbook.txt', 153),
+
+('+1 Longsword', 'longsword-plus-one', 'weapon', 'uncommon', 'You have a +1 bonus to attack and damage rolls made with this magic weapon.', NULL, '3 lb', ARRAY['Versatile (1d10)'], '1d8+1', 'slashing', 'dungeon-masters-guide.txt', 213),
+
+('Bag of Holding', 'bag-of-holding', 'magic_item', 'uncommon', 'This bag has an interior space considerably larger than its outside dimensions, roughly 2 feet in diameter at the mouth and 4 feet deep. The bag can hold up to 500 pounds, not exceeding a volume of 64 cubic feet.', NULL, '15 lb', NULL, NULL, NULL, 'dungeon-masters-guide.txt', 153),
+
+('Ring of Protection', 'ring-of-protection', 'magic_item', 'rare', 'You gain a +1 bonus to AC and saving throws while wearing this ring.', NULL, '0 lb', NULL, NULL, NULL, 'dungeon-masters-guide.txt', 191);
+
+-- =============================================================================
+-- SECTION 9: Feats
+-- =============================================================================
+
+INSERT INTO feats (name, slug, prerequisites, description, benefits, source_document, source_page) VALUES
+('Alert', 'alert', NULL, 'Always on the lookout for danger, you gain the following benefits.', '{"benefits": ["+5 bonus to initiative", "Cannot be surprised while conscious", "Other creatures do not gain advantage on attack rolls against you as a result of being hidden from you"]}', 'handbook.txt', 165),
+
+('Great Weapon Master', 'great-weapon-master', NULL, 'You''ve learned to put the weight of a weapon to your advantage, letting its momentum empower your strikes.', '{"benefits": ["On your turn, when you score a critical hit with a melee weapon or reduce a creature to 0 hit points with one, you can make one melee weapon attack as a bonus action.", "Before you make a melee attack with a heavy weapon that you are proficient with, you can choose to take a -5 penalty to the attack roll. If the attack hits, you add +10 to the attack''s damage."]}', 'handbook.txt', 167),
+
+('Sharpshooter', 'sharpshooter', NULL, 'You have mastered ranged weapons and can make shots that others find impossible.', '{"benefits": ["Attacking at long range doesn''t impose disadvantage on your ranged weapon attack rolls.", "Your ranged weapon attacks ignore half cover and three-quarters cover.", "Before you make an attack with a ranged weapon that you are proficient with, you can choose to take a -5 penalty to the attack roll. If the attack hits, you add +10 to the attack''s damage."]}', 'handbook.txt', 170),
+
+('Lucky', 'lucky', NULL, 'You have inexplicable luck that seems to kick in at just the right moment.', '{"benefits": ["You have 3 luck points. Whenever you make an attack roll, ability check, or saving throw, you can spend one luck point to roll an additional d20.", "You regain expended luck points when you finish a long rest."]}', 'handbook.txt', 167),
+
+('Sentinel', 'sentinel', NULL, 'You have mastered techniques to take advantage of every drop in any enemy''s guard.', '{"benefits": ["When you hit a creature with an opportunity attack, the creature''s speed becomes 0 for the rest of the turn.", "Creatures provoke opportunity attacks from you even if they take the Disengage action before leaving your reach.", "When a creature within 5 feet of you makes an attack against a target other than you, you can use your reaction to make a melee weapon attack against the attacking creature."]}', 'handbook.txt', 169),
+
+('War Caster', 'war-caster', 'The ability to cast at least one spell', 'You have practiced casting spells in the midst of combat, learning techniques that grant you the following benefits.', '{"benefits": ["You have advantage on Constitution saving throws that you make to maintain your concentration on a spell when you take damage.", "You can perform the somatic components of spells even when you have weapons or a shield in one or both hands.", "When a hostile creature''s movement provokes an opportunity attack from you, you can use your reaction to cast a spell at the creature, rather than making an opportunity attack."]}', 'handbook.txt', 170);
+
+-- =============================================================================
+-- NOTE: Conditions and Skills are already seeded by init.sql
+-- Do not add them here to avoid duplicate key errors
+-- =============================================================================
+
+-- =============================================================================
+-- END OF SEED FILE
 -- =============================================================================

@@ -4,7 +4,7 @@
  * T123: Add fallback logic when embeddings unavailable
  */
 
-import { pool } from '../../config/database.js';
+import { query as dbQuery } from '../../config/database.js';
 import {
   SearchResultItem,
   ContentType,
@@ -57,7 +57,7 @@ const TABLE_CONFIGS: TableConfig[] = [
 async function checkEmbeddingsAvailable(): Promise<boolean> {
   try {
     // Check if any table has embeddings populated
-    const result = await pool.query(`
+    const result = await dbQuery(`
       SELECT EXISTS (
         SELECT 1 FROM rules WHERE embedding IS NOT NULL LIMIT 1
       ) as has_embeddings
@@ -170,7 +170,7 @@ async function searchTableSemantic(
   // Convert embedding to pgvector format
   const embeddingStr = `[${embedding.join(',')}]`;
 
-  const query = `
+  const sqlQuery = `
     SELECT
       id,
       ${config.titleColumn} as title,
@@ -186,7 +186,7 @@ async function searchTableSemantic(
   `;
 
   try {
-    const result = await pool.query(query, [embeddingStr, limit]);
+    const result = await dbQuery(sqlQuery, [embeddingStr, limit]);
 
     return result.rows.map(row => ({
       id: row.id,

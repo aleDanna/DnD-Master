@@ -117,14 +117,27 @@ export default function SearchBar({
 
       {/* Search Mode Toggle */}
       {showModeToggle && onSearchModeChange && (
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-xs text-gray-500">Mode:</span>
+        <div className="mt-3">
           <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => onSearchModeChange('hybrid')}
+              className={`
+                px-4 py-1.5 text-sm font-medium transition-colors
+                ${searchMode === 'hybrid'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                }
+              `}
+              aria-label="Hybrid search (combines keyword and semantic)"
+            >
+              Hybrid
+            </button>
             <button
               type="button"
               onClick={() => onSearchModeChange('full-text')}
               className={`
-                px-3 py-1 text-xs font-medium transition-colors
+                px-4 py-1.5 text-sm font-medium transition-colors border-l border-gray-200
                 ${searchMode === 'full-text'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -138,18 +151,22 @@ export default function SearchBar({
               type="button"
               onClick={() => onSearchModeChange('semantic')}
               className={`
-                px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1
+                px-4 py-1.5 text-sm font-medium transition-colors border-l border-gray-200
                 ${searchMode === 'semantic'
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
                 }
               `}
-              aria-label="AI-powered semantic search"
+              aria-label="Semantic search"
             >
-              <span>AI</span>
-              <span className="text-[10px]">✨</span>
+              Semantic
             </button>
           </div>
+          <p className="text-xs text-gray-500 mt-1.5">
+            {searchMode === 'hybrid' && 'Combines keyword and semantic search for best results'}
+            {searchMode === 'full-text' && 'Exact keyword matching for precise searches'}
+            {searchMode === 'semantic' && 'AI-powered search that understands meaning'}
+          </p>
         </div>
       )}
     </div>

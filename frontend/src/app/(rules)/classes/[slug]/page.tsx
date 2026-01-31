@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchClass } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import ClassDetail from '@/components/content/ClassDetail';
 
 interface ClassDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function ClassDetailPage({ params }: ClassDetailPageProps) {
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const { slug } = params;
 
   const { data: classData, isLoading, isError } = useQuery({
     queryKey: ['class', slug],

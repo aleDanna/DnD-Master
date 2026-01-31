@@ -49,7 +49,7 @@ export interface ListResponse<T> {
 /**
  * Search mode options
  */
-export type SearchMode = 'full-text' | 'semantic';
+export type SearchMode = 'full-text' | 'semantic' | 'hybrid';
 
 /**
  * Individual search result item
