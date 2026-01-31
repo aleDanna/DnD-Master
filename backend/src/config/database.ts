@@ -293,4 +293,8 @@ export const db = {
   },
 };
 
+// Export pool getter as 'pool' for backward compatibility
+// Usage: import { pool } from './database.js'; const p = pool;
+export { getPool as pool };
+
 export default db;
