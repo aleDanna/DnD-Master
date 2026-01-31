@@ -295,24 +295,39 @@ function splitSqlStatements(sql: string): string[] {
   let current = '';
   let inDollarQuote = false;
   let dollarTag = '';
+  let inLineComment = false;
   let i = 0;
 
   while (i < sql.length) {
+    // Handle line comments (-- to end of line)
+    if (!inDollarQuote && !inLineComment && sql[i] === '-' && sql[i + 1] === '-') {
+      inLineComment = true;
+      i += 2;
+      continue;
+    }
+
+    // End of line comment
+    if (inLineComment) {
+      if (sql[i] === '\n') {
+        inLineComment = false;
+        current += '\n'; // Keep newline for formatting
+      }
+      i++;
+      continue;
+    }
+
     // Check for dollar quote start/end
     if (sql[i] === '$') {
-      // Look ahead for dollar quote tag (e.g., $$, $tag$)
       const match = sql.slice(i).match(/^\$([a-zA-Z0-9_]*)\$/);
       if (match) {
         const tag = match[0];
         if (inDollarQuote && tag === dollarTag) {
-          // End of dollar quote
           current += tag;
           i += tag.length;
           inDollarQuote = false;
           dollarTag = '';
           continue;
         } else if (!inDollarQuote) {
-          // Start of dollar quote
           inDollarQuote = true;
           dollarTag = tag;
           current += tag;
@@ -325,17 +340,8 @@ function splitSqlStatements(sql: string): string[] {
     // Check for statement end (semicolon outside dollar quotes)
     if (sql[i] === ';' && !inDollarQuote) {
       current += ';';
-      // Strip leading comment lines and whitespace
-      let trimmed = current.trim();
-      while (trimmed.startsWith('--')) {
-        const newlineIdx = trimmed.indexOf('\n');
-        if (newlineIdx === -1) {
-          trimmed = '';
-          break;
-        }
-        trimmed = trimmed.slice(newlineIdx + 1).trim();
-      }
-      if (trimmed) {
+      const trimmed = current.trim();
+      if (trimmed && trimmed !== ';') {
         statements.push(trimmed);
       }
       current = '';
@@ -349,7 +355,7 @@ function splitSqlStatements(sql: string): string[] {
 
   // Add any remaining content
   const trimmed = current.trim();
-  if (trimmed && !trimmed.startsWith('--')) {
+  if (trimmed && trimmed !== ';') {
     statements.push(trimmed);
   }
 
