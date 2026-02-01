@@ -980,6 +980,10 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Cloudkill', 'cloudkill', 5, 'Conjuration', '1 action', '120 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'You create a 20-foot-radius sphere of poisonous, yellow-green fog centered on a point you choose within range. The fog spreads around corners. It lasts for the duration or until strong wind disperses the fog, ending the spell.', 'When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.', 'rules.txt', 88),
 
+('Wall of Force', 'wall-of-force', 5, 'Evocation', '1 action', '120 feet', 'V, S, M', 'a pinch of powder made by crushing a clear gemstone', 'Up to 10 minutes', TRUE, FALSE, 'An invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. The wall is completely immune to damage of all types, and it cannot be dispelled by dispel magic. A disintegrate spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane, blocking ethereal travel through the wall.', NULL, 'handbook.txt', 285),
+
+('Telekinesis', 'telekinesis', 5, 'Transmutation', '1 action', '60 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'You gain the ability to move or manipulate creatures or objects by thought. When you cast the spell, and as your action each round for the duration, you can exert your will on one creature or object that you can see within range, causing the appropriate effect below.', NULL, 'handbook.txt', 280),
+
 ('Dominate Person', 'dominate-person', 5, 'Enchantment', '1 action', '60 feet', 'V, S', NULL, 'Up to 1 minute', TRUE, FALSE, 'You attempt to beguile a humanoid that you can see within range. It must succeed on a Wisdom saving throw or be charmed by you for the duration.', 'When you cast this spell using a 6th-level spell slot, the duration is concentration, up to 10 minutes. Using a 7th-level slot, the duration is concentration, up to 1 hour. Using a slot of 8th level or higher, the duration is concentration, up to 8 hours.', 'rules.txt', 90),
 
 ('Greater Restoration', 'greater-restoration', 5, 'Abjuration', '1 action', 'Touch', 'V, S, M', 'diamond dust worth at least 100 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You imbue a creature you touch with positive energy to undo a debilitating effect. You can reduce the target''s exhaustion level by one, or end one of the following effects on the target: one effect that charmed or petrified the target, one curse, any reduction to one of the target''s ability scores, or one effect reducing the target''s hit point maximum.', NULL, 'rules.txt', 92),
@@ -1018,7 +1022,13 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Resurrection', 'resurrection', 7, 'Necromancy', '1 hour', 'Touch', 'V, S, M', 'a diamond worth at least 1,000 gp, which the spell consumes', 'Instantaneous', FALSE, FALSE, 'You touch a dead creature that has been dead for no more than a century, that didn''t die of old age, and that isn''t undead. If its soul is free and willing, the target returns to life with all its hit points.', NULL, 'rules.txt', 101),
 
-('Teleport', 'teleport', 7, 'Conjuration', '1 action', '10 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'This spell instantly transports you and up to eight willing creatures of your choice that you can see within range, or a single object that you can see within range, to a destination you select.', NULL, 'rules.txt', 104);
+('Teleport', 'teleport', 7, 'Conjuration', '1 action', '10 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'This spell instantly transports you and up to eight willing creatures of your choice that you can see within range, or a single object that you can see within range, to a destination you select.', NULL, 'rules.txt', 104),
+
+('Etherealness', 'etherealness', 7, 'Transmutation', '1 action', 'Self', 'V, S', NULL, '8 hours', FALSE, FALSE, 'You step into the border regions of the Ethereal Plane, in the area where it overlaps with your current plane. You remain in the Border Ethereal for the duration or until you use your action to dismiss the spell. During this time, you can move in any direction. If you move up or down, every foot of movement costs an extra foot. You can see and hear the plane you originated from, but everything there looks gray, and you cannot see anything more than 60 feet away.', 'When you cast this spell using a spell slot of 8th level or higher, you can target up to three willing creatures (including you) for each slot level above 7th.', 'handbook.txt', 238),
+
+('Regenerate', 'regenerate', 7, 'Transmutation', '1 minute', 'Touch', 'V, S, M', 'a prayer wheel and holy water', 'Up to 1 hour', FALSE, FALSE, 'You touch a creature and stimulate its natural healing ability. The target regains 4d8 + 15 hit points. For the duration of the spell, the target regains 1 hit point at the start of each of its turns (10 hit points each minute). The targets severed body members (fingers, legs, tails, and so on), if any, are restored after 2 minutes.', NULL, 'handbook.txt', 271),
+
+('Reverse Gravity', 'reverse-gravity', 7, 'Transmutation', '1 action', '100 feet', 'V, S, M', 'a lodestone and iron filings', 'Up to 1 minute', TRUE, FALSE, 'This spell reverses gravity in a 50-foot-radius, 100-foot high cylinder centered on a point within range. All creatures and objects that are not somehow anchored to the ground in the area fall upward and reach the top of the area when you cast this spell.', NULL, 'handbook.txt', 272);
 
 -- 8th Level Spells
 INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
@@ -1028,7 +1038,13 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Power Word Stun', 'power-word-stun', 8, 'Enchantment', '1 action', '60 feet', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'You speak a word of power that can overwhelm the mind of one creature you can see within range, leaving it dumbfounded. If the target has 150 hit points or fewer, it is stunned. Otherwise, the spell has no effect.', NULL, 'rules.txt', 99),
 
-('Sunburst', 'sunburst', 8, 'Evocation', '1 action', '150 feet', 'V, S, M', 'fire and a piece of sunstone', 'Instantaneous', FALSE, FALSE, 'Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes 12d6 radiant damage and is blinded for 1 minute.', NULL, 'rules.txt', 104);
+('Sunburst', 'sunburst', 8, 'Evocation', '1 action', '150 feet', 'V, S, M', 'fire and a piece of sunstone', 'Instantaneous', FALSE, FALSE, 'Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes 12d6 radiant damage and is blinded for 1 minute.', NULL, 'rules.txt', 104),
+
+('Feeblemind', 'feeblemind', 8, 'Enchantment', '1 action', '150 feet', 'V, S, M', 'a handful of clay, crystal, glass, or mineral spheres', 'Instantaneous', FALSE, FALSE, 'You blast the mind of a creature that you can see within range, attempting to shatter its intellect and personality. The target takes 4d6 psychic damage and must make an Intelligence saving throw. On a failed save, the creatures Intelligence and Charisma scores become 1. The creature cannot cast spells, activate magic items, understand language, or communicate in any intelligible way. The creature can, however, identify its friends, follow them, and even protect them.', NULL, 'handbook.txt', 239),
+
+('Maze', 'maze', 8, 'Conjuration', '1 action', '60 feet', 'V, S', NULL, 'Up to 10 minutes', TRUE, FALSE, 'You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze. The target can use its action to attempt to escape. When it does so, it makes a DC 20 Intelligence check. If it succeeds, it escapes, and the spell ends.', NULL, 'handbook.txt', 258),
+
+('Mind Blank', 'mind-blank', 8, 'Abjuration', '1 action', 'Touch', 'V, S', NULL, '24 hours', FALSE, FALSE, 'Until the spell ends, one willing creature you touch is immune to psychic damage, any effect that would sense its emotions or read its thoughts, divination spells, and the charmed condition. The spell even foils wish spells and spells or effects of similar power used to affect the targets mind or to gain information about the target.', NULL, 'handbook.txt', 259);
 
 -- 9th Level Spells
 INSERT INTO spells (name, slug, level, school, casting_time, range, components, materials, duration, concentration, ritual, description, at_higher_levels, source_document, source_page) VALUES
@@ -1042,7 +1058,15 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 
 ('Wish', 'wish', 9, 'Conjuration', '1 action', 'Self', 'V', NULL, 'Instantaneous', FALSE, FALSE, 'Wish is the mightiest spell a mortal creature can cast. By simply speaking aloud, you can alter the very foundations of reality in accord with your desires. The basic use of this spell is to duplicate any other spell of 8th level or lower.', NULL, 'rules.txt', 106),
 
-('Gate', 'gate', 9, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a diamond worth at least 5,000 gp', 'Up to 1 minute', TRUE, FALSE, 'You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter.', NULL, 'rules.txt', 92);
+('Gate', 'gate', 9, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a diamond worth at least 5,000 gp', 'Up to 1 minute', TRUE, FALSE, 'You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter.', NULL, 'rules.txt', 92),
+
+('Foresight', 'foresight', 9, 'Divination', '1 minute', 'Touch', 'V, S, M', 'a hummingbird feather', '8 hours', FALSE, FALSE, 'You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target cannot be surprised and has advantage on attack rolls, ability checks, and saving throws. Additionally, other creatures have disadvantage on attack rolls against the target for the duration.', NULL, 'handbook.txt', 244),
+
+('Mass Heal', 'mass-heal', 9, 'Evocation', '1 action', '60 feet', 'V, S', NULL, 'Instantaneous', FALSE, FALSE, 'A flood of healing energy flows from you into injured creatures around you. You restore up to 700 hit points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell are also cured of all diseases and any effect making them blinded or deafened. This spell has no effect on undead or constructs.', NULL, 'handbook.txt', 258),
+
+('True Polymorph', 'true-polymorph', 9, 'Transmutation', '1 action', '30 feet', 'V, S, M', 'a drop of mercury, a dollop of gum arabic, and a wisp of smoke', 'Up to 1 hour', TRUE, FALSE, 'Choose one creature or nonmagical object that you can see within range. You transform the creature into a different creature, the creature into a nonmagical object, or the object into a creature. The transformation lasts for the duration, or until the target drops to 0 hit points or dies. If you concentrate on this spell for the full duration, the transformation lasts until it is dispelled.', NULL, 'handbook.txt', 283),
+
+('Shapechange', 'shapechange', 9, 'Transmutation', '1 action', 'Self', 'V, S, M', 'a jade circlet worth at least 1,500 gp, which you must place on your head before you cast the spell', 'Up to 1 hour', TRUE, FALSE, 'You assume the form of a different creature for the duration. The new form can be of any creature with a challenge rating equal to your level or lower. The creature cannot be a construct or an undead, and you must have seen the sort of creature at least once.', NULL, 'handbook.txt', 274);
 
 -- Class-Spell Relationships
 INSERT INTO class_spells (class_id, spell_id)
@@ -1092,6 +1116,15 @@ INSERT INTO monsters (name, slug, size, monster_type, subtype, alignment, armor_
 -- Weapons
 INSERT INTO items (name, slug, item_type, description, cost, weight, damage, damage_type, weapon_properties, weapon_range, source_document, source_page) VALUES
 ('Dagger', 'dagger', 'weapon', 'A simple melee weapon useful for close quarters combat and throwing.', '2 gp', '1 lb.', '1d4', 'piercing', ARRAY['Finesse', 'Light', 'Thrown'], '20/60', 'rules.txt', 46),
+('Club', 'club', 'weapon', 'A simple melee weapon - a length of wood used for bludgeoning.', '1 sp', '2 lb.', '1d4', 'bludgeoning', ARRAY['Light'], NULL, 'handbook.txt', 149),
+('Greatclub', 'greatclub', 'weapon', 'A simple melee weapon - a larger, heavier club requiring two hands.', '2 sp', '10 lb.', '1d8', 'bludgeoning', ARRAY['Two-Handed'], NULL, 'handbook.txt', 149),
+('Javelin', 'javelin', 'weapon', 'A simple melee weapon designed for throwing, commonly used by warriors.', '5 sp', '2 lb.', '1d6', 'piercing', ARRAY['Thrown'], '30/120', 'handbook.txt', 149),
+('Light Hammer', 'light-hammer', 'weapon', 'A simple melee weapon - a small hammer that can be thrown.', '2 gp', '2 lb.', '1d4', 'bludgeoning', ARRAY['Light', 'Thrown'], '20/60', 'handbook.txt', 149),
+('Mace', 'mace', 'weapon', 'A simple melee weapon with a heavy head on a solid shaft.', '5 gp', '4 lb.', '1d6', 'bludgeoning', NULL, NULL, 'handbook.txt', 149),
+('Sickle', 'sickle', 'weapon', 'A simple melee weapon with a curved blade, originally an agricultural tool.', '1 gp', '2 lb.', '1d4', 'slashing', ARRAY['Light'], NULL, 'handbook.txt', 149),
+('Spear', 'spear', 'weapon', 'A simple melee weapon with a pointed tip on a long shaft.', '1 gp', '3 lb.', '1d6', 'piercing', ARRAY['Thrown', 'Versatile (1d8)'], '20/60', 'handbook.txt', 149),
+('Dart', 'dart', 'weapon', 'A simple ranged weapon - a small pointed missile thrown by hand.', '5 cp', '1/4 lb.', '1d4', 'piercing', ARRAY['Finesse', 'Thrown'], '20/60', 'handbook.txt', 149),
+('Sling', 'sling', 'weapon', 'A simple ranged weapon that hurls stones using centrifugal force.', '1 sp', '-', '1d4', 'bludgeoning', ARRAY['Ammunition'], '30/120', 'handbook.txt', 149),
 ('Shortsword', 'shortsword', 'weapon', 'A martial melee weapon favored by rogues for its quick, precise strikes.', '10 gp', '2 lb.', '1d6', 'piercing', ARRAY['Finesse', 'Light'], NULL, 'rules.txt', 46),
 ('Longsword', 'longsword', 'weapon', 'A versatile martial weapon, the longsword is the quintessential knight''s blade.', '15 gp', '3 lb.', '1d8', 'slashing', ARRAY['Versatile (1d10)'], NULL, 'rules.txt', 46),
 ('Greatsword', 'greatsword', 'weapon', 'A massive two-handed sword capable of cleaving through multiple foes.', '50 gp', '6 lb.', '2d6', 'slashing', ARRAY['Heavy', 'Two-Handed'], NULL, 'rules.txt', 46),
@@ -1100,17 +1133,41 @@ INSERT INTO items (name, slug, item_type, description, cost, weight, damage, dam
 ('Handaxe', 'handaxe', 'weapon', 'A simple weapon that can be used in melee or thrown at enemies.', '5 gp', '2 lb.', '1d6', 'slashing', ARRAY['Light', 'Thrown'], '20/60', 'rules.txt', 46),
 ('Greataxe', 'greataxe', 'weapon', 'A massive axe favored by barbarians for its devastating damage.', '30 gp', '7 lb.', '1d12', 'slashing', ARRAY['Heavy', 'Two-Handed'], NULL, 'rules.txt', 46),
 ('Quarterstaff', 'quarterstaff', 'weapon', 'A simple wooden staff, often used by monks and travelers.', '2 sp', '4 lb.', '1d6', 'bludgeoning', ARRAY['Versatile (1d8)'], NULL, 'rules.txt', 46),
-('Light Crossbow', 'light-crossbow', 'weapon', 'A mechanical ranged weapon that fires bolts.', '25 gp', '5 lb.', '1d8', 'piercing', ARRAY['Ammunition', 'Loading', 'Two-Handed'], '80/320', 'rules.txt', 46);
+('Light Crossbow', 'light-crossbow', 'weapon', 'A mechanical ranged weapon that fires bolts.', '25 gp', '5 lb.', '1d8', 'piercing', ARRAY['Ammunition', 'Loading', 'Two-Handed'], '80/320', 'rules.txt', 46),
+('Rapier', 'rapier', 'weapon', 'A martial melee weapon with a thin, pointed blade used for thrusting attacks.', '25 gp', '2 lb.', '1d8', 'piercing', ARRAY['Finesse'], NULL, 'handbook.txt', 149),
+('Scimitar', 'scimitar', 'weapon', 'A martial melee weapon with a curved blade optimized for slashing.', '25 gp', '3 lb.', '1d6', 'slashing', ARRAY['Finesse', 'Light'], NULL, 'handbook.txt', 149),
+('Battleaxe', 'battleaxe', 'weapon', 'A martial melee weapon that can be wielded with one or two hands.', '10 gp', '4 lb.', '1d8', 'slashing', ARRAY['Versatile (1d10)'], NULL, 'handbook.txt', 149),
+('Flail', 'flail', 'weapon', 'A martial melee weapon consisting of a spiked ball attached to a handle by a chain.', '10 gp', '2 lb.', '1d8', 'bludgeoning', NULL, NULL, 'handbook.txt', 149),
+('Glaive', 'glaive', 'weapon', 'A martial melee weapon with a long reach, featuring a blade at the end of a pole.', '20 gp', '6 lb.', '1d10', 'slashing', ARRAY['Heavy', 'Reach', 'Two-Handed'], NULL, 'handbook.txt', 149),
+('Halberd', 'halberd', 'weapon', 'A martial melee weapon combining an axe blade and a spike on a long shaft.', '20 gp', '6 lb.', '1d10', 'slashing', ARRAY['Heavy', 'Reach', 'Two-Handed'], NULL, 'handbook.txt', 149),
+('Lance', 'lance', 'weapon', 'A martial melee weapon designed for mounted combat with exceptional reach.', '10 gp', '6 lb.', '1d12', 'piercing', ARRAY['Reach', 'Special'], NULL, 'handbook.txt', 149),
+('Maul', 'maul', 'weapon', 'A martial melee weapon - a massive hammer used to deliver crushing blows.', '10 gp', '10 lb.', '2d6', 'bludgeoning', ARRAY['Heavy', 'Two-Handed'], NULL, 'handbook.txt', 149),
+('Morningstar', 'morningstar', 'weapon', 'A martial melee weapon with a spiked ball on a shaft.', '15 gp', '4 lb.', '1d8', 'piercing', NULL, NULL, 'handbook.txt', 149),
+('Pike', 'pike', 'weapon', 'A martial melee weapon - an extremely long spear used in formation fighting.', '5 gp', '18 lb.', '1d10', 'piercing', ARRAY['Heavy', 'Reach', 'Two-Handed'], NULL, 'handbook.txt', 149),
+('Trident', 'trident', 'weapon', 'A martial melee weapon with a three-pronged spear head, often associated with the sea.', '5 gp', '4 lb.', '1d6', 'piercing', ARRAY['Thrown', 'Versatile (1d8)'], '20/60', 'handbook.txt', 149),
+('War Pick', 'war-pick', 'weapon', 'A martial melee weapon with a pick head designed to pierce armor.', '5 gp', '2 lb.', '1d8', 'piercing', NULL, NULL, 'handbook.txt', 149),
+('Warhammer', 'warhammer', 'weapon', 'A martial melee weapon - a hammer designed for combat.', '15 gp', '2 lb.', '1d8', 'bludgeoning', ARRAY['Versatile (1d10)'], NULL, 'handbook.txt', 149),
+('Whip', 'whip', 'weapon', 'A martial melee weapon with reach, though dealing minimal damage.', '2 gp', '3 lb.', '1d4', 'slashing', ARRAY['Finesse', 'Reach'], NULL, 'handbook.txt', 149),
+('Heavy Crossbow', 'heavy-crossbow', 'weapon', 'A martial ranged weapon that fires heavy bolts with great force.', '50 gp', '18 lb.', '1d10', 'piercing', ARRAY['Ammunition', 'Heavy', 'Loading', 'Two-Handed'], '100/400', 'handbook.txt', 149),
+('Hand Crossbow', 'hand-crossbow', 'weapon', 'A martial ranged weapon small enough to fire with one hand.', '75 gp', '3 lb.', '1d6', 'piercing', ARRAY['Ammunition', 'Light', 'Loading'], '30/120', 'handbook.txt', 149),
+('Blowgun', 'blowgun', 'weapon', 'A martial ranged weapon that fires tiny needles using breath.', '10 gp', '1 lb.', '1', 'piercing', ARRAY['Ammunition', 'Loading'], '25/100', 'handbook.txt', 149),
+('Net', 'net', 'weapon', 'A martial ranged weapon used to restrain creatures.', '1 gp', '3 lb.', NULL, NULL, ARRAY['Special', 'Thrown'], '5/15', 'handbook.txt', 149);
 
 -- Armor
 INSERT INTO items (name, slug, item_type, description, cost, weight, armor_class, armor_type, strength_requirement, stealth_disadvantage, source_document, source_page) VALUES
+('Padded Armor', 'padded-armor', 'armor', 'Padded armor consists of quilted layers of cloth and batting.', '5 gp', '8 lb.', '11 + Dex modifier', 'Light', NULL, TRUE, 'handbook.txt', 145),
 ('Leather Armor', 'leather-armor', 'armor', 'The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil.', '10 gp', '10 lb.', '11 + Dex modifier', 'Light', NULL, FALSE, 'rules.txt', 45),
 ('Studded Leather', 'studded-leather', 'armor', 'Made from tough but flexible leather, studded leather is reinforced with close-set rivets or spikes.', '45 gp', '13 lb.', '12 + Dex modifier', 'Light', NULL, FALSE, 'rules.txt', 45),
 ('Chain Shirt', 'chain-shirt', 'armor', 'Made of interlocking metal rings, a chain shirt is worn between layers of clothing or leather.', '50 gp', '20 lb.', '13 + Dex modifier (max 2)', 'Medium', NULL, FALSE, 'rules.txt', 45),
 ('Scale Mail', 'scale-mail', 'armor', 'This armor consists of a coat and leggings of leather covered with overlapping pieces of metal.', '50 gp', '45 lb.', '14 + Dex modifier (max 2)', 'Medium', NULL, TRUE, 'rules.txt', 45),
 ('Chain Mail', 'chain-mail', 'armor', 'Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath.', '75 gp', '55 lb.', '16', 'Heavy', 13, TRUE, 'rules.txt', 45),
 ('Plate Armor', 'plate-armor', 'armor', 'Plate consists of shaped, interlocking metal plates to cover the entire body.', '1,500 gp', '65 lb.', '18', 'Heavy', 15, TRUE, 'rules.txt', 45),
-('Shield', 'shield', 'armor', 'A shield is made from wood or metal and is carried in one hand.', '10 gp', '6 lb.', '+2', 'Shield', NULL, FALSE, 'rules.txt', 45);
+('Shield', 'shield', 'armor', 'A shield is made from wood or metal and is carried in one hand.', '10 gp', '6 lb.', '+2', 'Shield', NULL, FALSE, 'rules.txt', 45),
+('Hide Armor', 'hide-armor', 'armor', 'This crude armor consists of thick furs and pelts. It is commonly worn by barbarian tribes, evil humanoids, and other folk who lack access to the tools and materials needed to create better armor.', '10 gp', '12 lb.', '12 + Dex modifier (max 2)', 'Medium', NULL, FALSE, 'handbook.txt', 145),
+('Breastplate', 'breastplate', 'armor', 'This armor consists of a fitted metal chest piece worn with supple leather. Although it leaves the legs and arms relatively unprotected, this armor provides good protection for the wearers vital organs while leaving the wearer relatively unencumbered.', '400 gp', '20 lb.', '14 + Dex modifier (max 2)', 'Medium', NULL, FALSE, 'handbook.txt', 145),
+('Half Plate', 'half-plate', 'armor', 'Half plate consists of shaped metal plates that cover most of the wearers body. It does not include leg protection beyond simple greaves that are attached with leather straps.', '750 gp', '40 lb.', '15 + Dex modifier (max 2)', 'Medium', NULL, TRUE, 'handbook.txt', 145),
+('Ring Mail', 'ring-mail', 'armor', 'This armor is leather armor with heavy rings sewn into it. The rings help reinforce the armor against blows from swords and axes. Ring mail is inferior to chain mail, and is usually worn only by those who cannot afford better armor.', '30 gp', '40 lb.', '14', 'Heavy', NULL, TRUE, 'handbook.txt', 145),
+('Splint Armor', 'splint-armor', 'armor', 'This armor is made of narrow vertical strips of metal riveted to a backing of leather that is worn over cloth padding. Flexible chain mail protects the joints.', '200 gp', '60 lb.', '17', 'Heavy', 15, TRUE, 'handbook.txt', 145);
 
 -- Adventuring Gear
 INSERT INTO items (name, slug, item_type, description, cost, weight, source_document, source_page) VALUES
@@ -1143,7 +1200,75 @@ INSERT INTO feats (name, slug, description, prerequisites, benefits, source_docu
 
 ('Sharpshooter', 'sharpshooter', 'You have mastered ranged weapons and can make shots that others find impossible. Attacking at long range doesn''t impose disadvantage on your ranged weapon attack rolls. Your ranged weapon attacks ignore half cover and three-quarters cover. Before you make an attack with a ranged weapon that you are proficient with, you can choose to take a -5 penalty to the attack roll. If the attack hits, you add +10 to the attack''s damage.', NULL, '{"ignore_long_range_disadvantage": true, "ignore_cover": true, "power_attack": {"attack_penalty": -5, "damage_bonus": 10}}', 'handbook.txt', 170),
 
-('War Caster', 'war-caster', 'You have practiced casting spells in the midst of combat, learning techniques that grant you the following benefits: You have advantage on Constitution saving throws that you make to maintain your concentration on a spell when you take damage. You can perform the somatic components of spells even when you have weapons or a shield in one or both hands. When a hostile creature''s movement provokes an opportunity attack from you, you can use your reaction to cast a spell at the creature, rather than making an opportunity attack. The spell must have a casting time of 1 action and must target only that creature.', 'The ability to cast at least one spell', '{"concentration_advantage": true, "somatic_with_equipment": true, "spell_opportunity_attack": true}', 'handbook.txt', 170);
+('War Caster', 'war-caster', 'You have practiced casting spells in the midst of combat, learning techniques that grant you the following benefits: You have advantage on Constitution saving throws that you make to maintain your concentration on a spell when you take damage. You can perform the somatic components of spells even when you have weapons or a shield in one or both hands. When a hostile creature''s movement provokes an opportunity attack from you, you can use your reaction to cast a spell at the creature, rather than making an opportunity attack. The spell must have a casting time of 1 action and must target only that creature.', 'The ability to cast at least one spell', '{"concentration_advantage": true, "somatic_with_equipment": true, "spell_opportunity_attack": true}', 'handbook.txt', 170),
+
+('Actor', 'actor', 'Skilled at mimicry and dramatics, you gain the following benefits: Increase your Charisma score by 1, to a maximum of 20. You have advantage on Charisma (Deception) and Charisma (Performance) checks when trying to pass yourself off as a different person. You can mimic the speech of another person or the sounds made by other creatures.', NULL, '{"ability_increase": ["charisma"], "deception_advantage": true, "performance_advantage": true, "mimicry": true}', 'handbook.txt', 165),
+
+('Charger', 'charger', 'When you use your action to Dash, you can use a bonus action to make one melee weapon attack or to shove a creature. If you move at least 10 feet in a straight line immediately before taking this bonus action, you either gain a +5 bonus to the attacks damage roll or push the target up to 10 feet away from you.', NULL, '{"dash_bonus_attack": true, "charge_damage_bonus": 5, "charge_push": 10}', 'handbook.txt', 165),
+
+('Crossbow Expert', 'crossbow-expert', 'Thanks to extensive practice with the crossbow, you gain the following benefits: You ignore the loading quality of crossbows with which you are proficient. Being within 5 feet of a hostile creature does not impose disadvantage on your ranged attack rolls. When you use the Attack action and attack with a one-handed weapon, you can use a bonus action to attack with a hand crossbow you are holding.', NULL, '{"ignore_loading": true, "no_close_range_disadvantage": true, "bonus_hand_crossbow_attack": true}', 'handbook.txt', 165),
+
+('Defensive Duelist', 'defensive-duelist', 'When you are wielding a finesse weapon with which you are proficient and another creature hits you with a melee attack, you can use your reaction to add your proficiency bonus to your AC for that attack, potentially causing the attack to miss you.', 'Dexterity 13 or higher', '{"reaction_ac_bonus": "proficiency"}', 'handbook.txt', 165),
+
+('Dungeon Delver', 'dungeon-delver', 'Alert to the hidden traps and secret doors found in many dungeons, you gain the following benefits: You have advantage on Wisdom (Perception) and Intelligence (Investigation) checks made to detect the presence of secret doors. You have advantage on saving throws made to avoid or resist traps. You have resistance to the damage dealt by traps. Traveling at a fast pace does not impose the normal penalty to your passive Wisdom (Perception) score.', NULL, '{"secret_door_advantage": true, "trap_save_advantage": true, "trap_resistance": true, "fast_pace_perception": true}', 'handbook.txt', 166),
+
+('Durable', 'durable', 'Hardy and resilient, you gain the following benefits: Increase your Constitution score by 1, to a maximum of 20. When you roll a Hit Die to regain hit points, the minimum number of hit points you regain from the roll equals twice your Constitution modifier (minimum of 2).', NULL, '{"ability_increase": ["constitution"], "minimum_hit_die_healing": "2x_con_mod"}', 'handbook.txt', 166),
+
+('Elemental Adept', 'elemental-adept', 'When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder. Spells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.', 'The ability to cast at least one spell', '{"ignore_resistance": true, "minimum_damage_roll": 2}', 'handbook.txt', 166),
+
+('Grappler', 'grappler', 'You have developed the skills necessary to hold your own in close-quarters grappling. You gain the following benefits: You have advantage on attack rolls against a creature you are grappling. You can use your action to try to pin a creature grappled by you. To do so, make another grapple check. If you succeed, you and the creature are both restrained until the grapple ends.', 'Strength 13 or higher', '{"grapple_attack_advantage": true, "pin_ability": true}', 'handbook.txt', 167),
+
+('Healer', 'healer', 'You are an able physician, allowing you to mend wounds quickly and get your allies back in the fight. You gain the following benefits: When you use a healers kit to stabilize a dying creature, that creature also regains 1 hit point. As an action, you can spend one use of a healers kit to tend to a creature and restore 1d6 + 4 hit points to it, plus additional hit points equal to the creatures maximum number of Hit Dice. The creature cannot regain hit points from this feat again until it finishes a short or long rest.', NULL, '{"stabilize_heals": 1, "healers_kit_healing": "1d6+4+max_hit_dice"}', 'handbook.txt', 167),
+
+('Heavily Armored', 'heavily-armored', 'You have trained to master the use of heavy armor, gaining the following benefits: Increase your Strength score by 1, to a maximum of 20. You gain proficiency with heavy armor.', 'Proficiency with medium armor', '{"ability_increase": ["strength"], "heavy_armor_proficiency": true}', 'handbook.txt', 167),
+
+('Heavy Armor Master', 'heavy-armor-master', 'You can use your armor to deflect strikes that would kill others. You gain the following benefits: Increase your Strength score by 1, to a maximum of 20. While you are wearing heavy armor, bludgeoning, piercing, and slashing damage that you take from nonmagical weapons is reduced by 3.', 'Proficiency with heavy armor', '{"ability_increase": ["strength"], "damage_reduction": 3}', 'handbook.txt', 167),
+
+('Inspiring Leader', 'inspiring-leader', 'You can spend 10 minutes inspiring your companions, shoring up their resolve to fight. When you do so, choose up to six friendly creatures (which can include yourself) within 30 feet of you who can see or hear you and who can understand you. Each creature can gain temporary hit points equal to your level + your Charisma modifier. A creature cannot gain temporary hit points from this feat again until it has finished a short or long rest.', 'Charisma 13 or higher', '{"temp_hp": "level+charisma_mod", "targets": 6}', 'handbook.txt', 167),
+
+('Keen Mind', 'keen-mind', 'You have a mind that can track time, direction, and detail with uncanny precision. You gain the following benefits: Increase your Intelligence score by 1, to a maximum of 20. You always know which way is north. You always know the number of hours left before the next sunrise or sunset. You can accurately recall anything you have seen or heard within the past month.', NULL, '{"ability_increase": ["intelligence"], "know_north": true, "know_time": true, "perfect_recall": "1 month"}', 'handbook.txt', 167),
+
+('Lightly Armored', 'lightly-armored', 'You have trained to master the use of light armor, gaining the following benefits: Increase your Strength or Dexterity score by 1, to a maximum of 20. You gain proficiency with light armor.', NULL, '{"ability_increase": ["strength", "dexterity"], "light_armor_proficiency": true}', 'handbook.txt', 167),
+
+('Linguist', 'linguist', 'You have studied languages and codes, gaining the following benefits: Increase your Intelligence score by 1, to a maximum of 20. You learn three languages of your choice. You can ably create written ciphers. Others cannot decipher a code you create unless you teach them, they succeed on an Intelligence check (DC equal to your Intelligence score + your proficiency bonus), or they use magic to decipher it.', NULL, '{"ability_increase": ["intelligence"], "languages": 3, "cipher_creation": true}', 'handbook.txt', 167),
+
+('Mage Slayer', 'mage-slayer', 'You have practiced techniques useful in melee combat against spellcasters, gaining the following benefits: When a creature within 5 feet of you casts a spell, you can use your reaction to make a melee weapon attack against that creature. When you damage a creature that is concentrating on a spell, that creature has disadvantage on the saving throw it makes to maintain its concentration. You have advantage on saving throws against spells cast by creatures within 5 feet of you.', NULL, '{"reaction_attack_on_cast": true, "concentration_disadvantage": true, "close_spell_save_advantage": true}', 'handbook.txt', 168),
+
+('Magic Initiate', 'magic-initiate', 'Choose a class: bard, cleric, druid, sorcerer, warlock, or wizard. You learn two cantrips of your choice from that classs spell list. In addition, choose one 1st-level spell from that same list. You learn that spell and can cast it at its lowest level. Once you cast it, you must finish a long rest before you can cast it again using this feat. Your spellcasting ability for these spells depends on the class you chose.', NULL, '{"cantrips": 2, "first_level_spell": 1}', 'handbook.txt', 168),
+
+('Martial Adept', 'martial-adept', 'You have martial training that allows you to perform special combat maneuvers. You gain the following benefits: You learn two maneuvers of your choice from among those available to the Battle Master archetype in the fighter class. If a maneuver you use requires your target to make a saving throw to resist the maneuvers effects, the saving throw DC equals 8 + your proficiency bonus + your Strength or Dexterity modifier (your choice). You gain one superiority die, which is a d6 (this die is added to any superiority dice you have from another source). This die is used to fuel your maneuvers. A superiority die is expended when you use it. You regain your expended superiority dice when you finish a short or long rest.', NULL, '{"maneuvers": 2, "superiority_dice": 1}', 'handbook.txt', 168),
+
+('Medium Armor Master', 'medium-armor-master', 'You have practiced moving in medium armor to gain the following benefits: Wearing medium armor does not impose disadvantage on your Dexterity (Stealth) checks. When you wear medium armor, you can add 3, rather than 2, to your AC if you have a Dexterity of 16 or higher.', 'Proficiency with medium armor', '{"no_stealth_disadvantage": true, "max_dex_bonus": 3}', 'handbook.txt', 168),
+
+('Mobile', 'mobile', 'You are exceptionally speedy and agile. You gain the following benefits: Your speed increases by 10 feet. When you use the Dash action, difficult terrain does not cost you extra movement on that turn. When you make a melee attack against a creature, you do not provoke opportunity attacks from that creature for the rest of the turn, whether you hit or not.', NULL, '{"speed_bonus": 10, "dash_ignores_difficult_terrain": true, "no_opportunity_attack_after_melee": true}', 'handbook.txt', 168),
+
+('Moderately Armored', 'moderately-armored', 'You have trained to master the use of medium armor and shields, gaining the following benefits: Increase your Strength or Dexterity score by 1, to a maximum of 20. You gain proficiency with medium armor and shields.', 'Proficiency with light armor', '{"ability_increase": ["strength", "dexterity"], "medium_armor_proficiency": true, "shield_proficiency": true}', 'handbook.txt', 168),
+
+('Mounted Combatant', 'mounted-combatant', 'You are a dangerous foe to face while mounted. While you are mounted and are not incapacitated, you gain the following benefits: You have advantage on melee attack rolls against any unmounted creature that is smaller than your mount. You can force an attack targeted at your mount to target you instead. If your mount is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throw, and only half damage if it fails.', NULL, '{"advantage_vs_smaller": true, "redirect_attacks": true, "mount_evasion": true}', 'handbook.txt', 168),
+
+('Observant', 'observant', 'Quick to notice details of your environment, you gain the following benefits: Increase your Intelligence or Wisdom score by 1, to a maximum of 20. If you can see a creatures mouth while it is speaking a language you understand, you can interpret what it is saying by reading its lips. You have a +5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation) scores.', NULL, '{"ability_increase": ["intelligence", "wisdom"], "lip_reading": true, "passive_bonus": 5}', 'handbook.txt', 168),
+
+('Polearm Master', 'polearm-master', 'You can keep your enemies at bay with reach weapons. You gain the following benefits: When you take the Attack action and attack with only a glaive, halberd, quarterstaff, or spear, you can use a bonus action to make a melee attack with the opposite end of the weapon. This attacks damage die is a d4, and the attack deals bludgeoning damage. While you are wielding a glaive, halberd, pike, quarterstaff, or spear, other creatures provoke an opportunity attack from you when they enter your reach.', NULL, '{"bonus_attack": true, "opportunity_attack_on_enter": true}', 'handbook.txt', 168),
+
+('Resilient', 'resilient', 'Choose one ability score. You gain the following benefits: Increase the chosen ability score by 1, to a maximum of 20. You gain proficiency in saving throws using the chosen ability.', NULL, '{"ability_increase": 1, "save_proficiency": true}', 'handbook.txt', 169),
+
+('Ritual Caster', 'ritual-caster', 'You have learned a number of spells that you can cast as rituals. These spells are written in a ritual book, which you must have in hand while casting one of them. When you choose this feat, you acquire a ritual book holding two 1st-level spells of your choice. Choose one of the following classes: bard, cleric, druid, sorcerer, warlock, or wizard. You must choose your spells from that classs spell list, and the spells you choose must have the ritual tag.', 'Intelligence or Wisdom 13 or higher', '{"ritual_spells": 2, "ritual_book": true}', 'handbook.txt', 169),
+
+('Savage Attacker', 'savage-attacker', 'Once per turn when you roll damage for a melee weapon attack, you can reroll the weapons damage dice and use either total.', NULL, '{"reroll_melee_damage": true}', 'handbook.txt', 169),
+
+('Shield Master', 'shield-master', 'You use shields not just for protection but also for offense. You gain the following benefits while you are wielding a shield: If you take the Attack action on your turn, you can use a bonus action to try to shove a creature within 5 feet of you with your shield. If you are not incapacitated, you can add your shields AC bonus to any Dexterity saving throw you make against a spell or other harmful effect that targets only you. If you are subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you can use your reaction to take no damage if you succeed on the saving throw, interposing your shield between yourself and the source of the effect.', NULL, '{"bonus_shove": true, "shield_dex_save_bonus": true, "shield_evasion": true}', 'handbook.txt', 170),
+
+('Skilled', 'skilled', 'You gain proficiency in any combination of three skills or tools of your choice.', NULL, '{"proficiencies": 3}', 'handbook.txt', 170),
+
+('Skulker', 'skulker', 'You are expert at slinking through shadows. You gain the following benefits: You can try to hide when you are lightly obscured from the creature from which you are hiding. When you are hidden from a creature and miss it with a ranged weapon attack, making the attack does not reveal your position. Dim light does not impose disadvantage on your Wisdom (Perception) checks relying on sight.', 'Dexterity 13 or higher', '{"hide_lightly_obscured": true, "missed_attack_no_reveal": true, "dim_light_perception": true}', 'handbook.txt', 170),
+
+('Spell Sniper', 'spell-sniper', 'You have learned techniques to enhance your attacks with certain kinds of spells, gaining the following benefits: When you cast a spell that requires you to make an attack roll, the spells range is doubled. Your ranged spell attacks ignore half cover and three-quarters cover. You learn one cantrip that requires an attack roll. Choose the cantrip from the bard, cleric, druid, sorcerer, warlock, or wizard spell list. Your spellcasting ability for this cantrip depends on the spell list you chose from.', 'The ability to cast at least one spell', '{"double_spell_range": true, "ignore_cover": true, "cantrip": 1}', 'handbook.txt', 170),
+
+('Tavern Brawler', 'tavern-brawler', 'Accustomed to rough-and-tumble fighting using whatever weapons happen to be at hand, you gain the following benefits: Increase your Strength or Constitution score by 1, to a maximum of 20. You are proficient with improvised weapons. Your unarmed strike uses a d4 for damage. When you hit a creature with an unarmed strike or an improvised weapon on your turn, you can use a bonus action to attempt to grapple the target.', NULL, '{"ability_increase": ["strength", "constitution"], "improvised_weapon_proficiency": true, "unarmed_damage": "d4", "bonus_grapple": true}', 'handbook.txt', 170),
+
+('Tough', 'tough', 'Your hit point maximum increases by an amount equal to twice your level when you gain this feat. Whenever you gain a level thereafter, your hit point maximum increases by an additional 2 hit points.', NULL, '{"hp_bonus_per_level": 2}', 'handbook.txt', 170),
+
+('Weapon Master', 'weapon-master', 'You have practiced extensively with a variety of weapons, gaining the following benefits: Increase your Strength or Dexterity score by 1, to a maximum of 20. You gain proficiency with four weapons of your choice. Each one must be a simple or a martial weapon.', NULL, '{"ability_increase": ["strength", "dexterity"], "weapon_proficiencies": 4}', 'handbook.txt', 170);
 
 -- ---------------------------------------------------------------------------
 -- 8.8 Backgrounds
@@ -1160,7 +1285,21 @@ INSERT INTO backgrounds (name, slug, description, skill_proficiencies, tool_prof
 
 ('Sage', 'sage', 'You spent years learning the lore of the multiverse. You scoured manuscripts, studied scrolls, and listened to the greatest experts on the subjects that interest you.', ARRAY['Arcana', 'History'], NULL, 2, 'A bottle of black ink, a quill, a small knife, a letter from a dead colleague posing a question you have not yet been able to answer, a set of common clothes, and a pouch containing 10 gp', 'Researcher', 'When you attempt to learn or recall a piece of lore, if you do not know that information, you often know where and from whom you can obtain it. Usually, this information comes from a library, scriptorium, university, or a sage or other learned person or creature.', 'rules.txt', 39),
 
-('Soldier', 'soldier', 'War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, learned basic survival techniques, including how to stay alive on the battlefield.', ARRAY['Athletics', 'Intimidation'], ARRAY['One type of gaming set', 'Vehicles (land)'], 0, 'An insignia of rank, a trophy taken from a fallen enemy, a set of bone dice or deck of cards, a set of common clothes, and a pouch containing 10 gp', 'Military Rank', 'You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank.', 'rules.txt', 40);
+('Soldier', 'soldier', 'War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, learned basic survival techniques, including how to stay alive on the battlefield.', ARRAY['Athletics', 'Intimidation'], ARRAY['One type of gaming set', 'Vehicles (land)'], 0, 'An insignia of rank, a trophy taken from a fallen enemy, a set of bone dice or deck of cards, a set of common clothes, and a pouch containing 10 gp', 'Military Rank', 'You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank.', 'rules.txt', 40),
+
+('Charlatan', 'charlatan', 'You have always had a way with people. You know what makes them tick, you can tease out their hearts desires after a few minutes of conversation, and with a few leading questions you can read them like they were childrens books.', ARRAY['Deception', 'Sleight of Hand'], ARRAY['Disguise kit', 'Forgery kit'], 0, 'A set of fine clothes, a disguise kit, tools of the con of your choice (ten stoppered bottles filled with colored liquid, a set of weighted dice, a deck of marked cards, or a signet ring of an imaginary duke), and a pouch containing 15 gp', 'False Identity', 'You have created a second identity that includes documentation, established acquaintances, and disguises that allow you to assume that persona. Additionally, you can forge documents including official papers and personal letters, as long as you have seen an example of the kind of document or the handwriting you are trying to copy.', 'handbook.txt', 128),
+
+('Entertainer', 'entertainer', 'You thrive in front of an audience. You know how to entrance them, entertain them, and even inspire them. Your poetics can stir the hearts of those who hear you, awakening grief or joy, laughter or anger.', ARRAY['Acrobatics', 'Performance'], ARRAY['Disguise kit', 'One type of musical instrument'], 0, 'A musical instrument (one of your choice), the favor of an admirer (love letter, lock of hair, or trinket), a costume, and a pouch containing 15 gp', 'By Popular Demand', 'You can always find a place to perform, usually in an inn or tavern but possibly with a circus, at a theater, or even in a noble court. At such a place, you receive free lodging and food of a modest or comfortable standard, as long as you perform each night.', 'handbook.txt', 130),
+
+('Guild Artisan', 'guild-artisan', 'You are a member of an artisans guild, skilled in a particular field and closely associated with other artisans. You are a well-established part of the mercantile world, freed by talent and wealth from the constraints of a feudal social order.', ARRAY['Insight', 'Persuasion'], ARRAY['One type of artisans tools'], 1, 'A set of artisans tools (one of your choice), a letter of introduction from your guild, a set of travelers clothes, and a pouch containing 15 gp', 'Guild Membership', 'As an established and respected member of a guild, you can rely on certain benefits that membership provides. Your fellow guild members will provide you with lodging and food if necessary, and pay for your funeral if needed. In some cities and towns, a guildhall offers a central place to meet other members of your profession.', 'handbook.txt', 132),
+
+('Hermit', 'hermit', 'You lived in seclusion—either in a sheltered community such as a monastery, or entirely alone—for a formative part of your life. In your time apart from the clamor of society, you found quiet, solitude, and perhaps some of the answers you were looking for.', ARRAY['Medicine', 'Religion'], ARRAY['Herbalism kit'], 1, 'A scroll case stuffed full of notes from your studies or prayers, a winter blanket, a set of common clothes, an herbalism kit, and 5 gp', 'Discovery', 'The quiet seclusion of your extended hermitage gave you access to a unique and powerful discovery. The exact nature of this revelation depends on the nature of your seclusion. It might be a great truth about the cosmos, the deities, the powerful beings of the outer planes, or the forces of nature.', 'handbook.txt', 134),
+
+('Outlander', 'outlander', 'You grew up in the wilds, far from civilization and the comforts of town and technology. You have witnessed the migration of herds larger than forests, survived weather more extreme than any city-dweller could comprehend, and enjoyed the solitude of being the only thinking creature for miles in any direction.', ARRAY['Athletics', 'Survival'], ARRAY['One type of musical instrument'], 1, 'A staff, a hunting trap, a trophy from an animal you killed, a set of travelers clothes, and a pouch containing 10 gp', 'Wanderer', 'You have an excellent memory for maps and geography, and you can always recall the general layout of terrain, settlements, and other features around you. In addition, you can find food and fresh water for yourself and up to five other people each day, provided that the land offers berries, small game, water, and so forth.', 'handbook.txt', 136),
+
+('Sailor', 'sailor', 'You sailed on a seagoing vessel for years. In that time, you faced down mighty storms, monsters of the deep, and those who wanted to sink your craft to the bottomless depths. Your first love is the distant line of the horizon, but the time has come to try your hand at something new.', ARRAY['Athletics', 'Perception'], ARRAY['Navigators tools', 'Vehicles (water)'], 0, 'A belaying pin (club), 50 feet of silk rope, a lucky charm such as a rabbit foot or a small stone with a hole in the center, a set of common clothes, and a pouch containing 10 gp', 'Ships Passage', 'When you need to, you can secure free passage on a sailing ship for yourself and your adventuring companions. You might sail on the ship you served on, or another ship you have good relations with. Because youre calling in a favor, you cant be certain of a schedule or route that will meet your every need.', 'handbook.txt', 139),
+
+('Urchin', 'urchin', 'You grew up on the streets alone, orphaned, and poor. You had no one to watch over you or to provide for you, so you learned to provide for yourself. You fought fiercely over food and kept a constant watch out for other desperate souls who might steal from you.', ARRAY['Sleight of Hand', 'Stealth'], ARRAY['Disguise kit', 'Thieves tools'], 0, 'A small knife, a map of the city you grew up in, a pet mouse, a token to remember your parents by, a set of common clothes, and a pouch containing 10 gp', 'City Secrets', 'You know the secret patterns and flow to cities and can find passages through the urban sprawl that others would miss. When you are not in combat, you (and companions you lead) can travel between any two locations in the city twice as fast as your speed would normally allow.', 'handbook.txt', 141);
 
 -- =============================================================================
 -- SECTION 9: Additional Rules from Basic Rules
@@ -1884,6 +2023,143 @@ While you are prone, you can crawl (move at half speed). Dropping prone costs no
 ARRAY['climbing', 'swimming', 'crawling', 'prone', 'movement', 'athletics'],
 'rules.txt', 'Chapter 8', 67
 FROM rule_categories WHERE slug = 'movement';
+
+-- ---------------------------------------------------------------------------
+-- 9.10 Chapter 5: Equipment Rules from Handbook
+-- ---------------------------------------------------------------------------
+
+-- Weapon Properties
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Weapon Properties', 'weapon-properties',
+'Many weapons have special properties related to their use, as shown in the Weapons table.
+
+Ammunition: You can use a weapon that has the ammunition property to make a ranged attack only if you have ammunition to fire from the weapon. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack. At the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield.
+
+Finesse: When making an attack with a finesse weapon, you use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must use the same modifier for both rolls.
+
+Heavy: Creatures that are Small or Tiny have disadvantage on attack rolls with heavy weapons. A heavy weapons size and bulk make it too large for a Small or Tiny creature to use effectively.
+
+Light: A light weapon is small and easy to handle, making it ideal for use when fighting with two weapons.
+
+Loading: Because of the time required to load this weapon, you can fire only one piece of ammunition from it when you use an action, bonus action, or reaction to fire it, regardless of the number of attacks you can normally make.
+
+Range: A weapon that can be used to make a ranged attack has a range in parentheses after the ammunition or thrown property. The range lists two numbers. The first is the weapons normal range in feet, and the second indicates the weapons long range. When attacking a target beyond normal range, you have disadvantage on the attack roll. You cannot attack a target beyond the weapons long range.
+
+Reach: This weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity attacks with it.
+
+Special: A weapon with the special property has unusual rules governing its use, explained in the weapons description (see Lance and Net in the handbook).
+
+Thrown: If a weapon has the thrown property, you can throw the weapon to make a ranged attack. If the weapon is a melee weapon, you use the same ability modifier for that attack roll and damage roll that you would use for a melee attack with the weapon.
+
+Two-Handed: This weapon requires two hands when you attack with it.
+
+Versatile: This weapon can be used with one or two hands. A damage value in parentheses appears with the property—the damage when the weapon is used with two hands to make a melee attack.',
+'Ammunition, Finesse, Heavy, Light, Loading, Range, Reach, Special, Thrown, Two-Handed, Versatile',
+ARRAY['weapon', 'properties', 'finesse', 'heavy', 'light', 'ammunition', 'versatile', 'thrown', 'reach'],
+'handbook.txt', 'Chapter 5', 146
+FROM rule_categories WHERE slug = 'equipment';
+
+-- Donning and Doffing Armor
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Donning and Doffing Armor', 'donning-doffing-armor',
+'The time it takes to don or doff armor depends on the armors category.
+
+Don: This is the time it takes to put on armor. You benefit from the armors AC only if you take the full time to don the suit of armor.
+
+Doff: This is the time it takes to take off armor. If you have help, reduce this time by half.
+
+Light Armor: Don 1 minute, Doff 1 minute
+Medium Armor: Don 5 minutes, Doff 1 minute
+Heavy Armor: Don 10 minutes, Doff 5 minutes
+Shield: Don 1 action, Doff 1 action',
+'Light armor 1 min; Medium 5 min; Heavy 10 min; Shield 1 action',
+ARRAY['armor', 'don', 'doff', 'equip', 'time'],
+'handbook.txt', 'Chapter 5', 146
+FROM rule_categories WHERE slug = 'equipment';
+
+-- ---------------------------------------------------------------------------
+-- 9.11 Chapter 8: Downtime Activities from Handbook
+-- ---------------------------------------------------------------------------
+
+-- Downtime Activities
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Downtime Activities', 'downtime-activities',
+'Between adventures, the DM might ask you what your character is doing during his or her downtime. Periods of downtime can vary in duration, but each downtime activity requires a certain number of days to complete before you gain any benefit. The activities described below are available by default. Your DM might offer additional activities depending on the campaign setting.
+
+Crafting: You can craft nonmagical objects, including adventuring equipment and works of art. You must be proficient with tools related to the object you are trying to create. You might also need access to special materials or locations necessary to create it. For every day of downtime you spend crafting, you can craft one or more items with a total market value not exceeding 5 gp, and you must expend raw materials worth half the total market value.
+
+Practicing a Profession: You can work between adventures, allowing you to maintain a modest lifestyle without having to pay 1 gp per day. If you are a member of an organization that can provide gainful employment, such as a temple or a thieves guild, you earn enough to support a comfortable lifestyle instead.
+
+Recuperating: You can use downtime between adventures to recover from a debilitating injury, disease, or poison. After three days of downtime spent recuperating, you can make a DC 15 Constitution saving throw. On a successful save, you can choose one of the following results: End one effect on you that prevents you from regaining hit points. For the next 24 hours, gain advantage on saving throws against one disease or poison currently affecting you.
+
+Researching: The time between adventures is a great chance to perform research, gaining insight into mysteries that have unfurled over the course of the campaign. For each day of research, you must spend 1 gp to cover your expenses.
+
+Training: You can spend time between adventures learning a new language or training with a set of tools. Your DM might allow additional training options. First, you must find an instructor willing to teach you. The DM determines how long it takes, and whether one or more ability checks are required. The training lasts for 250 days and costs 1 gp per day.',
+'Crafting (5gp/day), Practicing a Profession, Recuperating, Researching (1gp/day), Training (250 days, 1gp/day)',
+ARRAY['downtime', 'crafting', 'training', 'profession', 'research', 'recuperating'],
+'handbook.txt', 'Chapter 8', 187
+FROM rule_categories WHERE slug = 'adventuring';
+
+-- Lifestyle Expenses
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Lifestyle Expenses', 'lifestyle-expenses',
+'Lifestyle expenses provide you with a simple way to account for the cost of living in a fantasy world. They cover your accommodations, food and drink, and all your other necessities.
+
+Wretched (Free): You live in inhumane conditions. With no place to call home, you shelter wherever you can, sneaking into barns, huddling in old crates, and relying on the good graces of people better off than you.
+
+Squalid (1 sp/day): You live in a leaky stable, a mud-floored hut just outside town, or a vermin-infested boarding house in the worst part of town. You have shelter from the elements, but you live in a desperate and often violent environment.
+
+Poor (2 sp/day): A poor lifestyle means going without the comforts available to most. Simple food, threadbare clothing, and unpredictable conditions. You might be housed in a flophouse or in a room above a tavern.
+
+Modest (1 gp/day): A modest lifestyle keeps you out of the slums and ensures that you can maintain your equipment. You live in an older part of town, renting a room in a boarding house, inn, or temple.
+
+Comfortable (2 gp/day): Choosing a comfortable lifestyle means that you can afford nicer clothing and can easily maintain your equipment. You live in a small cottage in a middle-class neighborhood or in a private room at a fine inn.
+
+Wealthy (4 gp/day): Choosing a wealthy lifestyle means living a life of luxury, though you might not have achieved the social status associated with the old money of nobility or royalty. You live a lifestyle comparable to that of a highly successful merchant, a favored servant of the royalty, or the owner of a few small businesses.
+
+Aristocratic (10+ gp/day): You live a life of plenty and comfort. You move in circles populated by the most powerful people in the community. You have excellent lodgings, perhaps a townhouse in the nicest part of town or rooms in the finest inn.',
+'Wretched free, Squalid 1sp, Poor 2sp, Modest 1gp, Comfortable 2gp, Wealthy 4gp, Aristocratic 10+gp per day',
+ARRAY['lifestyle', 'expenses', 'cost', 'living', 'accommodation'],
+'handbook.txt', 'Chapter 5', 157
+FROM rule_categories WHERE slug = 'adventuring';
+
+-- Group Checks
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Group Checks', 'group-checks',
+'When a number of individuals are trying to accomplish something as a group, the DM might ask for a group ability check. In such a situation, the characters who are skilled at a particular task help cover those who are not.
+
+To make a group ability check, everyone in the group makes the ability check. If at least half the group succeeds, the whole group succeeds. Otherwise, the group fails.
+
+Group checks do not come up very often, and they are most useful when all the characters succeed or fail as a group. For example, when adventurers are navigating a swamp, the DM might call for a group Wisdom (Survival) check to see if the characters can avoid the quicksand, sinkholes, and other natural hazards of the environment. If at least half the group succeeds, the successful characters are able to guide their companions out of danger. Otherwise, the group stumbles into one of these hazards.',
+'Everyone rolls; if half succeed, group succeeds; otherwise group fails',
+ARRAY['group check', 'ability check', 'group', 'party'],
+'handbook.txt', 'Chapter 7', 175
+FROM rule_categories WHERE slug = 'ability-checks';
+
+-- Schools of Magic
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Schools of Magic', 'schools-of-magic',
+'Academies of magic group spells into eight categories called schools of magic. Scholars, particularly wizards, apply these categories to all spells, believing that all magic functions in essentially the same way, whether it derives from rigorous study or is bestowed by a deity.
+
+Abjuration: Spells that are protective in nature, though some of them have aggressive uses. They create magical barriers, negate harmful effects, harm trespassers, or banish creatures to other planes of existence.
+
+Conjuration: Spells that involve the transportation of objects and creatures from one location to another. Some spells summon creatures or objects to the casters side, whereas others allow the caster to teleport to another location.
+
+Divination: Spells that reveal information, whether in the form of secrets long forgotten, glimpses of the future, the locations of hidden things, the truth behind illusions, or visions of distant people or places.
+
+Enchantment: Spells that affect the minds of others, influencing or controlling their behavior. Such spells can make enemies see the caster as a friend, force creatures to take a course of action, or even control another creature like a puppet.
+
+Evocation: Spells that manipulate magical energy to produce a desired effect. Some call up blasts of fire or lightning. Others channel positive energy to heal wounds.
+
+Illusion: Spells that deceive the senses or minds of others. They cause people to see things that are not there, to miss things that are there, to hear phantom noises, or to remember things that never happened.
+
+Necromancy: Spells that manipulate the energies of life and death. Such spells can grant an extra reserve of life force, drain the life energy from another creature, create the undead, or even bring the dead back to life.
+
+Transmutation: Spells that change the properties of a creature, object, or environment. They might turn an enemy into a harmless creature, bolster the strength of an ally, make an object move at the casters command, or enhance a creatures innate healing abilities.',
+'Eight schools: Abjuration (protection), Conjuration (transport), Divination (knowledge), Enchantment (mind), Evocation (energy), Illusion (deception), Necromancy (life/death), Transmutation (change)',
+ARRAY['school of magic', 'abjuration', 'conjuration', 'divination', 'enchantment', 'evocation', 'illusion', 'necromancy', 'transmutation'],
+'handbook.txt', 'Chapter 10', 203
+FROM rule_categories WHERE slug = 'spellcasting';
 
 -- =============================================================================
 -- END OF CONTENT SEED DATA
