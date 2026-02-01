@@ -6,11 +6,18 @@
 'use client';
 
 import Link from 'next/link';
-import { BreadcrumbItem } from '@/types/api.types';
 import { ChevronRightIcon } from './Icons';
 
+// Flexible breadcrumb item that accepts either path or href
+interface FlexibleBreadcrumbItem {
+  label: string;
+  path?: string;
+  href?: string;
+  isActive?: boolean;
+}
+
 interface BreadcrumbProps {
-  items: BreadcrumbItem[];
+  items: FlexibleBreadcrumbItem[];
 }
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
@@ -19,25 +26,31 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
       <ol className="flex items-center space-x-1 text-sm">
-        {items.map((item, index) => (
-          <li key={item.path} className="flex items-center">
-            {index > 0 && (
-              <ChevronRightIcon className="w-4 h-4 text-gray-400 mx-1" />
-            )}
-            {item.isActive ? (
-              <span className="text-gray-900 font-medium" aria-current="page">
-                {item.label}
-              </span>
-            ) : (
-              <Link
-                href={item.path}
-                className="text-gray-500 hover:text-gray-700 hover:underline"
-              >
-                {item.label}
-              </Link>
-            )}
-          </li>
-        ))}
+        {items.map((item, index) => {
+          const itemPath = item.path || item.href;
+          const isLast = index === items.length - 1;
+          const isActive = item.isActive ?? isLast ?? !itemPath;
+
+          return (
+            <li key={itemPath || item.label} className="flex items-center">
+              {index > 0 && (
+                <ChevronRightIcon className="w-4 h-4 text-gray-400 mx-1" />
+              )}
+              {isActive || !itemPath ? (
+                <span className="text-gray-900 font-medium" aria-current="page">
+                  {item.label}
+                </span>
+              ) : (
+                <Link
+                  href={itemPath}
+                  className="text-gray-500 hover:text-gray-700 hover:underline"
+                >
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );

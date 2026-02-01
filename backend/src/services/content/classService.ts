@@ -36,9 +36,10 @@ export async function getClasses(filter: ListFilter = {}): Promise<ListResponse<
   `);
 
   const result = await query<ClassRow>(`
-    SELECT id, name, slug, description, hit_die, primary_ability, saving_throws,
+    SELECT id, name, slug, description, hit_die, primary_ability,
+           saving_throw_proficiencies as saving_throws,
            armor_proficiencies, weapon_proficiencies, tool_proficiencies,
-           skill_choices, features, source_document, source_page, created_at, updated_at
+           skill_choices, skill_count, source_document, source_page, created_at, updated_at
     FROM classes
     ORDER BY ${sortColumn} ${order}
     LIMIT $1 OFFSET $2
@@ -57,9 +58,10 @@ export async function getClasses(filter: ListFilter = {}): Promise<ListResponse<
  */
 export async function getClassBySlug(slug: string): Promise<Class | null> {
   const result = await query<ClassRow>(`
-    SELECT id, name, slug, description, hit_die, primary_ability, saving_throws,
+    SELECT id, name, slug, description, hit_die, primary_ability,
+           saving_throw_proficiencies as saving_throws,
            armor_proficiencies, weapon_proficiencies, tool_proficiencies,
-           skill_choices, features, source_document, source_page, created_at, updated_at
+           skill_choices, skill_count, source_document, source_page, created_at, updated_at
     FROM classes
     WHERE slug = $1
   `, [slug]);
@@ -68,11 +70,28 @@ export async function getClassBySlug(slug: string): Promise<Class | null> {
     return null;
   }
 
-  const classEntity = toClass(result.rows[0]);
+  // Get class features
+  const featuresResult = await query<{
+    level: number;
+    name: string;
+    description: string;
+  }>(`
+    SELECT level, name, description
+    FROM class_features
+    WHERE class_id = $1 AND subclass_id IS NULL
+    ORDER BY level, name
+  `, [result.rows[0].id]);
+
+  const classRow = {
+    ...result.rows[0],
+    features: featuresResult.rows,
+  };
+
+  const classEntity = toClass(classRow);
 
   // Get subclasses
   const subclassResult = await query<SubclassRow>(`
-    SELECT id, name, slug, class_id, description, features,
+    SELECT id, name, slug, class_id, description,
            source_document, source_page, created_at, updated_at
     FROM subclasses
     WHERE class_id = $1
@@ -89,9 +108,10 @@ export async function getClassBySlug(slug: string): Promise<Class | null> {
  */
 export async function getClassById(id: string): Promise<Class | null> {
   const result = await query<ClassRow>(`
-    SELECT id, name, slug, description, hit_die, primary_ability, saving_throws,
+    SELECT id, name, slug, description, hit_die, primary_ability,
+           saving_throw_proficiencies as saving_throws,
            armor_proficiencies, weapon_proficiencies, tool_proficiencies,
-           skill_choices, features, source_document, source_page, created_at, updated_at
+           skill_choices, skill_count, source_document, source_page, created_at, updated_at
     FROM classes
     WHERE id = $1
   `, [id]);
@@ -100,7 +120,24 @@ export async function getClassById(id: string): Promise<Class | null> {
     return null;
   }
 
-  return toClass(result.rows[0]);
+  // Get class features
+  const featuresResult = await query<{
+    level: number;
+    name: string;
+    description: string;
+  }>(`
+    SELECT level, name, description
+    FROM class_features
+    WHERE class_id = $1 AND subclass_id IS NULL
+    ORDER BY level, name
+  `, [id]);
+
+  const classRow = {
+    ...result.rows[0],
+    features: featuresResult.rows,
+  };
+
+  return toClass(classRow);
 }
 
 /**
@@ -111,7 +148,7 @@ export async function getSubclassBySlug(
   subclassSlug: string
 ): Promise<Subclass | null> {
   const result = await query<SubclassRow>(`
-    SELECT s.id, s.name, s.slug, s.class_id, s.description, s.features,
+    SELECT s.id, s.name, s.slug, s.class_id, s.description,
            s.source_document, s.source_page, s.created_at, s.updated_at
     FROM subclasses s
     JOIN classes c ON s.class_id = c.id
@@ -122,7 +159,24 @@ export async function getSubclassBySlug(
     return null;
   }
 
-  return toSubclass(result.rows[0]);
+  // Get subclass features
+  const featuresResult = await query<{
+    level: number;
+    name: string;
+    description: string;
+  }>(`
+    SELECT level, name, description
+    FROM class_features
+    WHERE subclass_id = $1
+    ORDER BY level, name
+  `, [result.rows[0].id]);
+
+  const subclassRow = {
+    ...result.rows[0],
+    features: featuresResult.rows,
+  };
+
+  return toSubclass(subclassRow);
 }
 
 /**

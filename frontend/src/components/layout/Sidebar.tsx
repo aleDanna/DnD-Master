@@ -72,10 +72,20 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             placeholder="Search..."
           />
         </div>
+        {/* Browse Rules Header */}
+        <div className="px-4 py-2 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Browse Rules</h2>
+        </div>
         <nav className="flex-1 px-4 py-4">
-          <div className="text-sm text-red-600">
-            Failed to load navigation. Please try refreshing.
+          <div className="text-sm text-red-600 mb-2">
+            Failed to list entries
           </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Retry
+          </button>
         </nav>
       </div>
     );
@@ -96,6 +106,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
           limit={3}
           className="mt-2"
         />
+      </div>
+
+      {/* Browse Rules Header */}
+      <div className="px-4 py-2 border-b border-gray-200 flex-shrink-0">
+        <h2 className="text-sm font-semibold text-gray-900">Browse Rules</h2>
       </div>
 
       {/* Navigation */}

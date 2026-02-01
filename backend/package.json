@@ -10,7 +10,11 @@
     "lint": "eslint src/",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "db:init": "tsx scripts/db-setup.ts init",
+    "db:seed": "tsx scripts/db-setup.ts seed",
+    "db:setup": "tsx scripts/db-setup.ts setup",
+    "db:reset": "tsx scripts/db-setup.ts reset"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

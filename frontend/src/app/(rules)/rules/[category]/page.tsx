@@ -5,7 +5,6 @@
 
 'use client';
 
-import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { fetchRuleCategory, fetchRuleCategoryPath } from '@/lib/api/contentApi';
@@ -14,12 +13,11 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import RuleCard from '@/components/content/RuleCard';
 
 interface RuleCategoryPageProps {
-  params: Promise<{ category: string }>;
+  params: { category: string };
 }
 
 export default function RuleCategoryPage({ params }: RuleCategoryPageProps) {
-  const resolvedParams = use(params);
-  const { category } = resolvedParams;
+  const { category } = params;
 
   const { data: categoryData, isLoading, isError } = useQuery({
     queryKey: ['ruleCategory', category],
