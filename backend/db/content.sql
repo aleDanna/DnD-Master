@@ -41,77 +41,25 @@ INSERT INTO abilities (name, abbreviation, description, slug) VALUES
 -- 6.2 Skills
 -- ---------------------------------------------------------------------------
 
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Acrobatics', id, 'Your Dexterity (Acrobatics) check covers your attempt to stay on your feet in a tricky situation, such as when you''re trying to run across a sheet of ice, balance on a tightrope, or stay upright on a rocking ship''s deck.', 'acrobatics'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Animal Handling', id, 'When there is any question whether you can calm down a domesticated animal, keep a mount from getting spooked, or intuit an animal''s intentions, the DM might call for a Wisdom (Animal Handling) check.', 'animal-handling'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Arcana', id, 'Your Intelligence (Arcana) check measures your ability to recall lore about spells, magic items, eldritch symbols, magical traditions, the planes of existence, and the inhabitants of those planes.', 'arcana'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Athletics', id, 'Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming.', 'athletics'
-FROM abilities WHERE abbreviation = 'STR';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Deception', id, 'Your Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions.', 'deception'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'History', id, 'Your Intelligence (History) check measures your ability to recall lore about historical events, legendary people, ancient kingdoms, past disputes, recent wars, and lost civilizations.', 'history'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Insight', id, 'Your Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone''s next move.', 'insight'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Intimidation', id, 'When you attempt to influence someone through overt threats, hostile actions, and physical violence, the DM might ask you to make a Charisma (Intimidation) check.', 'intimidation'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Investigation', id, 'When you look around for clues and make deductions based on those clues, you make an Intelligence (Investigation) check.', 'investigation'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Medicine', id, 'A Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness.', 'medicine'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Nature', id, 'Your Intelligence (Nature) check measures your ability to recall lore about terrain, plants and animals, the weather, and natural cycles.', 'nature'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Perception', id, 'Your Wisdom (Perception) check lets you spot, hear, or otherwise detect the presence of something. It measures your general awareness of your surroundings and the keenness of your senses.', 'perception'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Performance', id, 'Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment.', 'performance'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Persuasion', id, 'When you attempt to influence someone or a group of people with tact, social graces, or good nature, the DM might ask you to make a Charisma (Persuasion) check.', 'persuasion'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Religion', id, 'Your Intelligence (Religion) check measures your ability to recall lore about deities, rites and prayers, religious hierarchies, holy symbols, and the practices of secret cults.', 'religion'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Sleight of Hand', id, 'Whenever you attempt an act of legerdemain or manual trickery, such as planting something on someone else or concealing an object on your person, make a Dexterity (Sleight of Hand) check.', 'sleight-of-hand'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Stealth', id, 'Make a Dexterity (Stealth) check when you attempt to conceal yourself from enemies, slink past guards, slip away without being noticed, or sneak up on someone without being seen or heard.', 'stealth'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Survival', id, 'The DM might ask you to make a Wisdom (Survival) check to follow tracks, hunt wild game, guide your group through frozen wastelands, identify signs that owlbears live nearby, predict the weather, or avoid quicksand.', 'survival'
-FROM abilities WHERE abbreviation = 'WIS';
+INSERT INTO skills (name, slug, ability, description, source_document, source_page) VALUES
+('Acrobatics', 'acrobatics', 'Dexterity', 'Your Dexterity (Acrobatics) check covers your attempt to stay on your feet in a tricky situation, such as when you''re trying to run across a sheet of ice, balance on a tightrope, or stay upright on a rocking ship''s deck.', 'rules.txt', 60),
+('Animal Handling', 'animal-handling', 'Wisdom', 'When there is any question whether you can calm down a domesticated animal, keep a mount from getting spooked, or intuit an animal''s intentions, the DM might call for a Wisdom (Animal Handling) check.', 'rules.txt', 60),
+('Arcana', 'arcana', 'Intelligence', 'Your Intelligence (Arcana) check measures your ability to recall lore about spells, magic items, eldritch symbols, magical traditions, the planes of existence, and the inhabitants of those planes.', 'rules.txt', 60),
+('Athletics', 'athletics', 'Strength', 'Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming.', 'rules.txt', 60),
+('Deception', 'deception', 'Charisma', 'Your Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions.', 'rules.txt', 60),
+('History', 'history', 'Intelligence', 'Your Intelligence (History) check measures your ability to recall lore about historical events, legendary people, ancient kingdoms, past disputes, recent wars, and lost civilizations.', 'rules.txt', 60),
+('Insight', 'insight', 'Wisdom', 'Your Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone''s next move.', 'rules.txt', 60),
+('Intimidation', 'intimidation', 'Charisma', 'When you attempt to influence someone through overt threats, hostile actions, and physical violence, the DM might ask you to make a Charisma (Intimidation) check.', 'rules.txt', 60),
+('Investigation', 'investigation', 'Intelligence', 'When you look around for clues and make deductions based on those clues, you make an Intelligence (Investigation) check.', 'rules.txt', 60),
+('Medicine', 'medicine', 'Wisdom', 'A Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness.', 'rules.txt', 60),
+('Nature', 'nature', 'Intelligence', 'Your Intelligence (Nature) check measures your ability to recall lore about terrain, plants and animals, the weather, and natural cycles.', 'rules.txt', 60),
+('Perception', 'perception', 'Wisdom', 'Your Wisdom (Perception) check lets you spot, hear, or otherwise detect the presence of something. It measures your general awareness of your surroundings and the keenness of your senses.', 'rules.txt', 60),
+('Performance', 'performance', 'Charisma', 'Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment.', 'rules.txt', 60),
+('Persuasion', 'persuasion', 'Charisma', 'When you attempt to influence someone or a group of people with tact, social graces, or good nature, the DM might ask you to make a Charisma (Persuasion) check.', 'rules.txt', 60),
+('Religion', 'religion', 'Intelligence', 'Your Intelligence (Religion) check measures your ability to recall lore about deities, rites and prayers, religious hierarchies, holy symbols, and the practices of secret cults.', 'rules.txt', 60),
+('Sleight of Hand', 'sleight-of-hand', 'Dexterity', 'Whenever you attempt an act of legerdemain or manual trickery, such as planting something on someone else or concealing an object on your person, make a Dexterity (Sleight of Hand) check.', 'rules.txt', 60),
+('Stealth', 'stealth', 'Dexterity', 'Make a Dexterity (Stealth) check when you attempt to conceal yourself from enemies, slink past guards, slip away without being noticed, or sneak up on someone without being seen or heard.', 'rules.txt', 60),
+('Survival', 'survival', 'Wisdom', 'The DM might ask you to make a Wisdom (Survival) check to follow tracks, hunt wild game, guide your group through frozen wastelands, identify signs that owlbears live nearby, predict the weather, or avoid quicksand.', 'rules.txt', 60);
 
 -- ---------------------------------------------------------------------------
 -- 6.3 Conditions
@@ -1045,11 +993,11 @@ INSERT INTO spells (name, slug, level, school, casting_time, range, components, 
 ('Gate', 'gate', 9, 'Conjuration', '1 action', '60 feet', 'V, S, M', 'a diamond worth at least 5,000 gp', 'Up to 1 minute', TRUE, FALSE, 'You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter.', NULL, 'rules.txt', 92);
 
 -- Class-Spell Relationships
-INSERT INTO class_spells (class_id, spell_id)
+INSERT INTO spell_classes (class_id, spell_id)
 SELECT c.id, s.id FROM classes c, spells s
 WHERE c.slug = 'wizard' AND s.slug IN ('acid-splash', 'fire-bolt', 'light', 'mage-hand', 'prestidigitation', 'ray-of-frost', 'magic-missile', 'shield', 'detect-magic', 'sleep', 'thunderwave', 'burning-hands', 'hold-person', 'invisibility', 'misty-step', 'scorching-ray', 'fireball', 'lightning-bolt', 'counterspell', 'dispel-magic', 'fly', 'haste');
 
-INSERT INTO class_spells (class_id, spell_id)
+INSERT INTO spell_classes (class_id, spell_id)
 SELECT c.id, s.id FROM classes c, spells s
 WHERE c.slug = 'cleric' AND s.slug IN ('light', 'sacred-flame', 'cure-wounds', 'detect-magic', 'bless', 'spiritual-weapon', 'dispel-magic');
 
@@ -1090,39 +1038,39 @@ INSERT INTO monsters (name, slug, size, type, subtype, alignment, armor_class, a
 -- ---------------------------------------------------------------------------
 
 -- Weapons
-INSERT INTO items (name, slug, item_type, description, cost, weight, damage, damage_type, weapon_properties, weapon_range, source_document, source_page) VALUES
-('Dagger', 'dagger', 'weapon', 'A simple melee weapon useful for close quarters combat and throwing.', '2 gp', '1 lb.', '1d4', 'piercing', ARRAY['Finesse', 'Light', 'Thrown'], '20/60', 'rules.txt', 46),
-('Shortsword', 'shortsword', 'weapon', 'A martial melee weapon favored by rogues for its quick, precise strikes.', '10 gp', '2 lb.', '1d6', 'piercing', ARRAY['Finesse', 'Light'], NULL, 'rules.txt', 46),
-('Longsword', 'longsword', 'weapon', 'A versatile martial weapon, the longsword is the quintessential knight''s blade.', '15 gp', '3 lb.', '1d8', 'slashing', ARRAY['Versatile (1d10)'], NULL, 'rules.txt', 46),
-('Greatsword', 'greatsword', 'weapon', 'A massive two-handed sword capable of cleaving through multiple foes.', '50 gp', '6 lb.', '2d6', 'slashing', ARRAY['Heavy', 'Two-Handed'], NULL, 'rules.txt', 46),
-('Longbow', 'longbow', 'weapon', 'A tall bow used for long-range attacks, requiring significant strength to draw.', '50 gp', '2 lb.', '1d8', 'piercing', ARRAY['Ammunition', 'Heavy', 'Two-Handed'], '150/600', 'rules.txt', 46),
-('Shortbow', 'shortbow', 'weapon', 'A compact bow ideal for skirmishers and those who favor mobility.', '25 gp', '2 lb.', '1d6', 'piercing', ARRAY['Ammunition', 'Two-Handed'], '80/320', 'rules.txt', 46),
-('Handaxe', 'handaxe', 'weapon', 'A simple weapon that can be used in melee or thrown at enemies.', '5 gp', '2 lb.', '1d6', 'slashing', ARRAY['Light', 'Thrown'], '20/60', 'rules.txt', 46),
-('Greataxe', 'greataxe', 'weapon', 'A massive axe favored by barbarians for its devastating damage.', '30 gp', '7 lb.', '1d12', 'slashing', ARRAY['Heavy', 'Two-Handed'], NULL, 'rules.txt', 46),
-('Quarterstaff', 'quarterstaff', 'weapon', 'A simple wooden staff, often used by monks and travelers.', '2 sp', '4 lb.', '1d6', 'bludgeoning', ARRAY['Versatile (1d8)'], NULL, 'rules.txt', 46),
-('Light Crossbow', 'light-crossbow', 'weapon', 'A mechanical ranged weapon that fires bolts.', '25 gp', '5 lb.', '1d8', 'piercing', ARRAY['Ammunition', 'Loading', 'Two-Handed'], '80/320', 'rules.txt', 46);
+INSERT INTO items (name, slug, type, subtype, description, cost, weight, damage, properties, source_document, source_page) VALUES
+('Dagger', 'dagger', 'weapon', 'simple melee', 'A simple melee weapon useful for close quarters combat and throwing.', '2 gp', '1 lb.', '1d4 piercing', '{"properties": ["Finesse", "Light", "Thrown"], "range": "20/60"}', 'rules.txt', 46),
+('Shortsword', 'shortsword', 'weapon', 'martial melee', 'A martial melee weapon favored by rogues for its quick, precise strikes.', '10 gp', '2 lb.', '1d6 piercing', '{"properties": ["Finesse", "Light"]}', 'rules.txt', 46),
+('Longsword', 'longsword', 'weapon', 'martial melee', 'A versatile martial weapon, the longsword is the quintessential knight''s blade.', '15 gp', '3 lb.', '1d8 slashing', '{"properties": ["Versatile (1d10)"]}', 'rules.txt', 46),
+('Greatsword', 'greatsword', 'weapon', 'martial melee', 'A massive two-handed sword capable of cleaving through multiple foes.', '50 gp', '6 lb.', '2d6 slashing', '{"properties": ["Heavy", "Two-Handed"]}', 'rules.txt', 46),
+('Longbow', 'longbow', 'weapon', 'martial ranged', 'A tall bow used for long-range attacks, requiring significant strength to draw.', '50 gp', '2 lb.', '1d8 piercing', '{"properties": ["Ammunition", "Heavy", "Two-Handed"], "range": "150/600"}', 'rules.txt', 46),
+('Shortbow', 'shortbow', 'weapon', 'simple ranged', 'A compact bow ideal for skirmishers and those who favor mobility.', '25 gp', '2 lb.', '1d6 piercing', '{"properties": ["Ammunition", "Two-Handed"], "range": "80/320"}', 'rules.txt', 46),
+('Handaxe', 'handaxe', 'weapon', 'simple melee', 'A simple weapon that can be used in melee or thrown at enemies.', '5 gp', '2 lb.', '1d6 slashing', '{"properties": ["Light", "Thrown"], "range": "20/60"}', 'rules.txt', 46),
+('Greataxe', 'greataxe', 'weapon', 'martial melee', 'A massive axe favored by barbarians for its devastating damage.', '30 gp', '7 lb.', '1d12 slashing', '{"properties": ["Heavy", "Two-Handed"]}', 'rules.txt', 46),
+('Quarterstaff', 'quarterstaff', 'weapon', 'simple melee', 'A simple wooden staff, often used by monks and travelers.', '2 sp', '4 lb.', '1d6 bludgeoning', '{"properties": ["Versatile (1d8)"]}', 'rules.txt', 46),
+('Light Crossbow', 'light-crossbow', 'weapon', 'simple ranged', 'A mechanical ranged weapon that fires bolts.', '25 gp', '5 lb.', '1d8 piercing', '{"properties": ["Ammunition", "Loading", "Two-Handed"], "range": "80/320"}', 'rules.txt', 46);
 
 -- Armor
-INSERT INTO items (name, slug, item_type, description, cost, weight, armor_class, armor_type, strength_requirement, stealth_disadvantage, source_document, source_page) VALUES
-('Leather Armor', 'leather-armor', 'armor', 'The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil.', '10 gp', '10 lb.', '11 + Dex modifier', 'Light', NULL, FALSE, 'rules.txt', 45),
-('Studded Leather', 'studded-leather', 'armor', 'Made from tough but flexible leather, studded leather is reinforced with close-set rivets or spikes.', '45 gp', '13 lb.', '12 + Dex modifier', 'Light', NULL, FALSE, 'rules.txt', 45),
-('Chain Shirt', 'chain-shirt', 'armor', 'Made of interlocking metal rings, a chain shirt is worn between layers of clothing or leather.', '50 gp', '20 lb.', '13 + Dex modifier (max 2)', 'Medium', NULL, FALSE, 'rules.txt', 45),
-('Scale Mail', 'scale-mail', 'armor', 'This armor consists of a coat and leggings of leather covered with overlapping pieces of metal.', '50 gp', '45 lb.', '14 + Dex modifier (max 2)', 'Medium', NULL, TRUE, 'rules.txt', 45),
-('Chain Mail', 'chain-mail', 'armor', 'Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath.', '75 gp', '55 lb.', '16', 'Heavy', 13, TRUE, 'rules.txt', 45),
-('Plate Armor', 'plate-armor', 'armor', 'Plate consists of shaped, interlocking metal plates to cover the entire body.', '1,500 gp', '65 lb.', '18', 'Heavy', 15, TRUE, 'rules.txt', 45),
-('Shield', 'shield', 'armor', 'A shield is made from wood or metal and is carried in one hand.', '10 gp', '6 lb.', '+2', 'Shield', NULL, FALSE, 'rules.txt', 45);
+INSERT INTO items (name, slug, type, subtype, description, cost, weight, armor_class, properties, source_document, source_page) VALUES
+('Leather Armor', 'leather-armor', 'armor', 'light', 'The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil.', '10 gp', '10 lb.', '11 + Dex modifier', '{}', 'rules.txt', 45),
+('Studded Leather', 'studded-leather', 'armor', 'light', 'Made from tough but flexible leather, studded leather is reinforced with close-set rivets or spikes.', '45 gp', '13 lb.', '12 + Dex modifier', '{}', 'rules.txt', 45),
+('Chain Shirt', 'chain-shirt', 'armor', 'medium', 'Made of interlocking metal rings, a chain shirt is worn between layers of clothing or leather.', '50 gp', '20 lb.', '13 + Dex modifier (max 2)', '{}', 'rules.txt', 45),
+('Scale Mail', 'scale-mail', 'armor', 'medium', 'This armor consists of a coat and leggings of leather covered with overlapping pieces of metal.', '50 gp', '45 lb.', '14 + Dex modifier (max 2)', '{"stealth_disadvantage": true}', 'rules.txt', 45),
+('Chain Mail', 'chain-mail', 'armor', 'heavy', 'Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath.', '75 gp', '55 lb.', '16', '{"strength_requirement": 13, "stealth_disadvantage": true}', 'rules.txt', 45),
+('Plate Armor', 'plate-armor', 'armor', 'heavy', 'Plate consists of shaped, interlocking metal plates to cover the entire body.', '1,500 gp', '65 lb.', '18', '{"strength_requirement": 15, "stealth_disadvantage": true}', 'rules.txt', 45),
+('Shield', 'shield', 'armor', 'shield', 'A shield is made from wood or metal and is carried in one hand.', '10 gp', '6 lb.', '+2', '{}', 'rules.txt', 45);
 
 -- Adventuring Gear
-INSERT INTO items (name, slug, item_type, description, cost, weight, source_document, source_page) VALUES
-('Backpack', 'backpack', 'adventuring_gear', 'A leather pack carried on the back, typically with drawstrings, buckles, or straps.', '2 gp', '5 lb.', 'rules.txt', 48),
-('Rope (50 feet)', 'rope-50-feet', 'adventuring_gear', 'Rope, whether made of hemp or silk, has 2 hit points and can be burst with a DC 17 Strength check.', '1 gp', '10 lb.', 'rules.txt', 48),
-('Torch', 'torch', 'adventuring_gear', 'A torch burns for 1 hour, providing bright light in a 20-foot radius and dim light for an additional 20 feet.', '1 cp', '1 lb.', 'rules.txt', 48),
-('Rations (1 day)', 'rations', 'adventuring_gear', 'Rations consist of dry foods suitable for extended travel, including jerky, dried fruit, hardtack, and nuts.', '5 sp', '2 lb.', 'rules.txt', 48),
-('Waterskin', 'waterskin', 'adventuring_gear', 'A waterskin can hold up to 4 pints of liquid.', '2 sp', '5 lb. (full)', 'rules.txt', 48),
-('Bedroll', 'bedroll', 'adventuring_gear', 'A bedroll helps you sleep in comfort.', '1 gp', '7 lb.', 'rules.txt', 48),
-('Tinderbox', 'tinderbox', 'adventuring_gear', 'This small container holds flint, fire steel, and tinder used to kindle a fire.', '5 sp', '1 lb.', 'rules.txt', 48),
-('Healer''s Kit', 'healers-kit', 'adventuring_gear', 'This kit is a leather pouch containing bandages, salves, and splints. The kit has ten uses. You can use it to stabilize a creature that has 0 hit points without needing to make a Wisdom (Medicine) check.', '5 gp', '3 lb.', 'rules.txt', 48),
-('Thieves'' Tools', 'thieves-tools', 'tool', 'This set of tools includes a small file, a set of lock picks, a small mirror mounted on a metal handle, a set of narrow-bladed scissors, and a pair of pliers.', '25 gp', '1 lb.', 'rules.txt', 48);
+INSERT INTO items (name, slug, type, subtype, description, cost, weight, source_document, source_page) VALUES
+('Backpack', 'backpack', 'adventuring gear', NULL, 'A leather pack carried on the back, typically with drawstrings, buckles, or straps.', '2 gp', '5 lb.', 'rules.txt', 48),
+('Rope (50 feet)', 'rope-50-feet', 'adventuring gear', NULL, 'Rope, whether made of hemp or silk, has 2 hit points and can be burst with a DC 17 Strength check.', '1 gp', '10 lb.', 'rules.txt', 48),
+('Torch', 'torch', 'adventuring gear', NULL, 'A torch burns for 1 hour, providing bright light in a 20-foot radius and dim light for an additional 20 feet.', '1 cp', '1 lb.', 'rules.txt', 48),
+('Rations (1 day)', 'rations', 'adventuring gear', NULL, 'Rations consist of dry foods suitable for extended travel, including jerky, dried fruit, hardtack, and nuts.', '5 sp', '2 lb.', 'rules.txt', 48),
+('Waterskin', 'waterskin', 'adventuring gear', NULL, 'A waterskin can hold up to 4 pints of liquid.', '2 sp', '5 lb. (full)', 'rules.txt', 48),
+('Bedroll', 'bedroll', 'adventuring gear', NULL, 'A bedroll helps you sleep in comfort.', '1 gp', '7 lb.', 'rules.txt', 48),
+('Tinderbox', 'tinderbox', 'adventuring gear', NULL, 'This small container holds flint, fire steel, and tinder used to kindle a fire.', '5 sp', '1 lb.', 'rules.txt', 48),
+('Healer''s Kit', 'healers-kit', 'adventuring gear', NULL, 'This kit is a leather pouch containing bandages, salves, and splints. The kit has ten uses. You can use it to stabilize a creature that has 0 hit points without needing to make a Wisdom (Medicine) check.', '5 gp', '3 lb.', 'rules.txt', 48),
+('Thieves'' Tools', 'thieves-tools', 'tool', NULL, 'This set of tools includes a small file, a set of lock picks, a small mirror mounted on a metal handle, a set of narrow-bladed scissors, and a pair of pliers.', '25 gp', '1 lb.', 'rules.txt', 48);
 
 -- ---------------------------------------------------------------------------
 -- 8.7 Feats
