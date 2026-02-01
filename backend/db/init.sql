@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS campaigns CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
 -- D&D Content junction tables
-DROP TABLE IF EXISTS class_spells CASCADE;
+DROP TABLE IF EXISTS spell_classes CASCADE;
 DROP TABLE IF EXISTS rule_references CASCADE;
 
 -- D&D Content tables (second-level dependencies)
@@ -334,9 +334,11 @@ CREATE TABLE abilities (
 CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(50) NOT NULL,
-    ability_id UUID REFERENCES abilities(id),
-    description TEXT,
     slug VARCHAR(50) NOT NULL UNIQUE,
+    ability VARCHAR(20) NOT NULL,
+    description TEXT,
+    source_document TEXT,
+    source_page INT,
     embedding VECTOR(1536),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -546,7 +548,7 @@ CREATE TABLE spells (
     concentration BOOLEAN DEFAULT FALSE,
     ritual BOOLEAN DEFAULT FALSE,
     description TEXT NOT NULL,
-    at_higher_levels TEXT,
+    higher_levels TEXT,
     embedding VECTOR(1536),
     source_document TEXT,
     source_page INT,
@@ -560,7 +562,7 @@ CREATE TABLE monsters (
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
     size size_category NOT NULL,
-    monster_type VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
     subtype VARCHAR(100),
     alignment VARCHAR(50),
     armor_class INT NOT NULL,
@@ -578,6 +580,7 @@ CREATE TABLE monsters (
     senses JSONB,
     languages TEXT[],
     challenge_rating VARCHAR(10) NOT NULL,
+    challenge_rating_numeric DECIMAL(5,3),
     experience_points INT,
     traits JSONB,
     actions JSONB,
@@ -599,25 +602,19 @@ CREATE TABLE items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
-    item_type item_type NOT NULL,
-    rarity rarity,
+    type VARCHAR(50) NOT NULL,
+    subtype VARCHAR(100),
+    rarity VARCHAR(50),
     description TEXT,
     cost VARCHAR(50),
     weight VARCHAR(50),
+    properties JSONB,
     -- Weapon-specific fields
     damage VARCHAR(50),
-    damage_type VARCHAR(50),
-    weapon_properties TEXT[],
-    weapon_range VARCHAR(50),
     -- Armor-specific fields
     armor_class VARCHAR(50),
-    armor_type VARCHAR(50),
-    strength_requirement INT,
-    stealth_disadvantage BOOLEAN,
     -- Magic item fields
-    attunement_required BOOLEAN DEFAULT FALSE,
-    attunement_requirements TEXT,
-    magical_properties JSONB,
+    requires_attunement BOOLEAN DEFAULT FALSE,
     embedding VECTOR(1536),
     source_document TEXT,
     source_page INT,
@@ -679,7 +676,7 @@ CREATE TABLE rule_references (
 );
 
 -- Class Spells: Which classes can cast which spells
-CREATE TABLE class_spells (
+CREATE TABLE spell_classes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
     subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,
@@ -784,7 +781,7 @@ CREATE INDEX idx_subraces_embedding ON subraces USING ivfflat (embedding vector_
 -- 7.3 Foreign Key Indexes
 -- ---------------------------------------------------------------------------
 
-CREATE INDEX idx_skills_ability_id ON skills(ability_id);
+CREATE INDEX idx_skills_ability ON skills(ability);
 CREATE INDEX idx_chapters_document_id ON chapters(document_id);
 CREATE INDEX idx_sections_chapter_id ON sections(chapter_id);
 CREATE INDEX idx_rules_category_id ON rules(category_id);
@@ -796,9 +793,9 @@ CREATE INDEX idx_class_features_subclass_id ON class_features(subclass_id);
 CREATE INDEX idx_class_features_level ON class_features(level);
 CREATE INDEX idx_rule_references_source ON rule_references(source_rule_id);
 CREATE INDEX idx_rule_references_target ON rule_references(target_rule_id);
-CREATE INDEX idx_class_spells_class_id ON class_spells(class_id);
-CREATE INDEX idx_class_spells_subclass_id ON class_spells(subclass_id);
-CREATE INDEX idx_class_spells_spell_id ON class_spells(spell_id);
+CREATE INDEX idx_spell_classes_class_id ON spell_classes(class_id);
+CREATE INDEX idx_spell_classes_subclass_id ON spell_classes(subclass_id);
+CREATE INDEX idx_spell_classes_spell_id ON spell_classes(spell_id);
 
 -- ---------------------------------------------------------------------------
 -- 7.4 Additional Query Indexes
@@ -807,8 +804,8 @@ CREATE INDEX idx_class_spells_spell_id ON class_spells(spell_id);
 CREATE INDEX idx_spells_level ON spells(level);
 CREATE INDEX idx_spells_school ON spells(school);
 CREATE INDEX idx_monsters_challenge_rating ON monsters(challenge_rating);
-CREATE INDEX idx_monsters_monster_type ON monsters(monster_type);
-CREATE INDEX idx_items_item_type ON items(item_type);
+CREATE INDEX idx_monsters_type ON monsters(type);
+CREATE INDEX idx_items_type ON items(type);
 CREATE INDEX idx_items_rarity ON items(rarity);
 
 -- =============================================================================
@@ -851,7 +848,7 @@ SELECT
     s.school,
     s.concentration,
     s.ritual
-FROM class_spells cs
+FROM spell_classes cs
 JOIN classes c ON cs.class_id = c.id
 JOIN spells s ON cs.spell_id = s.id
 ORDER BY c.name, s.level, s.name;
@@ -866,7 +863,7 @@ SELECT
     m.name,
     m.slug,
     m.size,
-    m.monster_type,
+    m.type,
     m.subtype,
     m.alignment,
     m.armor_class,

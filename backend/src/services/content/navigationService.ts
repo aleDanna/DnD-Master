@@ -301,21 +301,26 @@ async function buildSpellsCategory(): Promise<NavigationCategory> {
  */
 async function buildBestiaryCategory(): Promise<NavigationCategory> {
   // Build type-based navigation
-  const typeResult = await query<{ monster_type: string; count: string }>(`
-    SELECT monster_type, COUNT(*) as count
+  const typeResult = await query<{ type: string; count: string }>(`
+    SELECT type, COUNT(*) as count
     FROM monsters
-    GROUP BY monster_type
-    ORDER BY monster_type
+    GROUP BY type
+    ORDER BY type
   `);
 
-  const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `monster-type-${row.monster_type.toLowerCase().replace(/\s+/g, '-')}`,
-    label: row.monster_type,
-    slug: row.monster_type.toLowerCase().replace(/\s+/g, '-'),
-    type: 'category' as const,
-    path: `/bestiary?type=${encodeURIComponent(row.monster_type)}`,
-    itemCount: parseInt(row.count, 10),
-  }));
+  const typeNodes: NavigationNode[] = typeResult.rows
+    .filter(row => row.type != null)
+    .map(row => {
+      const monsterType = row.type;
+      return {
+        id: `monster-type-${monsterType.toLowerCase().replace(/\s+/g, '-')}`,
+        label: monsterType,
+        slug: monsterType.toLowerCase().replace(/\s+/g, '-'),
+        type: 'category' as const,
+        path: `/bestiary?type=${encodeURIComponent(monsterType)}`,
+        itemCount: parseInt(row.count, 10),
+      };
+    });
 
   // Build CR-based navigation using challenge_rating VARCHAR
   // Parse CR strings like '1/4', '1/2', '1', '10' etc.
@@ -380,21 +385,26 @@ async function buildBestiaryCategory(): Promise<NavigationCategory> {
  * Build Items category organized by type
  */
 async function buildItemsCategory(): Promise<NavigationCategory> {
-  const typeResult = await query<{ item_type: string; count: string }>(`
-    SELECT item_type, COUNT(*) as count
+  const typeResult = await query<{ type: string; count: string }>(`
+    SELECT type, COUNT(*) as count
     FROM items
-    GROUP BY item_type
-    ORDER BY item_type
+    GROUP BY type
+    ORDER BY type
   `);
 
-  const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `item-type-${row.item_type.toLowerCase().replace(/_/g, '-')}`,
-    label: capitalizeFirst(row.item_type.replace(/_/g, ' ')),
-    slug: row.item_type.toLowerCase().replace(/_/g, '-'),
-    type: 'category' as const,
-    path: `/items?type=${row.item_type}`,
-    itemCount: parseInt(row.count, 10),
-  }));
+  const typeNodes: NavigationNode[] = typeResult.rows
+    .filter(row => row.type != null)
+    .map(row => {
+      const itemType = row.type;
+      return {
+        id: `item-type-${itemType.toLowerCase().replace(/\s+/g, '-')}`,
+        label: capitalizeFirst(itemType.replace(/_/g, ' ')),
+        slug: itemType.toLowerCase().replace(/\s+/g, '-'),
+        type: 'category' as const,
+        path: `/items?type=${itemType}`,
+        itemCount: parseInt(row.count, 10),
+      };
+    });
 
   return {
     id: 'items',
@@ -510,21 +520,21 @@ async function buildSkillsCategory(): Promise<NavigationCategory> {
     id: string;
     name: string;
     slug: string;
-    ability_name: string;
+    ability: string;
   }>(`
-    SELECT s.id, s.name, s.slug, a.name as ability_name
-    FROM skills s
-    JOIN abilities a ON s.ability_id = a.id
-    ORDER BY a.name, s.name
+    SELECT id, name, slug, ability
+    FROM skills
+    ORDER BY ability, name
   `);
 
   // Group by ability
   const abilityGroups = new Map<string, NavigationNode[]>();
   for (const row of result.rows) {
-    if (!abilityGroups.has(row.ability_name)) {
-      abilityGroups.set(row.ability_name, []);
+    if (!row.ability) continue;
+    if (!abilityGroups.has(row.ability)) {
+      abilityGroups.set(row.ability, []);
     }
-    abilityGroups.get(row.ability_name)!.push({
+    abilityGroups.get(row.ability)!.push({
       id: row.id,
       label: row.name,
       slug: row.slug,
