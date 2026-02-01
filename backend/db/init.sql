@@ -781,7 +781,7 @@ CREATE INDEX idx_subraces_embedding ON subraces USING ivfflat (embedding vector_
 -- 7.3 Foreign Key Indexes
 -- ---------------------------------------------------------------------------
 
-CREATE INDEX idx_skills_ability_id ON skills(ability_id);
+CREATE INDEX idx_skills_ability ON skills(ability);
 CREATE INDEX idx_chapters_document_id ON chapters(document_id);
 CREATE INDEX idx_sections_chapter_id ON sections(chapter_id);
 CREATE INDEX idx_rules_category_id ON rules(category_id);
