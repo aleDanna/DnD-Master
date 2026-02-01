@@ -58,33 +58,31 @@ async function main(): Promise<void> {
 
     switch (command) {
       case 'init':
-        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database initialization');
+        // Create schema only (tables, indexes, triggers, views)
+        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database schema initialization');
         break;
 
       case 'seed':
-        await runSqlFile(pool, join(dbDir, 'seed-dnd-content.sql'), 'D&D content seeding');
-        break;
-
-      case 'content':
-        await runSqlFile(pool, join(dbDir, 'content.sql'), 'Additional content');
+        // Populate D&D content data
+        await runSqlFile(pool, join(dbDir, 'content.sql'), 'D&D content seeding');
         break;
 
       case 'setup':
-        // Full setup: init + seed
-        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database initialization');
-        await runSqlFile(pool, join(dbDir, 'seed-dnd-content.sql'), 'D&D content seeding');
+        // Full setup: schema + content
+        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database schema initialization');
+        await runSqlFile(pool, join(dbDir, 'content.sql'), 'D&D content seeding');
         break;
 
       case 'reset':
         // Reset: drop and recreate everything
         console.log('\n⚠️  This will DROP and recreate all tables!');
-        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database reset');
-        await runSqlFile(pool, join(dbDir, 'seed-dnd-content.sql'), 'D&D content seeding');
+        await runSqlFile(pool, join(dbDir, 'init.sql'), 'Database reset (schema)');
+        await runSqlFile(pool, join(dbDir, 'content.sql'), 'D&D content seeding');
         break;
 
       default:
         console.error(`Unknown command: ${command}`);
-        console.log('Available commands: init, seed, content, setup, reset');
+        console.log('Available commands: init, seed, setup, reset');
         process.exit(1);
     }
 
