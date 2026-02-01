@@ -308,14 +308,19 @@ async function buildBestiaryCategory(): Promise<NavigationCategory> {
     ORDER BY type
   `);
 
-  const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `monster-type-${row.type.toLowerCase().replace(/\s+/g, '-')}`,
-    label: row.type,
-    slug: row.type.toLowerCase().replace(/\s+/g, '-'),
-    type: 'category' as const,
-    path: `/bestiary?type=${encodeURIComponent(row.type)}`,
-    itemCount: parseInt(row.count, 10),
-  }));
+  const typeNodes: NavigationNode[] = typeResult.rows
+    .filter(row => row.type != null)
+    .map(row => {
+      const monsterType = row.type;
+      return {
+        id: `monster-type-${monsterType.toLowerCase().replace(/\s+/g, '-')}`,
+        label: monsterType,
+        slug: monsterType.toLowerCase().replace(/\s+/g, '-'),
+        type: 'category' as const,
+        path: `/bestiary?type=${encodeURIComponent(monsterType)}`,
+        itemCount: parseInt(row.count, 10),
+      };
+    });
 
   // Build CR-based navigation using challenge_rating VARCHAR
   // Parse CR strings like '1/4', '1/2', '1', '10' etc.
@@ -387,14 +392,19 @@ async function buildItemsCategory(): Promise<NavigationCategory> {
     ORDER BY type
   `);
 
-  const typeNodes: NavigationNode[] = typeResult.rows.map(row => ({
-    id: `item-type-${row.type.toLowerCase().replace(/\s+/g, '-')}`,
-    label: capitalizeFirst(row.type.replace(/_/g, ' ')),
-    slug: row.type.toLowerCase().replace(/\s+/g, '-'),
-    type: 'category' as const,
-    path: `/items?type=${row.type}`,
-    itemCount: parseInt(row.count, 10),
-  }));
+  const typeNodes: NavigationNode[] = typeResult.rows
+    .filter(row => row.type != null)
+    .map(row => {
+      const itemType = row.type;
+      return {
+        id: `item-type-${itemType.toLowerCase().replace(/\s+/g, '-')}`,
+        label: capitalizeFirst(itemType.replace(/_/g, ' ')),
+        slug: itemType.toLowerCase().replace(/\s+/g, '-'),
+        type: 'category' as const,
+        path: `/items?type=${itemType}`,
+        itemCount: parseInt(row.count, 10),
+      };
+    });
 
   return {
     id: 'items',
@@ -520,6 +530,7 @@ async function buildSkillsCategory(): Promise<NavigationCategory> {
   // Group by ability
   const abilityGroups = new Map<string, NavigationNode[]>();
   for (const row of result.rows) {
+    if (!row.ability) continue;
     if (!abilityGroups.has(row.ability)) {
       abilityGroups.set(row.ability, []);
     }
