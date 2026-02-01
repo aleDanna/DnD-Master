@@ -1163,5 +1163,728 @@ INSERT INTO backgrounds (name, slug, description, skill_proficiencies, tool_prof
 ('Soldier', 'soldier', 'War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, learned basic survival techniques, including how to stay alive on the battlefield.', ARRAY['Athletics', 'Intimidation'], ARRAY['One type of gaming set', 'Vehicles (land)'], 0, 'An insignia of rank, a trophy taken from a fallen enemy, a set of bone dice or deck of cards, a set of common clothes, and a pouch containing 10 gp', 'Military Rank', 'You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank.', 'rules.txt', 40);
 
 -- =============================================================================
+-- SECTION 9: Additional Rules from Basic Rules
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- 9.1 Additional Rule Categories
+-- ---------------------------------------------------------------------------
+
+-- Character Creation category
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order) VALUES
+('Character Creation', 'character-creation', 'Rules for creating player characters', NULL, 5);
+
+-- Customization category
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order) VALUES
+('Customization Options', 'customization-options', 'Optional rules for multiclassing and feats', NULL, 6);
+
+-- Magic Items category
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order) VALUES
+('Magic Items', 'magic-items', 'Rules for using and attuning to magic items', NULL, 7);
+
+-- Encounter Building category
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order) VALUES
+('Encounter Building', 'encounter-building', 'Rules for building combat encounters', NULL, 8);
+
+-- Sub-categories for Spellcasting
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order)
+SELECT 'Spell Basics', 'spell-basics', 'Fundamental rules about spells and spell slots', id, 1
+FROM rule_categories WHERE slug = 'spellcasting';
+
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order)
+SELECT 'Casting a Spell', 'casting-a-spell', 'Rules for casting time, range, components, and duration', id, 2
+FROM rule_categories WHERE slug = 'spellcasting';
+
+-- Sub-categories for Combat
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order)
+SELECT 'Order of Combat', 'order-of-combat', 'Initiative, surprise, and combat sequence', id, 5
+FROM rule_categories WHERE slug = 'combat';
+
+INSERT INTO rule_categories (name, slug, description, parent_id, sort_order)
+SELECT 'Special Combat', 'special-combat', 'Grappling, shoving, mounted and underwater combat', id, 6
+FROM rule_categories WHERE slug = 'combat';
+
+-- ---------------------------------------------------------------------------
+-- 9.2 Chapter 7: Additional Using Ability Scores Rules
+-- ---------------------------------------------------------------------------
+
+-- Advantage and Disadvantage
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Advantage and Disadvantage', 'advantage-and-disadvantage',
+'Sometimes a special ability or spell tells you that you have advantage or disadvantage on an ability check, a saving throw, or an attack roll. When that happens, you roll a second d20 when you make the roll. Use the higher of the two rolls if you have advantage, and use the lower roll if you have disadvantage.
+
+If multiple situations affect a roll and each one grants advantage or imposes disadvantage on it, you do not roll more than one additional d20. If two favorable situations grant advantage, for example, you still roll only one additional d20.
+
+If circumstances cause a roll to have both advantage and disadvantage, you are considered to have neither of them, and you roll one d20. This is true even if multiple circumstances impose disadvantage and only one grants advantage or vice versa. In such a situation, you have neither advantage nor disadvantage.
+
+When you have advantage or disadvantage and something in the game, such as the halfling Lucky trait, lets you reroll or replace the d20, you can reroll or replace only one of the dice. You choose which one.',
+'Roll 2d20, take higher for advantage or lower for disadvantage; they cancel each other out',
+ARRAY['advantage', 'disadvantage', 'd20', 'roll twice'],
+'rules.txt', 'Chapter 7', 60
+FROM rule_categories WHERE slug = 'ability-checks';
+
+-- Working Together
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Working Together', 'working-together',
+'Sometimes two or more characters team up to attempt a task. The character who is leading the effort—or the one with the highest ability modifier—can make an ability check with advantage, reflecting the help provided by the other characters. In combat, this requires the Help action.
+
+A character can only provide help if the task is one that he or she could attempt alone. For example, trying to open a lock requires proficiency with thieves tools, so a character who lacks that proficiency cannot help another character in that task. Moreover, a character can help only when two or more individuals working together would actually be productive. Some tasks, such as threading a needle, are no easier with help.',
+'Leader makes check with advantage when others help; helper must be capable of the task',
+ARRAY['help', 'working together', 'advantage', 'cooperation'],
+'rules.txt', 'Chapter 7', 62
+FROM rule_categories WHERE slug = 'ability-checks';
+
+-- Contests
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Contests', 'contests',
+'Sometimes one character or monster efforts are directly opposed to another. This can occur when both of them are trying to do the same thing and only one can succeed, such as attempting to snatch up a magic ring that has fallen on the floor. This situation also applies when one of them is trying to prevent the other one from accomplishing a goal—for example, when a monster tries to force open a door that an adventurer is holding closed. In situations like these, the outcome is determined by a special form of ability check, called a contest.
+
+Both participants in a contest make ability checks appropriate to their efforts. They apply all appropriate bonuses and penalties, but instead of comparing the total to a DC, they compare the totals of their two checks. The participant with the higher check total wins the contest. That character or monster either succeeds at the action or prevents the other one from succeeding.
+
+If the contest results in a tie, the situation remains the same as it was before the contest. Thus, one contestant might win the contest by default. If two characters tie in a contest to snatch a ring off the floor, neither character grabs it. In a contest between a monster trying to open a door and an adventurer trying to keep the door closed, a tie means that the door remains shut.',
+'Both sides roll ability checks; higher total wins; ties maintain status quo',
+ARRAY['contest', 'opposed check', 'versus'],
+'rules.txt', 'Chapter 7', 62
+FROM rule_categories WHERE slug = 'ability-checks';
+
+-- Using Each Ability - Strength
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Using Strength', 'using-strength',
+'Strength measures bodily power, athletic training, and the extent to which you can exert raw physical force.
+
+Strength Checks: A Strength check can model any attempt to lift, push, pull, or break something, to force your body through a space, or to otherwise apply brute force to a situation. The Athletics skill reflects aptitude in certain kinds of Strength checks.
+
+Attack Rolls and Damage: You add your Strength modifier to your attack roll and your damage roll when attacking with a melee weapon such as a mace, a battleaxe, or a javelin. You use melee weapons to make melee attacks in hand-to-hand combat, and some of them can be thrown to make a ranged attack.
+
+Lifting and Carrying: Your Strength score determines the amount of weight you can bear. The following terms define what you can lift or carry.
+- Carrying Capacity: Your carrying capacity is your Strength score multiplied by 15. This is the weight (in pounds) that you can carry.
+- Push, Drag, or Lift: You can push, drag, or lift a weight in pounds up to twice your carrying capacity (or 30 times your Strength score). While pushing or dragging weight in excess of your carrying capacity, your speed drops to 5 feet.
+- Size and Strength: Larger creatures can bear more weight, whereas Tiny creatures can carry less. For each size category above Medium, double the creatures carrying capacity. For a Tiny creature, halve these weights.',
+'Strength governs melee attacks, athletics, and carrying capacity (STR x 15 lbs)',
+ARRAY['strength', 'athletics', 'carrying capacity', 'lift', 'push', 'drag'],
+'rules.txt', 'Chapter 7', 62
+FROM rule_categories WHERE slug = 'using-ability-scores';
+
+-- ---------------------------------------------------------------------------
+-- 9.3 Chapter 9: Additional Combat Rules
+-- ---------------------------------------------------------------------------
+
+-- Initiative
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Initiative', 'initiative',
+'Initiative determines the order of turns during combat. When combat starts, every participant makes a Dexterity check to determine their place in the initiative order. The DM makes one roll for an entire group of identical creatures, so each member of the group acts at the same time.
+
+The DM ranks the combatants in order from the one with the highest Dexterity check total to the one with the lowest. This is the order (called the initiative order) in which they act during each round. The initiative order remains the same from round to round.
+
+If a tie occurs, the DM decides the order among tied DM-controlled creatures, and the players decide the order among their tied characters. The DM can decide the order if the tie is between a monster and a player character. Optionally, the DM can have the tied characters and monsters each roll a d20 to determine the order, highest roll going first.',
+'Roll Dexterity check at combat start; higher rolls act first each round',
+ARRAY['initiative', 'dexterity', 'combat order', 'turn order'],
+'rules.txt', 'Chapter 9', 72
+FROM rule_categories WHERE slug = 'order-of-combat';
+
+-- Surprise
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Surprise', 'surprise',
+'A band of adventurers sneaks up on a bandit camp, springing from the trees to attack them. A gelatinous cube glides down a dungeon passage, unnoticed by the adventurers until the cube engulfs one of them. In these situations, one side of the battle gains surprise over the other.
+
+The DM determines who might be surprised. If neither side tries to be stealthy, they automatically notice each other. Otherwise, the DM compares the Dexterity (Stealth) checks of anyone hiding with the passive Wisdom (Perception) score of each creature on the opposing side. Any character or monster that does not notice a threat is surprised at the start of the encounter.
+
+If you are surprised, you cannot move or take an action on your first turn of the combat, and you cannot take a reaction until that turn ends. A member of a group can be surprised even if the other members are not.',
+'Surprised creatures cannot move, act, or react on first turn; Stealth vs passive Perception',
+ARRAY['surprise', 'stealth', 'ambush', 'surprised'],
+'rules.txt', 'Chapter 9', 72
+FROM rule_categories WHERE slug = 'order-of-combat';
+
+-- Your Turn
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Your Turn', 'your-turn',
+'On your turn, you can move a distance up to your speed and take one action. You decide whether to move first or take your action first. Your speed—sometimes called your walking speed—is noted on your character sheet.
+
+The most common actions you can take are described in the Actions in Combat section. Many class features and other abilities provide additional options for your action.
+
+The Movement and Position section gives the rules for your move.
+
+You can forgo moving, taking an action, or doing anything at all on your turn. If you cannot decide what to do on your turn, consider taking the Dodge or Ready action.
+
+Bonus Actions: Various class features, spells, and other abilities let you take an additional action on your turn called a bonus action. You can take a bonus action only when a special ability, spell, or other feature of the game states that you can do something as a bonus action. You otherwise do not have a bonus action to take. You can take only one bonus action on your turn, so you must choose which bonus action to use when you have more than one available. You choose when to take a bonus action during your turn, unless the bonus actions timing is specified.
+
+Other Activity on Your Turn: Your turn can include a variety of flourishes that require neither your action nor your move. You can communicate however you are able, through brief utterances and gestures, as you take your turn. You can also interact with one object or feature of the environment for free, during either your move or your action.',
+'Move up to speed + one action per turn; bonus actions from special abilities; one free object interaction',
+ARRAY['turn', 'action', 'bonus action', 'move', 'free action'],
+'rules.txt', 'Chapter 9', 72
+FROM rule_categories WHERE slug = 'order-of-combat';
+
+-- Actions in Combat - Attack
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Attack Action', 'attack-action',
+'The most common action to take in combat is the Attack action, whether you are swinging a sword, firing an arrow from a bow, or brawling with your fists.
+
+With this action, you make one melee or ranged attack. See the Making an Attack section for the rules that govern attacks.
+
+Certain features, such as the Extra Attack feature of the fighter, allow you to make more than one attack with this action.',
+'Make one melee or ranged attack; Extra Attack feature allows multiple attacks',
+ARRAY['attack', 'action', 'melee', 'ranged'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Dash
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Dash Action', 'dash-action',
+'When you take the Dash action, you gain extra movement for the current turn. The increase equals your speed, after applying any modifiers. With a speed of 30 feet, for example, you can move up to 60 feet on your turn if you dash.
+
+Any increase or decrease to your speed changes this additional movement by the same amount. If your speed of 30 feet is reduced to 15 feet, for instance, you can move up to 30 feet this turn if you dash.',
+'Gain extra movement equal to your speed for the current turn',
+ARRAY['dash', 'action', 'movement', 'speed'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Disengage
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Disengage Action', 'disengage-action',
+'If you take the Disengage action, your movement does not provoke opportunity attacks for the rest of the turn.',
+'Your movement does not provoke opportunity attacks for the rest of the turn',
+ARRAY['disengage', 'action', 'opportunity attack', 'movement'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Dodge
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Dodge Action', 'dodge-action',
+'When you take the Dodge action, you focus entirely on avoiding attacks. Until the start of your next turn, any attack roll made against you has disadvantage if you can see the attacker, and you make Dexterity saving throws with advantage. You lose this benefit if you are incapacitated or if your speed drops to 0.',
+'Attacks against you have disadvantage; advantage on DEX saves until your next turn',
+ARRAY['dodge', 'action', 'disadvantage', 'dexterity'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Help
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Help Action', 'help-action',
+'You can lend your aid to another creature in the completion of a task. When you take the Help action, the creature you aid gains advantage on the next ability check it makes to perform the task you are helping with, provided that it makes the check before the start of your next turn.
+
+Alternatively, you can aid a friendly creature in attacking a creature within 5 feet of you. You feint, distract the target, or in some other way team up to make your allies attack more effective. If your ally attacks the target before your next turn, the first attack roll is made with advantage.',
+'Give ally advantage on next ability check or attack roll against creature within 5 feet',
+ARRAY['help', 'action', 'advantage', 'assist'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Hide
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Hide Action', 'hide-action',
+'When you take the Hide action, you make a Dexterity (Stealth) check in an attempt to hide, following the rules for hiding. If you succeed, you gain certain benefits, as described in the Unseen Attackers and Targets section.',
+'Make Dexterity (Stealth) check to hide from enemies',
+ARRAY['hide', 'action', 'stealth', 'unseen'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Ready
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Ready Action', 'ready-action',
+'Sometimes you want to get the jump on a foe or wait for a particular circumstance before you act. To do so, you can take the Ready action on your turn, which lets you act using your reaction before the start of your next turn.
+
+First, you decide what perceivable circumstance will trigger your reaction. Then, you choose the action you will take in response to that trigger, or you choose to move up to your speed in response to it. Examples include: If the cultist steps on the trapdoor, I will pull the lever that opens it, and If the goblin steps next to me, I move away.
+
+When the trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger. Remember that you can take only one reaction per round.
+
+When you ready a spell, you cast it as normal but hold its energy, which you release with your reaction when the trigger occurs. To be readied, a spell must have a casting time of 1 action, and holding onto the spells magic requires concentration. If your concentration is broken, the spell dissipates without taking effect.',
+'Prepare action or movement triggered by specific circumstance; uses reaction; readied spells require concentration',
+ARRAY['ready', 'action', 'reaction', 'trigger', 'held action'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Search
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Search Action', 'search-action',
+'When you take the Search action, you devote your attention to finding something. Depending on the nature of your search, the DM might have you make a Wisdom (Perception) check or an Intelligence (Investigation) check.',
+'Make Perception or Investigation check to find something',
+ARRAY['search', 'action', 'perception', 'investigation'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Actions in Combat - Use an Object
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Use an Object Action', 'use-an-object-action',
+'You normally interact with an object while doing something else, such as when you draw a sword as part of an attack. When an object requires your action for its use, you take the Use an Object action. This action is also useful when you want to interact with more than one object on your turn.',
+'Interact with objects that require an action or multiple objects on your turn',
+ARRAY['use object', 'action', 'interact', 'item'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'actions-in-combat';
+
+-- Death Saving Throws
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Death Saving Throws', 'death-saving-throws',
+'Whenever you start your turn with 0 hit points, you must make a special saving throw, called a death saving throw, to determine whether you creep closer to death or hang onto life. Unlike other saving throws, this one is not tied to any ability score. You are in the hands of fate now.
+
+Roll a d20. If the roll is 10 or higher, you succeed. Otherwise, you fail. A success or failure has no effect by itself. On your third success, you become stable. On your third failure, you die. The successes and failures do not need to be consecutive; keep track of both until you collect three of a kind. The number of both is reset to zero when you regain any hit points or become stable.
+
+Rolling 1 or 20: When you make a death saving throw and roll a 1 on the d20, it counts as two failures. If you roll a 20 on the d20, you regain 1 hit point.
+
+Damage at 0 Hit Points: If you take any damage while you have 0 hit points, you suffer a death saving throw failure. If the damage is from a critical hit, you suffer two failures instead. If the damage equals or exceeds your hit point maximum, you suffer instant death.',
+'Roll d20: 10+ succeeds, below 10 fails; 3 successes = stable, 3 failures = death; 20 = regain 1 HP',
+ARRAY['death saving throw', 'dying', '0 hit points', 'unconscious', 'stable'],
+'rules.txt', 'Chapter 9', 79
+FROM rule_categories WHERE slug = 'damage-and-healing';
+
+-- Stabilizing a Creature
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Stabilizing a Creature', 'stabilizing-a-creature',
+'The best way to save a creature with 0 hit points is to heal it. If healing is unavailable, the creature can at least be stabilized so that it is not killed by a failed death saving throw.
+
+You can use your action to administer first aid to an unconscious creature and attempt to stabilize it, which requires a successful DC 10 Wisdom (Medicine) check.
+
+A stable creature does not make death saving throws, even though it has 0 hit points, but it does remain unconscious. The creature stops being stable, and must start making death saving throws again, if it takes any damage. A stable creature that is not healed regains 1 hit point after 1d4 hours.',
+'DC 10 Medicine check to stabilize; stable creatures regain 1 HP after 1d4 hours',
+ARRAY['stabilize', 'medicine', 'dying', 'unconscious', 'first aid'],
+'rules.txt', 'Chapter 9', 79
+FROM rule_categories WHERE slug = 'damage-and-healing';
+
+-- Two-Weapon Fighting
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Two-Weapon Fighting', 'two-weapon-fighting',
+'When you take the Attack action and attack with a light melee weapon that you are holding in one hand, you can use a bonus action to attack with a different light melee weapon that you are holding in the other hand. You do not add your ability modifier to the damage of the bonus attack, unless that modifier is negative.
+
+If either weapon has the thrown property, you can throw the weapon, instead of making a melee attack with it.',
+'Bonus action attack with off-hand light weapon; no ability modifier to damage unless negative',
+ARRAY['two-weapon fighting', 'dual wield', 'bonus action', 'light weapon', 'off-hand'],
+'rules.txt', 'Chapter 9', 75
+FROM rule_categories WHERE slug = 'making-an-attack';
+
+-- Grappling
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Grappling', 'grappling',
+'When you want to grab a creature or wrestle with it, you can use the Attack action to make a special melee attack, a grapple. If you are able to make multiple attacks with the Attack action, this attack replaces one of them.
+
+The target of your grapple must be no more than one size larger than you and must be within your reach. Using at least one free hand, you try to seize the target by making a grapple check instead of an attack roll: a Strength (Athletics) check contested by the targets Strength (Athletics) or Dexterity (Acrobatics) check (the target chooses the ability to use). If you succeed, you subject the target to the grappled condition. The condition specifies the things that end it, and you can release the target whenever you like (no action required).
+
+Escaping a Grapple: A grappled creature can use its action to escape. To do so, it must succeed on a Strength (Athletics) or Dexterity (Acrobatics) check contested by your Strength (Athletics) check.
+
+Moving a Grappled Creature: When you move, you can drag or carry the grappled creature with you, but your speed is halved, unless the creature is two or more sizes smaller than you.',
+'Athletics check vs Athletics or Acrobatics; target is grappled; speed halved when dragging',
+ARRAY['grapple', 'grappled', 'athletics', 'acrobatics', 'grab', 'restrain'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'special-combat';
+
+-- Shoving
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Shoving a Creature', 'shoving-a-creature',
+'Using the Attack action, you can make a special melee attack to shove a creature, either to knock it prone or push it away from you. If you are able to make multiple attacks with the Attack action, this attack replaces one of them.
+
+The target must be no more than one size larger than you and must be within your reach. Instead of making an attack roll, you make a Strength (Athletics) check contested by the targets Strength (Athletics) or Dexterity (Acrobatics) check (the target chooses the ability to use). If you win the contest, you either knock the target prone or push it 5 feet away from you.',
+'Athletics check vs Athletics or Acrobatics; push 5 feet or knock prone',
+ARRAY['shove', 'push', 'prone', 'athletics', 'acrobatics'],
+'rules.txt', 'Chapter 9', 74
+FROM rule_categories WHERE slug = 'special-combat';
+
+-- Mounted Combat
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Mounted Combat', 'mounted-combat',
+'A willing creature that is at least one size larger than you and that has an appropriate anatomy can serve as a mount. Once during your move, you can mount or dismount a creature within 5 feet of you (costs half your speed).
+
+Controlling a Mount: While mounted, you have two options. You can either control the mount or allow it to act independently. Intelligent creatures act independently. You can control a mount only if it has been trained to accept a rider. A controlled mount can move and act on your turn, but can only Dash, Disengage, or Dodge. An independent mount retains its place in initiative and acts normally.
+
+If your mount is knocked prone, you can use your reaction to dismount as it falls and land on your feet. Otherwise, you are dismounted and fall prone in a space within 5 feet of it.',
+'Mount/dismount costs half movement; controlled mounts can Dash, Disengage, or Dodge',
+ARRAY['mounted combat', 'mount', 'horse', 'ride', 'cavalry'],
+'rules.txt', 'Chapter 9', 80
+FROM rule_categories WHERE slug = 'special-combat';
+
+-- Underwater Combat
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Underwater Combat', 'underwater-combat',
+'When adventurers pursue sahuagin back to their undersea homes, fight off sharks in an ancient shipwreck, or find themselves in a flooded dungeon room, they must fight in a challenging environment. Underwater, the following rules apply:
+
+When making a melee weapon attack, a creature that does not have a swimming speed (either natural or granted by magic) has disadvantage on the attack roll unless the weapon is a dagger, javelin, shortsword, spear, or trident.
+
+A ranged weapon attack automatically misses a target beyond the weapons normal range. Even against a target within normal range, the attack roll has disadvantage unless the weapon is a crossbow, a net, or a weapon that is thrown like a javelin (including a spear, trident, or dart).
+
+Creatures and objects that are fully immersed in water have resistance to fire damage.',
+'Melee attacks have disadvantage without swim speed (except certain weapons); ranged attacks limited; fire resistance',
+ARRAY['underwater', 'swimming', 'aquatic', 'water', 'fire resistance'],
+'rules.txt', 'Chapter 9', 80
+FROM rule_categories WHERE slug = 'special-combat';
+
+-- ---------------------------------------------------------------------------
+-- 9.4 Chapter 10: Spellcasting Rules
+-- ---------------------------------------------------------------------------
+
+-- Spell Slots
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Spell Slots', 'spell-slots',
+'Regardless of how many spells a caster knows or prepares, he or she can cast only a limited number of spells before resting. Manipulating the fabric of magic and channeling its energy into even a simple spell is physically and mentally taxing, and higher-level spells are even more so. Thus, each spellcasting class description includes a table showing how many spell slots of each spell level a character can use at each character level.
+
+When a character casts a spell, he or she expends a slot of that spells level or higher, effectively filling a slot with the spell. You can think of a spell slot as a groove of a certain size—small for a 1st-level slot, larger for a spell of higher level. A 1st-level spell fits into a slot of any size, but a 9th-level spell fits only in a 9th-level slot.
+
+Some characters and monsters have special abilities that let them cast spells without using spell slots. Monks who follow the Way of the Four Elements, warlocks who choose certain eldritch invocations, and pit fiends from the Nine Hells can all cast spells in such a way.
+
+Casting a Spell at a Higher Level: When a spellcaster casts a spell using a slot that is of a higher level than the spell, the spell assumes the higher level for that casting. For instance, if a wizard casts magic missile using one of her 2nd-level slots, that magic missile is 2nd level. Effectively, the spell expands to fill the slot it is put into. Some spells have more powerful effects when cast at a higher level.',
+'Spell slots limit casting; higher slots can cast lower spells; some spells scale with slot level',
+ARRAY['spell slot', 'spellcasting', 'spell level', 'higher level'],
+'rules.txt', 'Chapter 10', 82
+FROM rule_categories WHERE slug = 'spell-basics';
+
+-- Cantrips
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Cantrips', 'cantrips',
+'A cantrip is a spell that can be cast at will, without using a spell slot and without being prepared in advance. Repeated practice has fixed the spell in the casters mind and infused the caster with the magic needed to produce the effect over and over. A cantrips spell level is 0.',
+'Level 0 spells cast at will without spell slots; always available',
+ARRAY['cantrip', 'spell level 0', 'at will'],
+'rules.txt', 'Chapter 10', 82
+FROM rule_categories WHERE slug = 'spell-basics';
+
+-- Rituals
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Rituals', 'rituals',
+'Certain spells have a special tag: ritual. Such a spell can be cast following the normal rules for spellcasting, or the spell can be cast as a ritual. The ritual version of a spell takes 10 minutes longer to cast than normal. It also does not expend a spell slot, which means the ritual version of a spell cannot be cast at a higher level.
+
+To cast a spell as a ritual, a spellcaster must have a feature that grants the ability to do so. The cleric and the druid, for example, have such a feature. The caster must also have the spell prepared or on his or her list of spells known, unless the characters ritual feature specifies otherwise, as the wizards does.',
+'Ritual spells take 10 extra minutes but do not expend spell slots',
+ARRAY['ritual', 'ritual casting', 'spell slot'],
+'rules.txt', 'Chapter 10', 82
+FROM rule_categories WHERE slug = 'spell-basics';
+
+-- Casting Time
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Casting Time', 'casting-time',
+'Most spells require a single action to cast, but some spells require a bonus action, a reaction, or much more time to cast.
+
+Bonus Action: A spell cast with a bonus action is especially swift. You must use a bonus action on your turn to cast the spell, provided that you have not already taken a bonus action this turn. You cannot cast another spell during the same turn, except for a cantrip with a casting time of 1 action.
+
+Reactions: Some spells can be cast as reactions. These spells take a fraction of a second to bring about and are cast in response to some event. If a spell can be cast as a reaction, the spell description tells you exactly when you can do so.
+
+Longer Casting Times: Certain spells require more time to cast: minutes or even hours. When you cast a spell with a casting time longer than a single action or reaction, you must spend your action each turn casting the spell, and you must maintain your concentration while you do so. If your concentration is broken, the spell fails, but you do not expend a spell slot.',
+'Most spells are 1 action; bonus action spells prevent other spells same turn; long casts need concentration',
+ARRAY['casting time', 'action', 'bonus action', 'reaction', 'concentration'],
+'rules.txt', 'Chapter 10', 83
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- Spell Range
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Spell Range', 'spell-range',
+'The target of a spell must be within the spells range. For a spell like magic missile, the target is a creature. For a spell like fireball, the target is the point in space where the ball of fire erupts.
+
+Most spells have ranges expressed in feet. Some spells can target only a creature (including you) that you touch. Other spells, such as the shield spell, affect only you. These spells have a range of self.
+
+Spells that create cones or lines of effect that originate from you also have a range of self, indicating that the origin point of the spells effect must be you.
+
+Once a spell is cast, its effects are not limited by its range, unless the spells description says otherwise.',
+'Target must be within range; Self means caster only or origin point; Touch requires contact',
+ARRAY['range', 'touch', 'self', 'feet', 'target'],
+'rules.txt', 'Chapter 10', 83
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- Spell Components
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Spell Components', 'spell-components',
+'A spells components are the physical requirements you must meet in order to cast it. Each spells description indicates whether it requires verbal (V), somatic (S), or material (M) components. If you cannot provide one or more of a spells components, you are unable to cast the spell.
+
+Verbal (V): Most spells require the chanting of mystic words. The words themselves are not the source of the spells power; rather, the particular combination of sounds, with specific pitch and resonance, sets the threads of magic in motion. Thus, a character who is gagged or in an area of silence cannot cast a spell with a verbal component.
+
+Somatic (S): Spellcasting gestures might include a forceful gesticulation or an intricate set of gestures. If a spell requires a somatic component, the caster must have free use of at least one hand to perform these gestures.
+
+Material (M): Casting some spells requires particular objects, specified in parentheses in the component entry. A character can use a component pouch or a spellcasting focus in place of the components specified for a spell. But if a cost is indicated for a component, a character must have that specific component before he or she can cast the spell. If a spell states that a material component is consumed by the spell, the caster must provide this component for each casting of the spell.',
+'V = verbal sounds; S = somatic gestures (free hand); M = material (focus can replace non-costed items)',
+ARRAY['components', 'verbal', 'somatic', 'material', 'focus', 'component pouch'],
+'rules.txt', 'Chapter 10', 83
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- Concentration
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Concentration', 'concentration',
+'Some spells require you to maintain concentration in order to keep their magic active. If you lose concentration, such a spell ends. If a spell must be maintained with concentration, that fact appears in its Duration entry, and the spell specifies how long you can concentrate on it. You can end concentration at any time (no action required).
+
+Normal activity, such as moving and attacking, does not interfere with concentration. The following factors can break concentration:
+- Casting another spell that requires concentration. You lose concentration on a spell if you cast another spell that requires concentration.
+- Taking damage. Whenever you take damage while you are concentrating on a spell, you must make a Constitution saving throw to maintain your concentration. The DC equals 10 or half the damage you take, whichever number is higher.
+- Being incapacitated or killed. You lose concentration on a spell if you are incapacitated or if you die.
+- The DM might also decide that certain environmental phenomena, such as a wave crashing over you while you are on a storm-tossed ship, require you to succeed on a DC 10 Constitution saving throw to maintain concentration.',
+'Only one concentration spell at a time; CON save (DC 10 or half damage) when hit; ends if incapacitated',
+ARRAY['concentration', 'maintain', 'constitution', 'saving throw', 'duration'],
+'rules.txt', 'Chapter 10', 84
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- Areas of Effect
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Areas of Effect', 'areas-of-effect',
+'Spells such as burning hands and cone of cold cover an area, allowing them to affect multiple creatures at once. A spells description specifies its area of effect, which typically has one of five different shapes: cone, cube, cylinder, line, or sphere.
+
+Cone: A cone extends in a direction you choose from its point of origin. A cones width at a given point along its length is equal to that points distance from the point of origin. A cones area of effect specifies its maximum length.
+
+Cube: You select a cubes point of origin, which lies anywhere on a face of the cubic effect. The cubes size is expressed as the length of each side.
+
+Cylinder: A cylinders point of origin is the center of a circle of a particular radius. The circle must either be on the ground or at the height of the spell effect. The energy in a cylinder expands in straight lines from the point of origin to the perimeter of the circle, forming the base of the cylinder. The spells effect then shoots up from the base or down from the top, to a distance equal to the height of the cylinder.
+
+Line: A line extends from its point of origin in a straight path up to its length and covers an area defined by its width.
+
+Sphere: You select a spheres point of origin, and the sphere extends outward from that point. The spheres size is expressed as a radius in feet that extends from the point.',
+'Cone, Cube, Cylinder, Line, Sphere - each has point of origin and defined dimensions',
+ARRAY['area of effect', 'cone', 'cube', 'cylinder', 'line', 'sphere', 'aoe'],
+'rules.txt', 'Chapter 10', 84
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- Spell Save DC and Attack
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Spell Save DC and Attack Rolls', 'spell-save-dc-and-attack-rolls',
+'Many spells specify that a target can make a saving throw to avoid some or all of a spells effects. The spell specifies the ability that the target uses for the save and what happens on a success or failure.
+
+The DC to resist one of your spells equals 8 + your spellcasting ability modifier + your proficiency bonus + any special modifiers.
+
+Spell Attack Modifier: Some spells require the caster to make an attack roll to determine whether the spell effect hits the intended target. Your attack bonus with a spell attack equals your spellcasting ability modifier + your proficiency bonus.
+
+Most spells that require attack rolls involve ranged attacks. Remember that you have disadvantage on a ranged attack roll if you are within 5 feet of a hostile creature that can see you and that is not incapacitated.',
+'Spell Save DC = 8 + ability mod + proficiency; Spell Attack = ability mod + proficiency',
+ARRAY['spell save dc', 'spell attack', 'spellcasting ability', 'proficiency bonus'],
+'rules.txt', 'Chapter 10', 85
+FROM rule_categories WHERE slug = 'casting-a-spell';
+
+-- ---------------------------------------------------------------------------
+-- 9.5 Chapter 1: Character Creation Rules
+-- ---------------------------------------------------------------------------
+
+-- Ability Score Modifiers
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Ability Score Modifiers', 'ability-score-modifiers',
+'Each of a creatures abilities has a score, a number that defines the magnitude of that ability. An ability score is not just a measure of innate capabilities, but also encompasses a creatures training and competence in activities related to that ability.
+
+A score of 10 or 11 is the normal human average, but adventurers and many monsters are a cut above average in most abilities. A score of 18 is the highest that a person usually reaches. Adventurers can have scores as high as 20, and monsters and divine beings can have scores as high as 30.
+
+Each ability also has a modifier, derived from the score and ranging from -5 (for an ability score of 1) to +10 (for a score of 30). The Ability Scores and Modifiers table notes the ability modifiers for the range of possible ability scores, from 1 to 30.
+
+To determine an ability modifier, subtract 10 from the ability score and then divide the total by 2 (round down).
+
+Score 1: -5, Score 2-3: -4, Score 4-5: -3, Score 6-7: -2, Score 8-9: -1, Score 10-11: +0, Score 12-13: +1, Score 14-15: +2, Score 16-17: +3, Score 18-19: +4, Score 20-21: +5, Score 22-23: +6, Score 24-25: +7, Score 26-27: +8, Score 28-29: +9, Score 30: +10.',
+'Modifier = (Score - 10) / 2 rounded down; ranges from -5 to +10',
+ARRAY['ability score', 'modifier', 'ability modifier', 'score'],
+'rules.txt', 'Chapter 1', 8
+FROM rule_categories WHERE slug = 'character-creation';
+
+-- Proficiency Bonus
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Proficiency Bonus', 'proficiency-bonus',
+'Characters have a proficiency bonus determined by level. Monsters also have this bonus, which is incorporated in their stat blocks. The bonus is used in the rules on ability checks, saving throws, and attack rolls.
+
+Your proficiency bonus cannot be added to a single die roll or other number more than once. For example, if two different rules say you can add your proficiency bonus to a Wisdom saving throw, you nevertheless add the bonus only once when you make the save.
+
+Occasionally, your proficiency bonus might be multiplied or divided (doubled or halved, for example) before you apply it. If a circumstance suggests that your proficiency bonus applies more than once to the same roll, you still add it only once and multiply or divide it only once.
+
+Level 1-4: +2, Level 5-8: +3, Level 9-12: +4, Level 13-16: +5, Level 17-20: +6.',
+'Increases with level (+2 to +6); added to trained skills, saves, and attacks; never added twice',
+ARRAY['proficiency bonus', 'proficiency', 'level', 'bonus'],
+'rules.txt', 'Chapter 1', 12
+FROM rule_categories WHERE slug = 'character-creation';
+
+-- Hit Points and Hit Dice
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Hit Points and Hit Dice', 'hit-points-and-hit-dice',
+'Your characters hit points define how tough your character is in combat and other dangerous situations. Your hit points are determined by your Hit Dice (short for Hit Point Dice).
+
+At 1st level, your character has 1 Hit Die, and the die type is determined by your class. You start with hit points equal to the highest roll of that die, as indicated in your class description. (You also add your Constitution modifier.) This is also your hit point maximum.
+
+Record your characters hit points on your character sheet. Also record the type of Hit Die your character uses and the number of Hit Dice you have. After you rest, you can spend Hit Dice to regain hit points.
+
+Each time you gain a level, you gain 1 additional Hit Die. Roll that Hit Die, add your Constitution modifier to the roll, and add the total to your hit point maximum. Alternatively, you can use the fixed value shown in your class entry, which is the average result of the die roll (rounded up).',
+'HP max = Hit Die max + CON mod at level 1; gain Hit Die roll + CON each level',
+ARRAY['hit points', 'hit dice', 'hp', 'constitution', 'health'],
+'rules.txt', 'Chapter 1', 10
+FROM rule_categories WHERE slug = 'character-creation';
+
+-- ---------------------------------------------------------------------------
+-- 9.6 Chapter 6: Customization Rules
+-- ---------------------------------------------------------------------------
+
+-- Multiclassing
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Multiclassing', 'multiclassing',
+'Multiclassing allows you to gain levels in multiple classes. Doing so lets you mix the abilities of those classes to realize a character concept that might not be reflected in one of the standard class options.
+
+With this rule, you have the option of gaining a level in a new class whenever you advance in level, instead of gaining a level in your current class. Your levels in all your classes are added together to determine your character level.
+
+Prerequisites: To qualify for a new class, you must meet the ability score prerequisites for both your current class and your new one. Without the full training that a beginning character receives, you must be a quick study in your new class, having a natural aptitude that is reflected by higher-than-average ability scores.
+
+Experience Points: The experience point cost to gain a level is always based on your total character level, not your level in a particular class.
+
+Hit Points and Hit Dice: You gain the hit points from your new class as described for levels after 1st. You gain the 1st-level hit points for a class only when you are a 1st-level character.',
+'Gain levels in multiple classes; must meet ability prerequisites; XP based on total level',
+ARRAY['multiclassing', 'multiclass', 'dual class', 'prerequisites'],
+'rules.txt', 'Chapter 6', 58
+FROM rule_categories WHERE slug = 'customization-options';
+
+-- Feats Optional Rule
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Feats', 'feats-rule',
+'A feat represents a talent or an area of expertise that gives a character special capabilities. It embodies training, experience, and abilities beyond what a class provides.
+
+At certain levels, your class gives you the Ability Score Improvement feature. Using the optional feats rule, you can forgo taking that feature to take a feat of your choice instead. You can take each feat only once, unless the feats description says otherwise.
+
+You must meet any prerequisite specified in a feat to take that feat. If you ever lose a feats prerequisite, you cannot use that feat until you regain the prerequisite.',
+'Optional rule: take a feat instead of Ability Score Improvement; each feat taken only once',
+ARRAY['feat', 'ability score improvement', 'optional rule', 'talent'],
+'rules.txt', 'Chapter 6', 58
+FROM rule_categories WHERE slug = 'customization-options';
+
+-- ---------------------------------------------------------------------------
+-- 9.7 Chapter 13: Encounter Building Rules
+-- ---------------------------------------------------------------------------
+
+-- Challenge Rating
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Challenge Rating', 'challenge-rating',
+'A monsters challenge rating tells you how great a threat the monster is. An appropriately equipped and well-rested party of four adventurers should be able to defeat a monster that has a challenge rating equal to its level without suffering any deaths.
+
+Monsters that are significantly weaker than 1st-level characters have a challenge rating lower than 1. Monsters with a challenge rating of 0 are insignificant except in large numbers.
+
+Some monsters present a greater challenge than even a typical 20th-level party can handle. These monsters have a challenge rating of 21 or higher and are specifically designed to test player skill.',
+'CR equals party level for a fair fight with 4 adventurers; CR 0 monsters are weak individually',
+ARRAY['challenge rating', 'cr', 'monster', 'difficulty', 'encounter'],
+'rules.txt', 'Chapter 13', 165
+FROM rule_categories WHERE slug = 'encounter-building';
+
+-- XP Thresholds
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'XP Thresholds by Character Level', 'xp-thresholds',
+'The XP Thresholds by Character Level table has four columns. Each column indicates the threshold for encounter difficulty for a single character of a given level.
+
+Easy: An easy encounter does not tax the characters resources or put them in serious peril.
+
+Medium: A medium encounter usually has one or two scary moments for the players, but the characters should emerge victorious with no casualties.
+
+Hard: A hard encounter could go badly for the adventurers. Weaker characters might get taken out of the fight, and there is a slim chance that one or more characters might die.
+
+Deadly: A deadly encounter could be lethal for one or more player characters. Survival often requires good tactics and quick thinking, and the party risks defeat.
+
+Level 1: Easy 25, Medium 50, Hard 75, Deadly 100.
+Level 5: Easy 250, Medium 500, Hard 750, Deadly 1100.
+Level 10: Easy 600, Medium 1200, Hard 1900, Deadly 2800.
+Level 15: Easy 1100, Medium 2100, Hard 3200, Deadly 4800.
+Level 20: Easy 2800, Medium 5700, Hard 8500, Deadly 12700.',
+'Easy/Medium/Hard/Deadly thresholds scale with level; compare total monster XP to party thresholds',
+ARRAY['xp threshold', 'encounter difficulty', 'easy', 'medium', 'hard', 'deadly'],
+'rules.txt', 'Chapter 13', 165
+FROM rule_categories WHERE slug = 'encounter-building';
+
+-- Encounter Multipliers
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Encounter Multipliers', 'encounter-multipliers',
+'When there are multiple monsters in an encounter, the encounter is more difficult than the sum of the individual monsters XP values would suggest. To account for this, use the following multipliers:
+
+1 monster: x1
+2 monsters: x1.5
+3-6 monsters: x2
+7-10 monsters: x2.5
+11-14 monsters: x3
+15+ monsters: x4
+
+For example, if an encounter includes four monsters worth a total of 500 XP, you would multiply the total by 2, for an adjusted value of 1000 XP. This adjusted value is used only for comparing the encounter against your XP thresholds; the actual XP the characters earn is based on the monsters actual XP values.
+
+If the party contains fewer than three characters, apply the next higher multiplier. For parties of six or more characters, use the next lower multiplier.',
+'Multiply total XP by factor based on monster count: 2 = x1.5, 3-6 = x2, 7-10 = x2.5, etc.',
+ARRAY['encounter multiplier', 'multiple monsters', 'encounter building', 'xp'],
+'rules.txt', 'Chapter 13', 166
+FROM rule_categories WHERE slug = 'encounter-building';
+
+-- ---------------------------------------------------------------------------
+-- 9.8 Chapter 14: Magic Items Rules
+-- ---------------------------------------------------------------------------
+
+-- Attunement
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Attunement', 'attunement',
+'Some magic items require a creature to form a bond with them before their magical properties can be used. This bond is called attunement, and certain items have prerequisites for it. If the prerequisite is a class, a creature must be a member of that class to attune to the item.
+
+Without becoming attuned to an item that requires attunement, a creature gains only its nonmagical benefits, unless its description states otherwise. For example, a magic shield that requires attunement provides the benefits of a normal shield to a creature not attuned to it, but none of its magical properties.
+
+Attuning to an item requires a creature to spend a short rest focused on only that item while being in physical contact with it. This cannot be the same short rest used to learn the items properties. If the item requires attunement by a character of a specific class, the character must also be that class.
+
+A creatures attunement to an item ends if the creature no longer satisfies the prerequisites for attunement, if the item has been more than 100 feet away for at least 24 hours, if the creature dies, or if another creature attunes to the item.
+
+A creature can be attuned to no more than three magic items at a time.',
+'Short rest to attune; max 3 attuned items; ends at 100+ feet for 24 hours or death',
+ARRAY['attunement', 'magic item', 'attune', 'bond', 'short rest'],
+'rules.txt', 'Chapter 14', 168
+FROM rule_categories WHERE slug = 'magic-items';
+
+-- Wearing and Wielding Items
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Wearing and Wielding Items', 'wearing-and-wielding-items',
+'Using a magic item properties might mean wearing or wielding it. A magic item meant to be worn must be donned in the intended fashion: boots go on the feet, gloves on the hands, hats and helmets on the head, and rings on the finger. Magic armor must be donned, a shield strapped to the arm, a cloak fastened about the shoulders. A weapon must be held.
+
+In most cases, a magic item thats meant to be worn can fit a creature regardless of size or build. Many magic garments are made to be easily adjustable, or they magically adjust themselves to the wearer.
+
+Multiple Items of the Same Kind: Use common sense to determine whether more than one of a given kind of magic item can be worn. A character cannot normally wear more than one pair of footwear, one pair of gloves or gauntlets, one pair of bracers, one suit of armor, one item of headwear, and one cloak. You can make exceptions; a character might be able to wear a circlet under a helmet, for example, or to layer two cloaks.',
+'Items must be worn/wielded properly; usually only one of each type (boots, gloves, armor, etc.)',
+ARRAY['wearing', 'wielding', 'magic item', 'equip', 'don'],
+'rules.txt', 'Chapter 14', 168
+FROM rule_categories WHERE slug = 'magic-items';
+
+-- Activating an Item
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Activating an Item', 'activating-an-item',
+'Activating some magic items requires a user to do something special, such as holding the item and uttering a command word. The description of each item category or individual item details how an item is activated. Certain items use one or more of the following rules for their activation.
+
+If an item requires an action to activate, that action is not a function of the Use an Item action, so a feature such as the rogues Fast Hands cannot be used to activate the item.
+
+Command Word: A command word is a word or phrase that must be spoken for an item to work. A magic item that requires a command word cannot be activated in an area where sound is prevented, as in the area of the silence spell.
+
+Consumables: Some items are used up when they are activated. A potion or an elixir must be swallowed, or an oil applied to the body. The writing vanishes from a scroll when it is read. Once used, a consumable item loses its magic.
+
+Spells: Some magic items allow the user to cast a spell from the item. The spell is cast at the lowest possible spell level, does not expend any of the users spell slots, and requires no components, unless the items description says otherwise.',
+'Command words need speech; consumables are one-use; item spells use lowest level and no slots',
+ARRAY['activate', 'command word', 'consumable', 'potion', 'scroll', 'magic item'],
+'rules.txt', 'Chapter 14', 168
+FROM rule_categories WHERE slug = 'magic-items';
+
+-- ---------------------------------------------------------------------------
+-- 9.9 Chapter 8: Additional Environment Rules
+-- ---------------------------------------------------------------------------
+
+-- Suffocating
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Suffocating', 'suffocating',
+'A creature can hold its breath for a number of minutes equal to 1 + its Constitution modifier (minimum of 30 seconds).
+
+When a creature runs out of breath or is choking, it can survive for a number of rounds equal to its Constitution modifier (minimum of 1 round). At the start of its next turn, it drops to 0 hit points and is dying, and it cannot regain hit points or be stabilized until it can breathe again.
+
+For example, a creature with a Constitution of 14 can hold its breath for 3 minutes. If it starts suffocating, it has 2 rounds to reach air before it drops to 0 hit points.',
+'Hold breath = 1 + CON mod minutes; suffocating = CON mod rounds then 0 HP',
+ARRAY['suffocating', 'breath', 'drowning', 'choking', 'constitution'],
+'rules.txt', 'Chapter 8', 69
+FROM rule_categories WHERE slug = 'environment';
+
+-- Special Senses
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Special Senses', 'special-senses',
+'Darkvision: Many creatures in fantasy gaming worlds, especially those that dwell underground, have darkvision. Within a specified range, a creature with darkvision can see in darkness as if the darkness were dim light, so areas of darkness are only lightly obscured as far as that creature is concerned. However, the creature cannot discern color in darkness, only shades of gray.
+
+Blindsight: A creature with blindsight can perceive its surroundings without relying on sight, within a specific radius. Creatures without eyes, such as oozes, and creatures with echolocation or heightened senses, such as bats and true dragons, have this sense.
+
+Truesight: A creature with truesight can, out to a specific range, see in normal and magical darkness, see invisible creatures and objects, automatically detect visual illusions and succeed on saving throws against them, and perceive the original form of a shapechanger or a creature that is transformed by magic. Furthermore, the creature can see into the Ethereal Plane.',
+'Darkvision sees in dark as dim light (grayscale); Blindsight perceives without sight; Truesight sees through magic',
+ARRAY['darkvision', 'blindsight', 'truesight', 'special senses', 'vision'],
+'rules.txt', 'Chapter 8', 68
+FROM rule_categories WHERE slug = 'environment';
+
+-- Food and Water
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Food and Water', 'food-and-water',
+'Characters who do not eat or drink suffer the effects of exhaustion. Exhaustion caused by lack of food or water cannot be removed until the character eats and drinks the full required amount.
+
+Food: A character needs one pound of food per day and can make food last longer by subsisting on half rations. Eating half a pound of food in a day counts as half a day without food. A character can go without food for a number of days equal to 3 + his or her Constitution modifier (minimum 1). At the end of each day beyond that limit, a character automatically suffers one level of exhaustion. A normal day of eating resets the count of days without food to zero.
+
+Water: A character needs one gallon of water per day, or two gallons per day if the weather is hot. A character who drinks only half that much water must succeed on a DC 15 Constitution saving throw or suffer one level of exhaustion at the end of the day. A character with access to even less water automatically suffers one level of exhaustion at the end of the day. If the character already has one or more levels of exhaustion, the character takes two levels in either case.',
+'Food: 1 lb/day, survive 3 + CON mod days; Water: 1 gallon/day (2 in heat), DC 15 CON save if half',
+ARRAY['food', 'water', 'exhaustion', 'survival', 'starvation', 'dehydration'],
+'rules.txt', 'Chapter 8', 69
+FROM rule_categories WHERE slug = 'environment';
+
+-- Climbing, Swimming, and Crawling
+INSERT INTO rules (category_id, title, slug, content, summary, keywords, source_document, source_chapter, source_page)
+SELECT id, 'Climbing, Swimming, and Crawling', 'climbing-swimming-crawling',
+'While climbing or swimming, each foot of movement costs 1 extra foot (2 extra feet in difficult terrain), unless a creature has a climbing or swimming speed. At the DMs option, climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check. Similarly, gaining any distance in rough water might require a successful Strength (Athletics) check.
+
+While you are prone, you can crawl (move at half speed). Dropping prone costs no movement. Standing up from prone costs half your total movement for the turn.',
+'Climbing/swimming costs double movement; crawling at half speed; stand from prone costs half movement',
+ARRAY['climbing', 'swimming', 'crawling', 'prone', 'movement', 'athletics'],
+'rules.txt', 'Chapter 8', 67
+FROM rule_categories WHERE slug = 'movement';
+
+-- =============================================================================
 -- END OF CONTENT SEED DATA
 -- =============================================================================
