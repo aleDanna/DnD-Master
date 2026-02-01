@@ -1,14 +1,12 @@
 -- =============================================================================
--- D&D Master - Consolidated Database Initialization Script
+-- D&D Master - Database Schema Initialization Script
 -- =============================================================================
--- Version: 1.0
+-- Version: 2.0
 -- Target: PostgreSQL 14+ with pgvector extension
--- Purpose: Initialize database schema for D&D campaign management with content
+-- Purpose: Initialize database schema for D&D campaign management
 --
--- This script consolidates:
---   - User authentication tables (standalone, replacing Supabase auth)
---   - Campaign management tables (campaigns, players, sessions, events)
---   - D&D 5th Edition content (rules, classes, races, spells, monsters, etc.)
+-- This script creates all tables, types, indexes, triggers, and views.
+-- For content data (rules, classes, spells, etc.), run content.sql after this.
 --
 -- This script is idempotent - safe to run multiple times via DROP IF EXISTS
 -- =============================================================================
@@ -32,7 +30,6 @@ DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS characters CASCADE;
 DROP TABLE IF EXISTS campaign_players CASCADE;
 DROP TABLE IF EXISTS campaigns CASCADE;
-DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
 -- D&D Content junction tables
@@ -741,10 +738,13 @@ CREATE TRIGGER set_events_sequence BEFORE INSERT ON events
     FOR EACH ROW EXECUTE FUNCTION set_event_sequence();
 
 -- =============================================================================
--- SECTION 7: D&D Content Indexes
+-- SECTION 7: Indexes
 -- =============================================================================
 
--- Full-Text Search Indexes
+-- ---------------------------------------------------------------------------
+-- 7.1 Full-Text Search Indexes
+-- ---------------------------------------------------------------------------
+
 CREATE INDEX idx_rules_content_fts ON rules USING GIN (to_tsvector('english', content));
 CREATE INDEX idx_rules_title_fts ON rules USING GIN (to_tsvector('english', title));
 CREATE INDEX idx_spells_description_fts ON spells USING GIN (to_tsvector('english', description));
@@ -760,7 +760,10 @@ CREATE INDEX idx_conditions_description_fts ON conditions USING GIN (to_tsvector
 CREATE INDEX idx_class_features_description_fts ON class_features USING GIN (to_tsvector('english', description));
 CREATE INDEX idx_sections_content_fts ON sections USING GIN (to_tsvector('english', COALESCE(content, '')));
 
--- Vector Similarity Indexes (ivfflat)
+-- ---------------------------------------------------------------------------
+-- 7.2 Vector Similarity Indexes (ivfflat)
+-- ---------------------------------------------------------------------------
+
 CREATE INDEX idx_rules_embedding ON rules USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX idx_spells_embedding ON spells USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX idx_monsters_embedding ON monsters USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
@@ -777,7 +780,10 @@ CREATE INDEX idx_rule_categories_embedding ON rule_categories USING ivfflat (emb
 CREATE INDEX idx_subclasses_embedding ON subclasses USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX idx_subraces_embedding ON subraces USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
--- Foreign Key Indexes
+-- ---------------------------------------------------------------------------
+-- 7.3 Foreign Key Indexes
+-- ---------------------------------------------------------------------------
+
 CREATE INDEX idx_skills_ability_id ON skills(ability_id);
 CREATE INDEX idx_chapters_document_id ON chapters(document_id);
 CREATE INDEX idx_sections_chapter_id ON sections(chapter_id);
@@ -794,7 +800,10 @@ CREATE INDEX idx_class_spells_class_id ON class_spells(class_id);
 CREATE INDEX idx_class_spells_subclass_id ON class_spells(subclass_id);
 CREATE INDEX idx_class_spells_spell_id ON class_spells(spell_id);
 
--- Additional useful query indexes
+-- ---------------------------------------------------------------------------
+-- 7.4 Additional Query Indexes
+-- ---------------------------------------------------------------------------
+
 CREATE INDEX idx_spells_level ON spells(level);
 CREATE INDEX idx_spells_school ON spells(school);
 CREATE INDEX idx_monsters_challenge_rating ON monsters(challenge_rating);
@@ -806,7 +815,10 @@ CREATE INDEX idx_items_rarity ON items(rarity);
 -- SECTION 8: Views
 -- =============================================================================
 
--- Spell List View
+-- ---------------------------------------------------------------------------
+-- 8.1 Spell List View
+-- ---------------------------------------------------------------------------
+
 CREATE OR REPLACE VIEW v_spell_list AS
 SELECT
     s.id,
@@ -825,7 +837,10 @@ SELECT
 FROM spells s
 ORDER BY s.level, s.name;
 
--- Class Spell List View
+-- ---------------------------------------------------------------------------
+-- 8.2 Class Spell List View
+-- ---------------------------------------------------------------------------
+
 CREATE OR REPLACE VIEW v_class_spell_list AS
 SELECT
     c.name AS class_name,
@@ -841,7 +856,10 @@ JOIN classes c ON cs.class_id = c.id
 JOIN spells s ON cs.spell_id = s.id
 ORDER BY c.name, s.level, s.name;
 
--- Monster by CR View
+-- ---------------------------------------------------------------------------
+-- 8.3 Monster by CR View
+-- ---------------------------------------------------------------------------
+
 CREATE OR REPLACE VIEW v_monster_by_cr AS
 SELECT
     m.id,
@@ -869,183 +887,7 @@ ORDER BY
     m.name;
 
 -- =============================================================================
--- SECTION 9: D&D Reference Data
+-- END OF SCHEMA INITIALIZATION
 -- =============================================================================
-
--- ---------------------------------------------------------------------------
--- 9.1 Abilities
--- ---------------------------------------------------------------------------
-
-INSERT INTO abilities (name, abbreviation, description, slug) VALUES
-('Strength', 'STR', 'Measures physical power, athletic training, and the extent to which you can exert raw physical force.', 'strength'),
-('Dexterity', 'DEX', 'Measures agility, reflexes, balance, and coordination.', 'dexterity'),
-('Constitution', 'CON', 'Measures health, stamina, and vital force.', 'constitution'),
-('Intelligence', 'INT', 'Measures mental acuity, accuracy of recall, and the ability to reason.', 'intelligence'),
-('Wisdom', 'WIS', 'Measures perception, intuition, and insight.', 'wisdom'),
-('Charisma', 'CHA', 'Measures force of personality, persuasiveness, and leadership.', 'charisma');
-
--- ---------------------------------------------------------------------------
--- 9.2 Skills
--- ---------------------------------------------------------------------------
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Acrobatics', id, 'Your Dexterity (Acrobatics) check covers your attempt to stay on your feet in a tricky situation, such as when you''re trying to run across a sheet of ice, balance on a tightrope, or stay upright on a rocking ship''s deck.', 'acrobatics'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Animal Handling', id, 'When there is any question whether you can calm down a domesticated animal, keep a mount from getting spooked, or intuit an animal''s intentions, the DM might call for a Wisdom (Animal Handling) check.', 'animal-handling'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Arcana', id, 'Your Intelligence (Arcana) check measures your ability to recall lore about spells, magic items, eldritch symbols, magical traditions, the planes of existence, and the inhabitants of those planes.', 'arcana'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Athletics', id, 'Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming.', 'athletics'
-FROM abilities WHERE abbreviation = 'STR';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Deception', id, 'Your Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions.', 'deception'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'History', id, 'Your Intelligence (History) check measures your ability to recall lore about historical events, legendary people, ancient kingdoms, past disputes, recent wars, and lost civilizations.', 'history'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Insight', id, 'Your Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone''s next move.', 'insight'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Intimidation', id, 'When you attempt to influence someone through overt threats, hostile actions, and physical violence, the DM might ask you to make a Charisma (Intimidation) check.', 'intimidation'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Investigation', id, 'When you look around for clues and make deductions based on those clues, you make an Intelligence (Investigation) check.', 'investigation'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Medicine', id, 'A Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness.', 'medicine'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Nature', id, 'Your Intelligence (Nature) check measures your ability to recall lore about terrain, plants and animals, the weather, and natural cycles.', 'nature'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Perception', id, 'Your Wisdom (Perception) check lets you spot, hear, or otherwise detect the presence of something. It measures your general awareness of your surroundings and the keenness of your senses.', 'perception'
-FROM abilities WHERE abbreviation = 'WIS';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Performance', id, 'Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment.', 'performance'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Persuasion', id, 'When you attempt to influence someone or a group of people with tact, social graces, or good nature, the DM might ask you to make a Charisma (Persuasion) check.', 'persuasion'
-FROM abilities WHERE abbreviation = 'CHA';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Religion', id, 'Your Intelligence (Religion) check measures your ability to recall lore about deities, rites and prayers, religious hierarchies, holy symbols, and the practices of secret cults.', 'religion'
-FROM abilities WHERE abbreviation = 'INT';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Sleight of Hand', id, 'Whenever you attempt an act of legerdemain or manual trickery, such as planting something on someone else or concealing an object on your person, make a Dexterity (Sleight of Hand) check.', 'sleight-of-hand'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Stealth', id, 'Make a Dexterity (Stealth) check when you attempt to conceal yourself from enemies, slink past guards, slip away without being noticed, or sneak up on someone without being seen or heard.', 'stealth'
-FROM abilities WHERE abbreviation = 'DEX';
-
-INSERT INTO skills (name, ability_id, description, slug)
-SELECT 'Survival', id, 'The DM might ask you to make a Wisdom (Survival) check to follow tracks, hunt wild game, guide your group through frozen wastelands, identify signs that owlbears live nearby, predict the weather, or avoid quicksand.', 'survival'
-FROM abilities WHERE abbreviation = 'WIS';
-
--- ---------------------------------------------------------------------------
--- 9.3 Conditions
--- ---------------------------------------------------------------------------
-
-INSERT INTO conditions (name, description, slug, source_document, source_page) VALUES
-('Blinded', 'A blinded creature can''t see and automatically fails any ability check that requires sight.
-The creature''s attack rolls have disadvantage, and attack rolls against the creature have advantage.', 'blinded', 'rules.txt', 290),
-
-('Charmed', 'A charmed creature can''t attack the charmer or target the charmer with harmful abilities or magical effects.
-The charmer has advantage on any ability check to interact socially with the creature.', 'charmed', 'rules.txt', 290),
-
-('Deafened', 'A deafened creature can''t hear and automatically fails any ability check that requires hearing.', 'deafened', 'rules.txt', 290),
-
-('Exhaustion', 'Some special abilities and environmental hazards, such as starvation and the long-term effects of freezing or scorching temperatures, can lead to a special condition called exhaustion. Exhaustion is measured in six levels.
-
-Level 1: Disadvantage on ability checks
-Level 2: Speed halved
-Level 3: Disadvantage on attack rolls and saving throws
-Level 4: Hit point maximum halved
-Level 5: Speed reduced to 0
-Level 6: Death
-
-If an already exhausted creature suffers another effect that causes exhaustion, its current level of exhaustion increases by the amount specified in the effect''s description.
-
-A creature suffers the effect of its current level of exhaustion as well as all lower levels.
-
-An effect that removes exhaustion reduces its level as specified in the effect''s description, with all exhaustion effects ending if a creature''s exhaustion level is reduced below 1.
-
-Finishing a long rest reduces a creature''s exhaustion level by 1, provided that the creature has also ingested some food and drink.', 'exhaustion', 'rules.txt', 291),
-
-('Frightened', 'A frightened creature has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight.
-The creature can''t willingly move closer to the source of its fear.', 'frightened', 'rules.txt', 290),
-
-('Grappled', 'A grappled creature''s speed becomes 0, and it can''t benefit from any bonus to its speed.
-The condition ends if the grappler is incapacitated.
-The condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect, such as when a creature is hurled away by the thunderwave spell.', 'grappled', 'rules.txt', 290),
-
-('Incapacitated', 'An incapacitated creature can''t take actions or reactions.', 'incapacitated', 'rules.txt', 290),
-
-('Invisible', 'An invisible creature is impossible to see without the aid of magic or a special sense. For the purpose of hiding, the creature is heavily obscured. The creature''s location can be detected by any noise it makes or any tracks it leaves.
-Attack rolls against the creature have disadvantage, and the creature''s attack rolls have advantage.', 'invisible', 'rules.txt', 291),
-
-('Paralyzed', 'A paralyzed creature is incapacitated and can''t move or speak.
-The creature automatically fails Strength and Dexterity saving throws.
-Attack rolls against the creature have advantage.
-Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.', 'paralyzed', 'rules.txt', 291),
-
-('Petrified', 'A petrified creature is transformed, along with any nonmagical object it is wearing or carrying, into a solid inanimate substance (usually stone). Its weight increases by a factor of ten, and it ceases aging.
-The creature is incapacitated, can''t move or speak, and is unaware of its surroundings.
-Attack rolls against the creature have advantage.
-The creature automatically fails Strength and Dexterity saving throws.
-The creature has resistance to all damage.
-The creature is immune to poison and disease, although a poison or disease already in its system is suspended, not neutralized.', 'petrified', 'rules.txt', 291),
-
-('Poisoned', 'A poisoned creature has disadvantage on attack rolls and ability checks.', 'poisoned', 'rules.txt', 292),
-
-('Prone', 'A prone creature''s only movement option is to crawl, unless it stands up and thereby ends the condition.
-The creature has disadvantage on attack rolls.
-An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage.', 'prone', 'rules.txt', 292),
-
-('Restrained', 'A restrained creature''s speed becomes 0, and it can''t benefit from any bonus to its speed.
-Attack rolls against the creature have advantage, and the creature''s attack rolls have disadvantage.
-The creature has disadvantage on Dexterity saving throws.', 'restrained', 'rules.txt', 292),
-
-('Stunned', 'A stunned creature is incapacitated, can''t move, and can speak only falteringly.
-The creature automatically fails Strength and Dexterity saving throws.
-Attack rolls against the creature have advantage.', 'stunned', 'rules.txt', 292),
-
-('Unconscious', 'An unconscious creature is incapacitated, can''t move or speak, and is unaware of its surroundings.
-The creature drops whatever it''s holding and falls prone.
-The creature automatically fails Strength and Dexterity saving throws.
-Attack rolls against the creature have advantage.
-Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.', 'unconscious', 'rules.txt', 292);
-
--- ---------------------------------------------------------------------------
--- 9.4 Documents
--- ---------------------------------------------------------------------------
-
-INSERT INTO documents (filename, doc_type, title, description, version, publication_date) VALUES
-('rules.txt', 'rules', 'D&D Basic Rules', 'The Basic Rules for Dungeons & Dragons is a free PDF that covers the core of the tabletop game. It includes information on the four main classes (Cleric, Fighter, Rogue, Wizard), the four most common races (Dwarf, Elf, Halfling, Human), and the equipment, spells, and monsters needed to run a game.', 'v1.0', '2018-11-01'),
-('handbook.txt', 'handbook', 'Player''s Handbook', 'The Player''s Handbook is the essential reference for every Dungeons & Dragons roleplayer. It contains rules for character creation and advancement, backgrounds and skills, exploration and combat, equipment, spells, and much more.', '5th Edition', '2014-08-19');
-
--- =============================================================================
--- END OF SCHEMA CREATION
--- =============================================================================
--- Additional D&D content data (rules, classes, races, spells, monsters, items,
--- feats, backgrounds) should be loaded from a separate seed file or the original
--- migrations/001-dnd-content.sql data sections.
+-- To populate the database with D&D content, run content.sql after this script.
 -- =============================================================================
